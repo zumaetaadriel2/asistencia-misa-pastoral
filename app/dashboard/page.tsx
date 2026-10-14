@@ -101,7 +101,16 @@ export default function DashboardPage() {
         .single();
 
       if (staffError || !staff) {
-        setError("Tu cuenta no está registrada como staff. Contacta al administrador.");
+        console.error("Error al consultar usuarios_staff en Supabase:", {
+          sessionUserId: session.user.id,
+          staffError,
+          staffData: staff,
+        });
+        setError(
+          staffError?.message
+            ? `Error de acceso (${staffError.message}). Verifica políticas RLS o que tu User ID en Auth (${session.user.id}) coincida con usuarios_staff.`
+            : "Tu cuenta no está registrada como staff. Contacta al administrador."
+        );
         setPageState("error");
         return;
       }

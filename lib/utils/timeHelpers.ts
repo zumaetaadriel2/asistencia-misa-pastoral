@@ -10,6 +10,7 @@ export interface ConfiguracionCiclo {
   fecha_inicio: string; // ISO date string (YYYY-MM-DD)
   fecha_fin: string | null;
   activo: boolean;
+  abierto_manual?: boolean | null;
 }
 
 export interface EstadoFormulario {
@@ -77,13 +78,20 @@ export function calcularSemana(fechaInicio: Date, fechaActual: Date): number {
 
 /**
  * Determina si el formulario está abierto según la regla:
- *   - Abre: Sábado a las 7:00 PM
- *   - Cierra: Lunes a las 11:59 PM
+ *   - Si `abiertoManual` es true/false, fuerza ese estado.
+ *   - Si `abiertoManual` es null/undefined, evalúa el horario automático (Sáb 7PM - Lun 11:59PM).
  *
  * @param ahora - Fecha/hora actual
+ * @param abiertoManual - Override opcional de apertura manual (true=abierto, false=cerrado, null=automático)
  * @returns true si el formulario está dentro de la ventana de registro
  */
-export function estaAbierto(ahora: Date): boolean {
+export function estaAbierto(
+  ahora: Date,
+  abiertoManual?: boolean | null
+): boolean {
+  if (abiertoManual === true) return true;
+  if (abiertoManual === false) return false;
+
   const dia = ahora.getDay(); // 0=Dom, 1=Lun, ..., 6=Sáb
   const hora = ahora.getHours();
   const minuto = ahora.getMinutes();
@@ -99,7 +107,10 @@ export function estaAbierto(ahora: Date): boolean {
   }
 
   // Lunes hasta las 11:59 PM
-  if (dia === DIA_CIERRE && (hora < HORA_CIERRE || (hora === HORA_CIERRE && minuto <= MINUTO_CIERRE))) {
+  if (
+    dia === DIA_CIERRE &&
+    (hora < HORA_CIERRE || (hora === HORA_CIERRE && minuto <= MINUTO_CIERRE))
+  ) {
     return true;
   }
 
@@ -185,12 +196,20 @@ export async function obtenerEstadoFormulario(
   const fechaInicio = new Date(ciclo.fecha_inicio + "T00:00:00");
 
   const semanaActual = calcularSemana(fechaInicio, ahora);
-  const formularioAbierto = estaAbierto(ahora);
+  const formularioAbierto = estaAbierto(ahora, ciclo.abierto_manual);
   const proximoCambio = calcularProximoCambio(ahora, formularioAbierto);
 
   const mensaje = formularioAbierto
-    ? `El formulario está ABIERTO. Cierra el Lunes a las 11:59 PM.`
-    : `El formulario está CERRADO. Abre el Sábado a las 7:00 PM.`;
+    ? `El formulario está ABIERTO.${
+        ciclo.abierto_manual === true
+          ? " (Apertura manual activada por administrador)"
+          : " Cierra el Lunes a las 11:59 PM."
+      }`
+    : `El formulario está CERRADO.${
+        ciclo.abierto_manual === false
+          ? " (Cierre manual activado por administrador)"
+          : " Abre el Sábado a las 7:00 PM."
+      }`;
 
   return {
     semanaActual,
