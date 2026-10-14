@@ -156,6 +156,13 @@ export function FormularioAsistencia({ estado }: Props) {
         throw new Error("Error al verificar registro existente: " + checkError.message);
       }
 
+      // Bloquear si la semana ya se cerró y el alumno quedó como inasistencia
+      if (existente && existente.estado === "inasistencia") {
+        throw new Error(
+          `La Semana ${estado.semanaActual} ya fue cerrada y tu registro quedó como inasistencia. Si es un error, consulta con tu guía.`
+        );
+      }
+
       // Bloquear si ya tiene un registro pendiente o validado
       if (existente && existente.estado !== "rechazado") {
         const estadoTexto =

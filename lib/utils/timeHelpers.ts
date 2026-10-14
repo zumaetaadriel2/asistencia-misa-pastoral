@@ -22,8 +22,11 @@ export interface EstadoFormulario {
   nombreCiclo: string;
   /** Mensaje legible sobre el estado del formulario */
   mensaje: string;
-  /** Fecha/hora en que abrirá o cerrará el formulario (próximo cambio de estado) */
-  proximoCambio: Date;
+  /**
+   * Fecha/hora en que abrirá o cerrará el formulario (próximo cambio de estado).
+   * `null` cuando el administrador forzó el estado manualmente: no hay cambio programado.
+   */
+  proximoCambio: Date | null;
 }
 
 // =============================================
@@ -146,16 +149,15 @@ export function calcularProximoCambio(ahora: Date, abierto: boolean): Date {
     resultado.setHours(HORA_CIERRE, MINUTO_CIERRE, 59, 999);
   } else {
     // Próxima apertura: Sábado 19:00
-    const dia = resultado.getDay();
-    // Calcular días hasta el próximo sábado
-    let diasHastaSabado = (DIA_APERTURA - dia + 7) % 7;
-    if (diasHastaSabado === 0) {
-      // Ya es sábado pero antes de las 7 PM (si fuera después, estaría abierto)
-      diasHastaSabado = 0;
-    }
+    const diasHastaSabado = (DIA_APERTURA - resultado.getDay() + 7) % 7;
 
     resultado.setDate(resultado.getDate() + diasHastaSabado);
     resultado.setHours(HORA_APERTURA, 0, 0, 0);
+
+    // Sábado después de las 7 PM estando cerrado: la apertura es el sábado siguiente
+    if (resultado <= ahora) {
+      resultado.setDate(resultado.getDate() + 7);
+    }
   }
 
   return resultado;
@@ -197,7 +199,11 @@ export async function obtenerEstadoFormulario(
 
   const semanaActual = calcularSemana(fechaInicio, ahora);
   const formularioAbierto = estaAbierto(ahora, ciclo.abierto_manual);
-  const proximoCambio = calcularProximoCambio(ahora, formularioAbierto);
+  const esManual =
+    ciclo.abierto_manual === true || ciclo.abierto_manual === false;
+  const proximoCambio = esManual
+    ? null
+    : calcularProximoCambio(ahora, formularioAbierto);
 
   const mensaje = formularioAbierto
     ? `El formulario está ABIERTO.${

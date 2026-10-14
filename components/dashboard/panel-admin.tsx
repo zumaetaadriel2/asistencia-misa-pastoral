@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/lib/supabase/client";
+import { obtenerTodasLasFilas } from "@/lib/supabase/paginacion";
 
 interface Props {
   semanaActual: number;
@@ -30,6 +31,39 @@ interface AlumnoItem {
   activo: boolean;
 }
 
+// =============================================
+// Consultas (no tocan el estado de React)
+// =============================================
+
+async function consultarCicloActivo(): Promise<CicloActivo | null> {
+  const { data, error } = await supabase
+    .from("configuracion_ciclo")
+    .select("*")
+    .eq("activo", true)
+    .order("fecha_inicio", { ascending: false })
+    .limit(1)
+    .single();
+
+  return error ? null : (data as CicloActivo | null);
+}
+
+async function consultarComunidades(): Promise<ComunidadItem[] | null> {
+  const { data } = await supabase
+    .from("comunidades")
+    .select("id, nombre, pin, activa")
+    .order("nombre");
+  return data as ComunidadItem[] | null;
+}
+
+async function consultarAlumnos(comunidadId: number): Promise<AlumnoItem[] | null> {
+  const { data } = await supabase
+    .from("alumnos")
+    .select("id, nombre_completo, comunidad_id, activo")
+    .eq("comunidad_id", comunidadId)
+    .order("nombre_completo");
+  return data as AlumnoItem[] | null;
+}
+
 export function PanelAdmin({ semanaActual, onCicloActualizado }: Props) {
   // --- Estados de Ciclo ---
   const [ciclo, setCiclo] = useState<CicloActivo | null>(null);
@@ -53,7 +87,9 @@ export function PanelAdmin({ semanaActual, onCicloActualizado }: Props) {
   const [mensajeAlumno, setMensajeAlumno] = useState({ texto: "", tipo: "" });
 
   // --- Estados de Cierre de Semana ---
-  const [semanaCierre, setSemanaCierre] = useState(semanaActual);
+  // `null` = el admin no la ha editado: se usa la semana actual del ciclo
+  const [semanaCierreEditada, setSemanaCierreEditada] = useState<number | null>(null);
+  const semanaCierre = semanaCierreEditada ?? semanaActual;
   const [cerrandoSemana, setCerrandoSemana] = useState(false);
   const [mensajeCierre, setMensajeCierre] = useState({ texto: "", tipo: "" });
 
@@ -61,65 +97,59 @@ export function PanelAdmin({ semanaActual, onCicloActualizado }: Props) {
   const [exportando, setExportando] = useState(false);
   const [mensajeExportacion, setMensajeExportacion] = useState("");
 
-  // Cargar ciclo activo al montar
-  const cargarCiclo = useCallback(async () => {
-    const { data, error } = await supabase
-      .from("configuracion_ciclo")
-      .select("*")
-      .eq("activo", true)
-      .order("fecha_inicio", { ascending: false })
-      .limit(1)
-      .single();
+  // Pasar el ciclo activo a los campos del formulario
+  const aplicarCiclo = useCallback((data: CicloActivo | null) => {
+    if (!data) return;
+    setCiclo(data);
+    setFechaInicio(data.fecha_inicio);
+    setNombreCiclo(data.nombre_ciclo || "Ciclo Actual");
+    if (data.abierto_manual === true) setAbiertoManual("open");
+    else if (data.abierto_manual === false) setAbiertoManual("closed");
+    else setAbiertoManual("auto");
+  }, []);
 
-    if (!error && data) {
-      setCiclo(data as CicloActivo);
-      setFechaInicio(data.fecha_inicio);
-      setNombreCiclo(data.nombre_ciclo || "Ciclo Actual");
-      if (data.abierto_manual === true) setAbiertoManual("open");
-      else if (data.abierto_manual === false) setAbiertoManual("closed");
-      else setAbiertoManual("auto");
+  const aplicarComunidades = useCallback((data: ComunidadItem[] | null) => {
+    if (!data) return;
+    setComunidades(data);
+    // Preseleccionar la primera comunidad solo si aún no hay una elegida
+    if (data.length > 0) {
+      setComunidadSeleccionadaAlumno((actual) => actual ?? data[0].id);
     }
   }, []);
 
-  // Cargar comunidades
-  const cargarComunidades = useCallback(async () => {
-    const { data } = await supabase
-      .from("comunidades")
-      .select("id, nombre, pin, activa")
-      .order("nombre");
-    if (data) {
-      setComunidades(data as ComunidadItem[]);
-      if (data.length > 0 && !comunidadSeleccionadaAlumno) {
-        setComunidadSeleccionadaAlumno(data[0].id);
-      }
-    }
-  }, [comunidadSeleccionadaAlumno]);
+  // Recargas tras guardar cambios
+  const cargarCiclo = useCallback(async () => {
+    aplicarCiclo(await consultarCicloActivo());
+  }, [aplicarCiclo]);
 
-  // Cargar alumnos de la comunidad seleccionada
+  const cargarComunidades = useCallback(async () => {
+    aplicarComunidades(await consultarComunidades());
+  }, [aplicarComunidades]);
+
   const cargarAlumnos = useCallback(async () => {
     if (!comunidadSeleccionadaAlumno) return;
-    const { data } = await supabase
-      .from("alumnos")
-      .select("id, nombre_completo, comunidad_id, activo")
-      .eq("comunidad_id", comunidadSeleccionadaAlumno)
-      .order("nombre_completo");
-    if (data) setAlumnos(data as AlumnoItem[]);
+    const data = await consultarAlumnos(comunidadSeleccionadaAlumno);
+    if (data) setAlumnos(data);
   }, [comunidadSeleccionadaAlumno]);
 
+  // Cargar ciclo activo y comunidades al montar
   useEffect(() => {
-    cargarCiclo();
-    cargarComunidades();
-  }, [cargarCiclo, cargarComunidades]);
+    consultarCicloActivo().then(aplicarCiclo);
+    consultarComunidades().then(aplicarComunidades);
+  }, [aplicarCiclo, aplicarComunidades]);
 
+  // Cargar alumnos de la comunidad seleccionada
   useEffect(() => {
-    cargarAlumnos();
-  }, [cargarAlumnos]);
+    if (!comunidadSeleccionadaAlumno) return;
 
-  useEffect(() => {
-    if (semanaActual > 0 && semanaCierre === 0) {
-      setSemanaCierre(semanaActual);
-    }
-  }, [semanaActual, semanaCierre]);
+    let cancelado = false;
+    consultarAlumnos(comunidadSeleccionadaAlumno).then((data) => {
+      if (!cancelado && data) setAlumnos(data);
+    });
+    return () => {
+      cancelado = true;
+    };
+  }, [comunidadSeleccionadaAlumno]);
 
   // Actualizar configuración del ciclo
   const handleGuardarCiclo = async (e: React.FormEvent) => {
@@ -253,25 +283,31 @@ export function PanelAdmin({ semanaActual, onCicloActualizado }: Props) {
 
     try {
       // 1. Obtener alumnos activos
-      const { data: alumnos, error: errAlumnos } = await supabase
-        .from("alumnos")
-        .select("id")
-        .eq("activo", true);
+      const alumnos = await obtenerTodasLasFilas<{ id: number }>((desde, hasta) =>
+        supabase
+          .from("alumnos")
+          .select("id")
+          .eq("activo", true)
+          .order("id")
+          .range(desde, hasta)
+      );
 
-      if (errAlumnos) throw errAlumnos;
-      if (!alumnos || alumnos.length === 0) {
+      if (alumnos.length === 0) {
         throw new Error("No hay alumnos activos registrados en la base de datos.");
       }
 
       // 2. Obtener asistencias ya registradas en esa semana
-      const { data: asistenciasExistentes, error: errAsistencias } = await supabase
-        .from("asistencias")
-        .select("alumno_id")
-        .eq("semana_numero", semanaCierre);
+      const asistenciasExistentes = await obtenerTodasLasFilas<{ alumno_id: number }>(
+        (desde, hasta) =>
+          supabase
+            .from("asistencias")
+            .select("alumno_id")
+            .eq("semana_numero", semanaCierre)
+            .order("id")
+            .range(desde, hasta)
+      );
 
-      if (errAsistencias) throw errAsistencias;
-
-      const idsConRegistro = new Set((asistenciasExistentes ?? []).map((a) => a.alumno_id));
+      const idsConRegistro = new Set(asistenciasExistentes.map((a) => a.alumno_id));
 
       // 3. Filtrar alumnos sin asistencia registrada
       const alumnosSinAsistencia = alumnos.filter((al) => !idsConRegistro.has(al.id));
@@ -327,25 +363,39 @@ export function PanelAdmin({ semanaActual, onCicloActualizado }: Props) {
       const mapComunidades = new Map((comunidades ?? []).map((c) => [c.id, c.nombre]));
 
       // 2. Obtener alumnos activos
-      const { data: alumnos, error: errAlumnos } = await supabase
-        .from("alumnos")
-        .select("id, nombre_completo, comunidad_id")
-        .eq("activo", true)
-        .order("nombre_completo");
-      if (errAlumnos) throw errAlumnos;
+      const alumnos = await obtenerTodasLasFilas<{
+        id: number;
+        nombre_completo: string;
+        comunidad_id: number | null;
+      }>((desde, hasta) =>
+        supabase
+          .from("alumnos")
+          .select("id, nombre_completo, comunidad_id")
+          .eq("activo", true)
+          .order("nombre_completo")
+          .order("id")
+          .range(desde, hasta)
+      );
 
-      if (!alumnos || alumnos.length === 0) {
+      if (alumnos.length === 0) {
         throw new Error("No hay alumnos activos para exportar.");
       }
 
       // 3. Obtener todas las asistencias registradas
-      const { data: asistencias, error: errAsistencias } = await supabase
-        .from("asistencias")
-        .select("alumno_id, semana_numero, estado");
-      if (errAsistencias) throw errAsistencias;
+      const asistencias = await obtenerTodasLasFilas<{
+        alumno_id: number;
+        semana_numero: number;
+        estado: string;
+      }>((desde, hasta) =>
+        supabase
+          .from("asistencias")
+          .select("alumno_id, semana_numero, estado")
+          .order("id")
+          .range(desde, hasta)
+      );
 
       // Calcular semanas máximas
-      const maxSemanaBD = (asistencias ?? []).reduce(
+      const maxSemanaBD = asistencias.reduce(
         (max, a) => Math.max(max, a.semana_numero),
         0
       );
@@ -353,7 +403,7 @@ export function PanelAdmin({ semanaActual, onCicloActualizado }: Props) {
 
       // Mapear asistencias por alumno y semana
       const mapAsistencias = new Map<string, string>();
-      (asistencias ?? []).forEach((asist) => {
+      asistencias.forEach((asist) => {
         mapAsistencias.set(`${asist.alumno_id}-${asist.semana_numero}`, asist.estado);
       });
 
@@ -784,7 +834,7 @@ export function PanelAdmin({ semanaActual, onCicloActualizado }: Props) {
               type="number"
               min={1}
               value={semanaCierre || ""}
-              onChange={(e) => setSemanaCierre(Number(e.target.value))}
+              onChange={(e) => setSemanaCierreEditada(Number(e.target.value))}
               required
               className="w-full px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-white text-xs
                          focus:outline-none focus:ring-2 focus:ring-primary-500/50 transition-all"

@@ -8,6 +8,7 @@ import { useRef, useState, useCallback } from "react";
 
 export interface AsistenciaPendiente {
   id: number;
+  alumno_id: number;
   semana_numero: number;
   foto_url: string;
   foto_public_id: string;
@@ -23,7 +24,8 @@ export interface AsistenciaPendiente {
 
 interface Props {
   asistencia: AsistenciaPendiente;
-  onValidar: () => void;
+  /** Debe resolver `true` si la validación se guardó y `false` si falló */
+  onValidar: () => Promise<boolean>;
   onIniciarRechazo: () => void;
 }
 
@@ -57,11 +59,20 @@ export function TarjetaRevision({ asistencia, onValidar, onIniciarRechazo }: Pro
   // --- Acciones ---
   const handleValidar = useCallback(() => {
     setFlyDirection("right");
-    setTimeout(() => onValidar(), FLY_OUT_DURATION);
+    setTimeout(async () => {
+      const validada = await onValidar();
+      // Si falló, devolver la tarjeta a su sitio para poder reintentar
+      if (!validada) {
+        setFlyDirection(null);
+        setDragX(0);
+      }
+    }, FLY_OUT_DURATION);
   }, [onValidar]);
 
   const handleRechazar = useCallback(() => {
-    // No anima — el modal se abre y la animación ocurre al confirmar desde el dashboard
+    // No anima — el modal se abre y la animación ocurre al confirmar desde el dashboard.
+    // La tarjeta vuelve al centro por si el modal se cancela.
+    setDragX(0);
     onIniciarRechazo();
   }, [onIniciarRechazo]);
 
