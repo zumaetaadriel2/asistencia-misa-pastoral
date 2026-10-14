@@ -42,11 +42,15 @@ El esquema de la base de datos no está versionado en el repo; se infiere de las
 
 `asistencias.estado` ∈ `pendiente | validado | rechazado | inasistencia`. Se asume una sola fila por (`alumno_id`, `semana_numero`): el reenvío tras un rechazo **actualiza** la fila existente en vez de insertar otra.
 
+Supabase devuelve como máximo 1000 filas por consulta y corta el resto sin avisar. Para listas que pueden crecer (reportes, cierre de semana) usa `obtenerTodasLasFilas` de `lib/supabase/paginacion.ts` con un `.order()` estable.
+
+En los `useEffect` no llames funciones que hagan `setState` de forma síncrona (la regla `react-hooks/set-state-in-effect` lo marca como error): separa la consulta (devuelve datos) de la aplicación al estado y haz `consultar().then(aplicar)` dentro del efecto, como en `app/dashboard/page.tsx` y `panel-admin.tsx`.
+
 ### Semanas y ventana de registro
 
 - El ciclo activo es la fila más reciente de `configuracion_ciclo` con `activo = true`.
 - `semana_numero` es 1-indexado, contado desde `fecha_inicio` del ciclo, con semanas que empiezan en domingo (`calcularSemana`). El dashboard (`actualizarCiclo` en `app/dashboard/page.tsx`) reimplementa este cálculo en línea: si cambias uno, cambia el otro.
-- El formulario está abierto del sábado 19:00 al lunes 23:59, en la hora local del dispositivo (`estaAbierto`). `abierto_manual` lo fuerza abierto o cerrado desde el panel admin.
+- El formulario está abierto del sábado 19:00 al lunes 23:59, en la hora local del dispositivo (`estaAbierto`). `abierto_manual` lo fuerza abierto o cerrado desde el panel admin; en ese caso `EstadoFormulario.proximoCambio` es `null` (no hay cuenta regresiva).
 
 ### Flujos
 
