@@ -56,7 +56,7 @@ En los `useEffect` no llames funciones que hagan `setState` de forma síncrona (
 
 - **Alumno** (`/` redirige a `/alumno`): `components/alumno/formulario-asistencia.tsx` es un wizard comunidad → PIN → alumno → foto. La foto se comprime en el navegador a WebP de 800 px de ancho (`lib/cloudinary.ts`) y se sube directo a Cloudinary con el preset unsigned; después se guardan `foto_url`/`foto_public_id` en `asistencias` con estado `pendiente`.
 - **Staff** (`/login` → `/dashboard`): login con email/contraseña de Supabase Auth; el rol se lee de `usuarios_staff`. Un `guia` solo ve los pendientes de su comunidad; un `admin` puede filtrar por comunidad y tiene además la pestaña "Administración y Reportes".
-- **Revisión**: `TarjetaRevision` muestra el pendiente más antiguo; swipe a la derecha valida, a la izquierda abre `ModalRechazo` para pedir el motivo y luego llama a `notificarRechazo` (`lib/services/notificaciones.ts`, hoy un mock que solo hace `console.log`).
+- **Revisión**: `TarjetaRevision` muestra el pendiente más antiguo; swipe a la derecha valida (durante `TIEMPO_DESHACER_MS` se puede deshacer y la asistencia vuelve a `pendiente`), a la izquierda abre `ModalRechazo` para pedir el motivo y luego llama a `notificarRechazo` (`lib/services/notificaciones.ts`, hoy un mock que solo hace `console.log`).
 - **Panel admin** (`components/dashboard/panel-admin.tsx`): configurar el ciclo, crear comunidades y alumnos, "cerrar semana" (inserta en lote filas `inasistencia` para los alumnos activos sin registro en esa semana) y exportar un CSV de asistencias por alumno y semana.
 
 ### PWA

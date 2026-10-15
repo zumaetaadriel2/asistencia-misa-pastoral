@@ -36,6 +36,9 @@ interface DatosRevision {
   validadas: number | null;
 }
 
+/** Tiempo durante el que se puede deshacer la última validación */
+const TIEMPO_DESHACER_MS = 8000;
+
 // =============================================
 // Componente principal
 // =============================================
@@ -59,6 +62,8 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<"review" | "admin">("review");
   const [modalAbierto, setModalAbierto] = useState(false);
   const [asistenciaRechazando, setAsistenciaRechazando] =
+    useState<AsistenciaPendiente | null>(null);
+  const [ultimaValidada, setUltimaValidada] =
     useState<AsistenciaPendiente | null>(null);
   const [error, setError] = useState("");
 
@@ -107,15 +112,13 @@ export default function DashboardPage() {
         .single();
 
       if (staffError || !staff) {
+        // El detalle técnico va solo a la consola; al usuario, un mensaje simple
         console.error("Error al consultar usuarios_staff en Supabase:", {
           sessionUserId: session.user.id,
           staffError,
-          staffData: staff,
         });
         setError(
-          staffError?.message
-            ? `Error de acceso (${staffError.message}). Verifica políticas RLS o que tu User ID en Auth (${session.user.id}) coincida con usuarios_staff.`
-            : "Tu cuenta no está registrada como staff. Contacta al administrador."
+          "Tu cuenta no está registrada como staff o no tiene permisos. Contacta al administrador."
         );
         setPageState("error");
         return;
@@ -263,10 +266,39 @@ export default function DashboardPage() {
       // Actualizar estado local
       setPendientes((prev) => prev.filter((p) => p.id !== asistencia.id));
       setValidadasCount((prev) => prev + 1);
+      setUltimaValidada(asistencia);
       return true;
     },
     [usuario]
   );
+
+  // Ocultar el aviso de "Deshacer" pasado el tiempo límite
+  useEffect(() => {
+    if (!ultimaValidada) return;
+    const timer = setTimeout(() => setUltimaValidada(null), TIEMPO_DESHACER_MS);
+    return () => clearTimeout(timer);
+  }, [ultimaValidada]);
+
+  const handleDeshacerValidacion = useCallback(async () => {
+    if (!ultimaValidada) return;
+    const asistencia = ultimaValidada;
+    setUltimaValidada(null);
+
+    const { error: updateError } = await supabase
+      .from("asistencias")
+      .update({ estado: "pendiente", revisado_por: null })
+      .eq("id", asistencia.id)
+      .eq("estado", "validado");
+
+    if (updateError) {
+      setError("Error al deshacer la validación: " + updateError.message);
+      return;
+    }
+
+    // Era la más antigua de la cola: vuelve al frente
+    setPendientes((prev) => [asistencia, ...prev]);
+    setValidadasCount((prev) => Math.max(0, prev - 1));
+  }, [ultimaValidada]);
 
   const handleIniciarRechazo = useCallback(
     (asistencia: AsistenciaPendiente) => {
@@ -486,6 +518,25 @@ export default function DashboardPage() {
                   </svg>
                 </button>
               </div>
+            </div>
+          )}
+
+          {/* ── Aviso para deshacer la última validación ── */}
+          {ultimaValidada && (
+            <div
+              role="status"
+              className="mb-4 px-4 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20
+                         flex items-center justify-between gap-3 animate-fade-in-scale"
+            >
+              <p className="text-sm text-emerald-300 truncate">
+                Validada: {ultimaValidada.alumnos.nombre_completo}
+              </p>
+              <button
+                onClick={handleDeshacerValidacion}
+                className="shrink-0 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-semibold transition-all"
+              >
+                Deshacer
+              </button>
             </div>
           )}
 
