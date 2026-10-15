@@ -1,36 +1,38 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Asistencia Misa Pastoral
 
-## Getting Started
+PWA para registrar la asistencia semanal a misa de los alumnos de catequesis (Confirmación y Primera Comunión). Cada alumno sube una foto como prueba durante el fin de semana y los guías y administradores la validan o rechazan desde un panel de revisión.
 
-First, run the development server:
+## Cómo funciona
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Alumnos** (`/alumno`): eligen su comunidad, ingresan el PIN de 4 dígitos, eligen su nombre y suben la foto. El formulario abre el sábado a las 19:00 y cierra el lunes a las 23:59. El administrador puede abrirlo o cerrarlo manualmente.
+- **Guías** (`/login` → `/dashboard`): revisan las fotos pendientes de su comunidad. Deslizar a la derecha valida y a la izquierda rechaza indicando el motivo.
+- **Administradores**: además de revisar, configuran el ciclo, crean comunidades y alumnos, cierran la semana (marcando inasistencias) y descargan el reporte en CSV.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Tecnologías
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Next.js 16 · React 19 · TypeScript · Tailwind CSS 4 · Supabase (base de datos y login) · Cloudinary (fotos)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Puesta en marcha
 
-## Learn More
+1. Instala las dependencias:
 
-To learn more about Next.js, take a look at the following resources:
+   ```bash
+   npm install
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+2. Copia `.env.example` a `.env.local` y completa los datos de Supabase y Cloudinary.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+3. Inicia el servidor de desarrollo y abre http://localhost:3000:
 
-## Deploy on Vercel
+   ```bash
+   npm run dev
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Comandos
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+| Comando | Para qué sirve |
+|---|---|
+| `npm run dev` | Servidor de desarrollo |
+| `npm run build` | Build de producción |
+| `npm run start` | Sirve el build de producción |
+| `npm run lint` | Revisa el código con ESLint |
