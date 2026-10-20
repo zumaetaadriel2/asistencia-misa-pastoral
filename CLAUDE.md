@@ -18,11 +18,29 @@ npm run build                        # build de producción (incluye chequeo de 
 npm run lint                         # ESLint 9 (flat config: next core-web-vitals + typescript)
 npx eslint app/dashboard/page.tsx    # lint de un solo archivo
 npx tsc --noEmit                     # solo chequeo de tipos
+npm test                             # Vitest (archivos *.test.ts)
+npx vitest run ruta/al/archivo.test.ts  # un solo test
+
+# Supabase local (requiere Docker Desktop)
+npm run db:start                     # levanta Postgres, Auth y API en http://127.0.0.1:54321
+npm run db:reset                     # reaplica migraciones + supabase/seed.sql
+npm run db:test                      # tests pgTAP de supabase/tests/
+npx supabase test db supabase/tests/03_alumno_test.sql  # un solo archivo de tests
+npm run db:types                     # regenera lib/supabase/database.types.ts
 ```
 
-No hay framework de tests configurado. Las funciones puras de `lib/utils/timeHelpers.ts` (`calcularSemana`, `estaAbierto`, `calcularProximoCambio`) reciben la fecha como parámetro para poder probarse sin Supabase.
-
 Variables de entorno: copiar `.env.example` a `.env.local` (URL y anon key de Supabase; cloud name y upload preset *unsigned* de Cloudinary). `lib/supabase/client.ts` lanza un error al importarse si faltan las de Supabase.
+
+## Rediseño en curso
+
+Se está rehaciendo la base desde cero según el plan aprobado (fases 0–7). La nueva base ya existe en `supabase/` (migraciones, RLS, RPC, pg_cron, seed ficticio y tests pgTAP), pero **el frontend todavía usa el esquema viejo** descrito más abajo (`configuracion_ciclo`, `usuarios_staff`, Cloudinary) hasta las fases 3–5.
+
+Claves de la base nueva (`supabase/migrations/`):
+- El alumno (rol `anon`) no tiene acceso a ninguna tabla: solo a las RPC `estado_formulario` e `identificar_alumno`. Los envíos de foto pasan por `preparar_envio`/`confirmar_envio`, que solo puede ejecutar `service_role` (Edge Functions).
+- El staff se identifica por el email del JWT (login con Google) contra `public.staff`; `es_admin()`, `es_staff_de()` y `es_staff_de_alumno()` alimentan las políticas RLS. El hook `hook_antes_de_crear_usuario` impide crear cuentas a correos que no estén en `staff`.
+- Horario en hora de Lima: envío sáb 19:00 → lun 23:59, reenvío de rechazadas hasta mié 23:59, cierre automático (pg_cron) el jueves 00:05. La semana se calcula por el domingo de referencia (`domingo_de_referencia`): la misa del sábado cuenta para el domingo siguiente.
+- `public.momento_actual()` permite simular la hora en tests con `set_config('app.ahora', ...)`.
+- Al cambiar el esquema: nueva migración en `supabase/migrations/`, `npm run db:reset`, `npm run db:test` y `npm run db:types`. El repo es público: el seed solo lleva datos ficticios.
 
 ## Arquitectura
 
