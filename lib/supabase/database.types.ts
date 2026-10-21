@@ -23,7 +23,21 @@ export type Database = {
           }
         },"public": {
           Tables: {
-            "alumnos": {
+            "ajustes": {
+                  Row: {
+                    "id": number,"permitir_login_correo": boolean
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "id"?: number,"permitir_login_correo"?: boolean
+                  }
+                  Update: {
+                    "id"?: number,"permitir_login_correo"?: boolean
+                  }
+                  Relationships: [
+                    
+                  ]
+                },"alumnos": {
                   Row: {
                     "activo": boolean,"codigo": string,"comunidad_id": number,"creado_en": string,"id": number,"nombre_completo": string
                   }
@@ -250,8 +264,13 @@ isOneToOne: false
 "cerrar_semana":
 { Args: { "p_semana": number }; Returns: number
                            },
+"cola_revision":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "alumno": string,"alumno_id": number,"anterior_envio_id": number,"anterior_semana": number,"asistencia_id": number,"comunidad": string,"comunidad_id": number,"distancia_similar": number,"enviado_en": string,"envio_id": number,"fecha_exif": string,"programa": Database["public"]['Enums']["programa"],"semana": number,"similar_alumno": string,"similar_envio_id": number,"similar_semana": number
+            }[]
+                           },
 "confirmar_envio":
-{ Args: { "p_envio_id": number,"p_tamano_bytes": number }; Returns: Json
+{ Args: { "p_codigo": string,"p_envio_id": number,"p_tamano_bytes": number }; Returns: Json
                            },
 "domingo_de_referencia":
 { Args: { "p_fecha": string }; Returns: string
@@ -288,6 +307,11 @@ isOneToOne: false
 "latido":
 { Args: Record<PropertyKey, never>; Returns: string
                            },
+"mi_perfil_staff":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "ciclo_nombre": string,"id": number,"nombre": string,"rol": Database["public"]['Enums']["rol_staff"],"semana_reciente": number
+            }[]
+                           },
 "momento_actual":
 { Args: Record<PropertyKey, never>; Returns: string
                            },
@@ -300,11 +324,19 @@ isOneToOne: false
 "reasignar_asistencia":
 { Args: { "p_alumno_destino_id": number,"p_asistencia_id": number }; Returns: undefined
                            },
+"resumen_semana":
+{ Args: { "p_semana": number }; Returns: {
+              "alumno": string,"alumno_id": number,"comunidad": string,"comunidad_id": number,"estado": string,"motivo": string,"programa": Database["public"]['Enums']["programa"]
+            }[]
+                           },
 "revisar_asistencia":
 { Args: { "p_accion": string,"p_asistencia_id": number,"p_motivo"?: string }; Returns: Database["public"]['Enums']["estado_asistencia"]
                            },
 "semana_de_domingo":
 { Args: { "p_domingo": string,"p_fecha_inicio": string }; Returns: number
+                           },
+"semana_reciente":
+{ Args: Record<PropertyKey, never>; Returns: number
                            },
 "staff_actual_id":
 { Args: Record<PropertyKey, never>; Returns: number

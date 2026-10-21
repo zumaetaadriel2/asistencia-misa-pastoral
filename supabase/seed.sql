@@ -3,6 +3,9 @@
 -- Nunca poner aquí nombres ni correos reales: el repositorio es público.
 -- =============================================
 
+-- Solo en local: el staff de prueba entra con correo y contraseña (en producción, solo Google)
+update public.ajustes set permitir_login_correo = true where id = 1;
+
 insert into public.ciclos (nombre, anio, fecha_inicio, fecha_fin, activo)
 values ('Ciclo 2026', 2026, '2026-03-01', '2026-12-13', true);
 
