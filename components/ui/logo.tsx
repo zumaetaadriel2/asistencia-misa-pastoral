@@ -1,16 +1,33 @@
 import Image from "next/image";
 import logoCompleto from "@/marca/web/logo-completo.webp";
+import logoCompletoOscuro from "@/marca/web/logo-completo-oscuro.webp";
 import logoOvalo from "@/marca/web/logo-ovalo.webp";
 
 // Logo de la Pastoral Mariana (generado con scripts/generar-iconos.mjs).
 // `unoptimized`: ya son versiones livianas, no hace falta el optimizador de Vercel.
 
-/** Logo completo sobre una placa blanca (se ve igual en tema claro y oscuro) */
+/**
+ * Logo completo. En tema oscuro va la versión con las letras en blanco (el óvalo
+ * es el mismo); el navegador solo muestra una de las dos según el tema.
+ */
 export function LogoCompleto({ className = "h-28" }: { className?: string }) {
   return (
-    <div className="inline-flex rounded-2xl bg-white p-3 shadow-sm ring-1 ring-black/5">
-      <Image src={logoCompleto} alt="Pastoral Mariana" className={`w-auto ${className}`} loading="eager" unoptimized />
-    </div>
+    <>
+      <Image
+        src={logoCompleto}
+        alt="Pastoral Mariana"
+        className={`w-auto dark:hidden ${className}`}
+        loading="eager"
+        unoptimized
+      />
+      <Image
+        src={logoCompletoOscuro}
+        alt="Pastoral Mariana"
+        className={`w-auto hidden dark:block ${className}`}
+        loading="eager"
+        unoptimized
+      />
+    </>
   );
 }
 
