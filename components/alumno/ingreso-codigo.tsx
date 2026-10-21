@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { esCodigoValido, normalizarCodigo } from "@/lib/alumno/codigo";
+import { esCodigoValido, LARGO_CODIGO, normalizarCodigo } from "@/lib/alumno/codigo";
 import {
   identificarAlumno,
   NOMBRE_PROGRAMA,
@@ -11,8 +11,6 @@ import { MENSAJES_ERROR } from "@/lib/alumno/mensajes";
 import { Boton } from "@/components/ui/base";
 import { useEnfocarAlAparecer } from "@/components/ui/enfoque";
 import { LogoCompleto } from "@/components/ui/logo";
-
-const LARGO_CODIGO = 6;
 
 interface Props {
   /** Mensaje a mostrar al llegar (p. ej. el código guardado ya no es válido) */
