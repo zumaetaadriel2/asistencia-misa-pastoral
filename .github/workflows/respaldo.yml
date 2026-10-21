@@ -1,0 +1,46 @@
+name: Respaldo semanal
+
+# Copia la base de producción (esquema y datos), la cifra con RESPALDO_CLAVE y la
+# guarda en el bucket privado asistencia-respaldos de R2. Nunca se sube como
+# artefacto de GitHub ni se imprime en el log: contiene datos de menores.
+
+on:
+  schedule:
+    - cron: "40 7 * * 2" # martes, 02:40 en Lima
+  workflow_dispatch:
+
+jobs:
+  respaldo:
+    name: Volcar, cifrar y subir a R2
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+      RESPALDO_CLAVE: ${{ secrets.RESPALDO_CLAVE }}
+      AWS_ACCESS_KEY_ID: ${{ secrets.R2_RESPALDOS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_RESPALDOS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: auto
+      # R2 no necesita las sumas de verificación que la CLI de AWS agrega por defecto
+      AWS_REQUEST_CHECKSUM_CALCULATION: when_required
+      AWS_RESPONSE_CHECKSUM_VALIDATION: when_required
+      R2_ENDPOINT: https://${{ secrets.R2_ACCOUNT_ID }}.r2.cloudflarestorage.com
+    steps:
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Volcar esquema y datos
+        run: |
+          supabase db dump --db-url "$SUPABASE_DB_URL" -f esquema.sql
+          supabase db dump --db-url "$SUPABASE_DB_URL" --data-only --use-copy -f datos.sql
+
+      - name: Comprimir y cifrar
+        run: |
+          tar czf respaldo.tar.gz esquema.sql datos.sql
+          gpg --batch --yes --pinentry-mode loopback --symmetric --cipher-algo AES256 \
+            --passphrase "$RESPALDO_CLAVE" --output respaldo.tar.gz.gpg respaldo.tar.gz
+          rm esquema.sql datos.sql respaldo.tar.gz
+
+      - name: Subir a R2
+        run: |
+          aws s3 cp respaldo.tar.gz.gpg "s3://asistencia-respaldos/$(date -u +%Y-%m-%d).tar.gz.gpg" \
+            --endpoint-url "$R2_ENDPOINT"

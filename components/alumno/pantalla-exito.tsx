@@ -4,13 +4,14 @@ interface Props {
   alumnoNombre: string;
   comunidadNombre: string;
   semana: number;
+  onVolver: () => void;
 }
 
 /**
  * Pantalla de confirmación de éxito tras enviar la asistencia.
  * Diseño limpio, animado y mobile-friendly.
  */
-export function PantallaExito({ alumnoNombre, comunidadNombre, semana }: Props) {
+export function PantallaExito({ alumnoNombre, comunidadNombre, semana, onVolver }: Props) {
   return (
     <main className="flex-1 flex items-center justify-center px-4 py-8">
       <div className="max-w-md w-full text-center animate-fade-in">
@@ -73,18 +74,17 @@ export function PantallaExito({ alumnoNombre, comunidadNombre, semana }: Props) 
               </svg>
             </div>
             <p className="text-xs text-white/40 text-left">
-              Tu coordinador revisará la foto. Si es rechazada, podrás enviarla nuevamente.
+              Tu guía revisará la foto. Si la rechaza, podrás enviar otra hasta el miércoles.
             </p>
           </div>
         </div>
 
-        {/* Botón para registrar otro (opcional) */}
         <button
-          onClick={() => window.location.reload()}
+          onClick={onVolver}
           className="mt-8 px-8 py-3 rounded-xl bg-white/5 hover:bg-white/10 text-white/50 hover:text-white/70
                      text-sm font-medium transition-all"
         >
-          Registrar otro alumno
+          Volver
         </button>
       </div>
     </main>

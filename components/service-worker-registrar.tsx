@@ -3,21 +3,24 @@
 import { useEffect } from "react";
 
 /**
- * Componente que registra el Service Worker para habilitar la PWA.
- * Se monta una sola vez en el layout raíz.
+ * Registra el Service Worker de la PWA (se monta una sola vez en el layout raíz).
+ * En desarrollo lo desregistra: su caché de archivos con hash interfiere con la
+ * recarga en caliente de `next dev`.
  */
 export function ServiceWorkerRegistrar() {
   useEffect(() => {
-    if ("serviceWorker" in navigator) {
+    if (!("serviceWorker" in navigator)) return;
+
+    if (process.env.NODE_ENV !== "production") {
       navigator.serviceWorker
-        .register("/sw.js")
-        .then((registration) => {
-          console.log("Service Worker registrado con éxito:", registration.scope);
-        })
-        .catch((error) => {
-          console.error("Error al registrar el Service Worker:", error);
-        });
+        .getRegistrations()
+        .then((registros) => registros.forEach((registro) => registro.unregister()));
+      return;
     }
+
+    navigator.serviceWorker.register("/sw.js").catch((error) => {
+      console.error("Error al registrar el Service Worker:", error);
+    });
   }, []);
 
   return null;

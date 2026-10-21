@@ -1,58 +1,57 @@
-const CACHE_NAME = "asistencia-misa-v1";
+// =============================================
+// Service worker de la PWA
+// =============================================
+// Solo guarda en caché los archivos de la propia app (JS/CSS con hash, íconos y
+// manifest). Nunca intercepta fotos, datos ni llamadas a Supabase o R2: son de
+// menores y no deben quedar guardados en el celular de nadie.
+// Al cambiar esta lógica, subir CACHE_NAME: la activación borra las cachés viejas.
 
-// Archivos a cachear en la instalación del service worker
-const STATIC_ASSETS = [
-  "/",
-  "/manifest.json",
-];
+const CACHE_NAME = "asistencia-misa-v2";
 
-// Instalación: cachear archivos estáticos
-self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS);
-    })
+const ARCHIVOS_INICIALES = ["/manifest.json"];
+
+function esArchivoDeLaApp(url) {
+  return (
+    url.origin === self.location.origin &&
+    (url.pathname.startsWith("/_next/static/") ||
+      url.pathname.startsWith("/icons/") ||
+      url.pathname === "/manifest.json")
   );
+}
+
+self.addEventListener("install", (event) => {
+  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(ARCHIVOS_INICIALES)));
   self.skipWaiting();
 });
 
-// Activación: limpiar caches anteriores
+// Borra las cachés de versiones anteriores (la v1 guardaba cualquier respuesta)
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames
-          .filter((name) => name !== CACHE_NAME)
-          .map((name) => caches.delete(name))
-      );
-    })
+    caches
+      .keys()
+      .then((nombres) =>
+        Promise.all(nombres.filter((nombre) => nombre !== CACHE_NAME).map((nombre) => caches.delete(nombre)))
+      )
   );
   self.clients.claim();
 });
 
-// Estrategia de caché: Network First con fallback a cache
+// Archivos de la app: primero la caché (llevan hash en el nombre, no cambian)
 self.addEventListener("fetch", (event) => {
-  // Solo cachear requests GET
   if (event.request.method !== "GET") return;
-
-  // No cachear requests a la API de Supabase
-  if (event.request.url.includes("supabase.co")) return;
+  if (!esArchivoDeLaApp(new URL(event.request.url))) return;
 
   event.respondWith(
-    fetch(event.request)
-      .then((response) => {
-        // Clonar la respuesta para guardarla en cache
-        const responseClone = response.clone();
-        caches.open(CACHE_NAME).then((cache) => {
-          cache.put(event.request, responseClone);
-        });
-        return response;
-      })
-      .catch(() => {
-        // Si falla la red, buscar en cache
-        return caches.match(event.request).then((cachedResponse) => {
-          return cachedResponse || new Response("Offline", { status: 503 });
-        });
-      })
+    caches.match(event.request).then(
+      (guardada) =>
+        guardada ||
+        fetch(event.request).then((respuesta) => {
+          if (respuesta.ok) {
+            const copia = respuesta.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copia));
+          }
+          return respuesta;
+        })
+    )
   );
 });
