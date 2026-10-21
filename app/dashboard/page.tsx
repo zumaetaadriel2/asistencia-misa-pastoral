@@ -30,6 +30,15 @@ interface Comunidad {
 
 type PageState = "loading" | "ready" | "error" | "no-auth";
 
+interface DatosRevision {
+  pendientes: AsistenciaPendiente[];
+  /** `null` cuando no hay semana activa y el contador no debe cambiar */
+  validadas: number | null;
+}
+
+/** Tiempo durante el que se puede deshacer la última validación */
+const TIEMPO_DESHACER_MS = 8000;
+
 // =============================================
 // Componente principal
 // =============================================
@@ -53,6 +62,8 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<"review" | "admin">("review");
   const [modalAbierto, setModalAbierto] = useState(false);
   const [asistenciaRechazando, setAsistenciaRechazando] =
+    useState<AsistenciaPendiente | null>(null);
+  const [ultimaValidada, setUltimaValidada] =
     useState<AsistenciaPendiente | null>(null);
   const [error, setError] = useState("");
 
@@ -101,7 +112,14 @@ export default function DashboardPage() {
         .single();
 
       if (staffError || !staff) {
-        setError("Tu cuenta no está registrada como staff. Contacta al administrador.");
+        // El detalle técnico va solo a la consola; al usuario, un mensaje simple
+        console.error("Error al consultar usuarios_staff en Supabase:", {
+          sessionUserId: session.user.id,
+          staffError,
+        });
+        setError(
+          "Tu cuenta no está registrada como staff o no tiene permisos. Contacta al administrador."
+        );
         setPageState("error");
         return;
       }
@@ -125,14 +143,15 @@ export default function DashboardPage() {
     }
 
     init();
-  }, [router]);
+  }, [router, actualizarCiclo]);
 
   // =============================================
-  // Efecto: Cargar datos según rol y filtro
+  // Datos de revisión según rol y filtro
   // =============================================
-  const cargarDatos = useCallback(async () => {
-    if (!usuario) return;
-    setLoadingData(true);
+
+  /** Consulta pendientes y validadas; no toca el estado (lo aplica `aplicarDatos`) */
+  const obtenerDatos = useCallback(async (): Promise<DatosRevision> => {
+    if (!usuario) return { pendientes: [], validadas: null };
 
     // Determinar comunidad a filtrar
     const comunidadFiltro =
@@ -144,6 +163,7 @@ export default function DashboardPage() {
       .select(
         `
         id,
+        alumno_id,
         semana_numero,
         foto_url,
         foto_public_id,
@@ -168,42 +188,61 @@ export default function DashboardPage() {
     }
 
     const { data: pendientesData } = await queryPendientes;
-    setPendientes((pendientesData as unknown as AsistenciaPendiente[]) ?? []);
+    const pendientes =
+      (pendientesData as unknown as AsistenciaPendiente[]) ?? [];
 
     // --- Count validadas esta semana ---
-    if (semanaActual > 0) {
-      let queryValidadas = supabase
-        .from("asistencias")
-        .select("id", { count: "exact", head: true })
-        .eq("estado", "validado")
-        .eq("semana_numero", semanaActual);
+    if (semanaActual <= 0) return { pendientes, validadas: null };
 
-      if (comunidadFiltro) {
-        // Para contar validadas de una comunidad necesitamos un join
-        // Usamos un approach diferente: filtrar por alumno_id IN (alumnos de la comunidad)
-        const { data: alumnosDeCom } = await supabase
-          .from("alumnos")
-          .select("id")
-          .eq("comunidad_id", comunidadFiltro);
+    let queryValidadas = supabase
+      .from("asistencias")
+      .select("id", { count: "exact", head: true })
+      .eq("estado", "validado")
+      .eq("semana_numero", semanaActual);
 
-        if (alumnosDeCom && alumnosDeCom.length > 0) {
-          const ids = alumnosDeCom.map((a) => a.id);
-          queryValidadas = queryValidadas.in("alumno_id", ids);
-        }
-      }
+    if (comunidadFiltro) {
+      // Para contar validadas de una comunidad necesitamos un join
+      // Usamos un approach diferente: filtrar por alumno_id IN (alumnos de la comunidad)
+      const { data: alumnosDeCom } = await supabase
+        .from("alumnos")
+        .select("id")
+        .eq("comunidad_id", comunidadFiltro);
 
-      const { count } = await queryValidadas;
-      setValidadasCount(count ?? 0);
+      const ids = (alumnosDeCom ?? []).map((a) => a.id);
+
+      // Comunidad sin alumnos: no puede tener validadas
+      if (ids.length === 0) return { pendientes, validadas: 0 };
+
+      queryValidadas = queryValidadas.in("alumno_id", ids);
     }
 
-    setLoadingData(false);
+    const { count } = await queryValidadas;
+    return { pendientes, validadas: count ?? 0 };
   }, [usuario, filtroComunidad, semanaActual]);
 
+  const aplicarDatos = useCallback((datos: DatosRevision) => {
+    setPendientes(datos.pendientes);
+    if (datos.validadas !== null) setValidadasCount(datos.validadas);
+    setLoadingData(false);
+  }, []);
+
   useEffect(() => {
-    if (pageState === "ready") {
-      cargarDatos();
-    }
-  }, [pageState, cargarDatos]);
+    if (pageState !== "ready") return;
+
+    // Ignorar respuestas viejas si el filtro cambia antes de que lleguen
+    let cancelado = false;
+    obtenerDatos().then((datos) => {
+      if (!cancelado) aplicarDatos(datos);
+    });
+    return () => {
+      cancelado = true;
+    };
+  }, [pageState, obtenerDatos, aplicarDatos]);
+
+  const recargarDatos = useCallback(async () => {
+    setLoadingData(true);
+    aplicarDatos(await obtenerDatos());
+  }, [obtenerDatos, aplicarDatos]);
 
   // =============================================
   // Handlers
@@ -221,15 +260,45 @@ export default function DashboardPage() {
 
       if (updateError) {
         setError("Error al validar: " + updateError.message);
-        return;
+        return false;
       }
 
       // Actualizar estado local
       setPendientes((prev) => prev.filter((p) => p.id !== asistencia.id));
       setValidadasCount((prev) => prev + 1);
+      setUltimaValidada(asistencia);
+      return true;
     },
     [usuario]
   );
+
+  // Ocultar el aviso de "Deshacer" pasado el tiempo límite
+  useEffect(() => {
+    if (!ultimaValidada) return;
+    const timer = setTimeout(() => setUltimaValidada(null), TIEMPO_DESHACER_MS);
+    return () => clearTimeout(timer);
+  }, [ultimaValidada]);
+
+  const handleDeshacerValidacion = useCallback(async () => {
+    if (!ultimaValidada) return;
+    const asistencia = ultimaValidada;
+    setUltimaValidada(null);
+
+    const { error: updateError } = await supabase
+      .from("asistencias")
+      .update({ estado: "pendiente", revisado_por: null })
+      .eq("id", asistencia.id)
+      .eq("estado", "validado");
+
+    if (updateError) {
+      setError("Error al deshacer la validación: " + updateError.message);
+      return;
+    }
+
+    // Era la más antigua de la cola: vuelve al frente
+    setPendientes((prev) => [asistencia, ...prev]);
+    setValidadasCount((prev) => Math.max(0, prev - 1));
+  }, [ultimaValidada]);
 
   const handleIniciarRechazo = useCallback(
     (asistencia: AsistenciaPendiente) => {
@@ -261,7 +330,7 @@ export default function DashboardPage() {
 
       // Disparar notificación (mock)
       await notificarRechazo({
-        alumnoId: asistenciaRechazando.id,
+        alumnoId: asistenciaRechazando.alumno_id,
         alumnoNombre: asistenciaRechazando.alumnos.nombre_completo,
         semana: asistenciaRechazando.semana_numero,
         motivo,
@@ -404,6 +473,7 @@ export default function DashboardPage() {
                 id="filtro-comunidad"
                 value={filtroComunidad ?? ""}
                 onChange={(e) => {
+                  setLoadingData(true);
                   setFiltroComunidad(
                     e.target.value ? Number(e.target.value) : null
                   );
@@ -451,6 +521,25 @@ export default function DashboardPage() {
             </div>
           )}
 
+          {/* ── Aviso para deshacer la última validación ── */}
+          {ultimaValidada && (
+            <div
+              role="status"
+              className="mb-4 px-4 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20
+                         flex items-center justify-between gap-3 animate-fade-in-scale"
+            >
+              <p className="text-sm text-emerald-300 truncate">
+                Validada: {ultimaValidada.alumnos.nombre_completo}
+              </p>
+              <button
+                onClick={handleDeshacerValidacion}
+                className="shrink-0 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-semibold transition-all"
+              >
+                Deshacer
+              </button>
+            </div>
+          )}
+
           {/* ── Zona de swipe ── */}
           <div className="flex-1 flex flex-col items-center justify-center">
             {loadingData ? (
@@ -491,7 +580,7 @@ export default function DashboardPage() {
                   No hay fotos pendientes de revisión.
                 </p>
                 <button
-                  onClick={cargarDatos}
+                  onClick={recargarDatos}
                   className="px-6 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white/50 text-sm font-medium transition-all"
                 >
                   Actualizar

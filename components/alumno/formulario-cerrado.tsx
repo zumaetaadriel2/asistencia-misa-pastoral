@@ -14,10 +14,16 @@ interface Props {
 export function FormularioCerrado({ estado }: Props) {
   const [countdown, setCountdown] = useState("");
 
+  const { proximoCambio } = estado;
+
   useEffect(() => {
+    // Cierre manual: no hay apertura programada, no hay cuenta regresiva
+    if (!proximoCambio) return;
+    const apertura = proximoCambio;
+
     function actualizarCountdown() {
       const ahora = new Date();
-      const diff = estado.proximoCambio.getTime() - ahora.getTime();
+      const diff = apertura.getTime() - ahora.getTime();
 
       if (diff <= 0) {
         // Ya abrió — recargar para mostrar el formulario
@@ -42,15 +48,15 @@ export function FormularioCerrado({ estado }: Props) {
     actualizarCountdown();
     const interval = setInterval(actualizarCountdown, 1000);
     return () => clearInterval(interval);
-  }, [estado.proximoCambio]);
+  }, [proximoCambio]);
 
   // Formatear la fecha de próxima apertura
-  const fechaApertura = estado.proximoCambio.toLocaleDateString("es-ES", {
+  const fechaApertura = proximoCambio?.toLocaleDateString("es-ES", {
     weekday: "long",
     day: "numeric",
     month: "long",
   });
-  const horaApertura = estado.proximoCambio.toLocaleTimeString("es-ES", {
+  const horaApertura = proximoCambio?.toLocaleTimeString("es-ES", {
     hour: "2-digit",
     minute: "2-digit",
   });
@@ -105,26 +111,35 @@ export function FormularioCerrado({ estado }: Props) {
           </div>
 
           {/* Próxima apertura */}
-          <div className="text-center">
-            <p className="text-xs text-white/30 uppercase tracking-wider mb-2">
-              Abre el
+          {proximoCambio ? (
+            <div className="text-center">
+              <p className="text-xs text-white/30 uppercase tracking-wider mb-2">
+                Abre el
+              </p>
+              <p className="text-sm font-medium text-white/70 capitalize">
+                {fechaApertura}
+              </p>
+              <p className="text-sm text-white/50">a las {horaApertura}</p>
+            </div>
+          ) : (
+            <p className="text-sm text-white/60 text-center">
+              El administrador cerró el formulario manualmente. Consulta con tu
+              guía cuándo volverá a abrirse.
             </p>
-            <p className="text-sm font-medium text-white/70 capitalize">
-              {fechaApertura}
-            </p>
-            <p className="text-sm text-white/50">a las {horaApertura}</p>
-          </div>
+          )}
         </div>
 
         {/* Countdown */}
-        <div className="glass-card p-5 animate-fade-in delay-300">
-          <p className="text-xs text-white/30 uppercase tracking-wider mb-3">
-            Tiempo restante
-          </p>
-          <p className="text-3xl font-mono font-bold text-primary-400 animate-countdown">
-            {countdown || "…"}
-          </p>
-        </div>
+        {proximoCambio && (
+          <div className="glass-card p-5 animate-fade-in delay-300">
+            <p className="text-xs text-white/30 uppercase tracking-wider mb-3">
+              Tiempo restante
+            </p>
+            <p className="text-3xl font-mono font-bold text-primary-400 animate-countdown">
+              {countdown || "…"}
+            </p>
+          </div>
+        )}
 
         {/* Horario */}
         <p className="mt-6 text-xs text-white/25">
