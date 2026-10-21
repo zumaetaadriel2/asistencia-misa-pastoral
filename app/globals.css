@@ -95,3 +95,11 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 1rem;
 }
+
+/* Impresión (códigos de los alumnos): fondo blanco y solo lo marcado con print:* */
+@media print {
+  body {
+    background: white;
+    color: black;
+  }
+}

@@ -82,7 +82,7 @@ export async function revisarAsistencia(
   const { error } = await supabase.rpc("revisar_asistencia", {
     p_asistencia_id: asistenciaId,
     p_accion: accion,
-    p_motivo: motivo ?? null,
+    p_motivo: motivo,
   });
   if (error) throw error;
 }
