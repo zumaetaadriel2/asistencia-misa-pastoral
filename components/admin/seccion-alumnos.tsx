@@ -9,9 +9,11 @@ import {
   type Alumno,
   type Comunidad,
 } from "@/lib/staff/admin";
+import { coincide } from "@/lib/staff/busqueda";
 import { mensajeDe } from "@/lib/staff/errores";
 import { parsearNombres } from "@/lib/staff/importacion";
-import { Cargando, claseBoton, claseBotonSecundario, claseInput, Mensaje, Tarjeta, type MensajeAdmin } from "@/components/ui/base";
+import { Boton, Buscador, Campo, Cargando, claseInput, Mensaje, Tarjeta, type MensajeAdmin } from "@/components/ui/base";
+import { useConfirmar } from "@/components/ui/confirmar";
 
 export function SeccionAlumnos() {
   const [comunidades, setComunidades] = useState<Comunidad[] | null>(null);
@@ -21,6 +23,8 @@ export function SeccionAlumnos() {
   const [texto, setTexto] = useState("");
   const [importando, setImportando] = useState(false);
   const [mensaje, setMensaje] = useState<MensajeAdmin | null>(null);
+  const [busqueda, setBusqueda] = useState("");
+  const { confirmar, dialogoConfirmar } = useConfirmar();
 
   const comunidadId = elegida ?? comunidades?.[0]?.id ?? null;
   const clave = `${comunidadId}#${recargas}`;
@@ -77,6 +81,15 @@ export function SeccionAlumnos() {
   };
 
   const alternar = async (alumno: Alumno) => {
+    if (alumno.activo) {
+      const seguro = await confirmar({
+        titulo: `¿Dar de baja a ${alumno.nombre_completo}?`,
+        mensaje: "Su código dejará de funcionar. Su historial se conserva y puedes reactivarlo cuando quieras.",
+        aceptar: "Dar de baja",
+        peligro: true,
+      });
+      if (!seguro) return;
+    }
     try {
       await cambiarAlumnoActivo(alumno.id, !alumno.activo);
       setRecargas((n) => n + 1);
@@ -94,17 +107,19 @@ export function SeccionAlumnos() {
     <div className="space-y-4">
       <Mensaje mensaje={mensaje} />
 
-      <select
-        value={comunidadId ?? ""}
-        onChange={(e) => setElegida(Number(e.target.value))}
-        className={`${claseInput} appearance-none cursor-pointer`}
-      >
-        {comunidades.map((c) => (
-          <option key={c.id} value={c.id}>
-            {c.nombre} · {c.programa === "confirmacion" ? "Confirmación" : "Primera Comunión"}
-          </option>
-        ))}
-      </select>
+      <Campo etiqueta="Comunidad">
+        <select
+          value={comunidadId ?? ""}
+          onChange={(e) => setElegida(Number(e.target.value))}
+          className={`${claseInput} cursor-pointer`}
+        >
+          {comunidades.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.nombre} · {c.programa === "confirmacion" ? "Confirmación" : "Primera Comunión"}
+            </option>
+          ))}
+        </select>
+      </Campo>
 
       <Tarjeta
         titulo="Importar desde Excel"
@@ -114,17 +129,18 @@ export function SeccionAlumnos() {
           value={texto}
           onChange={(e) => setTexto(e.target.value)}
           rows={6}
+          aria-label="Nombres de los alumnos, uno por línea"
           placeholder={"Ana Pérez Torres\nBruno Díaz Ruiz\n…"}
-          className={`${claseInput} resize-y font-mono text-xs`}
+          className={`${claseInput} resize-y font-mono`}
         />
         <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-xs text-texto-tenue">
+          <p className="text-sm text-texto-suave" aria-live="polite">
             {lista.nombres.length} nombres para importar
             {lista.repetidos.length > 0 && ` · ${lista.repetidos.length} repetidos en lo pegado (se importan una vez)`}
           </p>
-          <button onClick={importar} disabled={importando || lista.nombres.length === 0} className={claseBoton}>
+          <Boton onClick={importar} disabled={importando || lista.nombres.length === 0}>
             {importando ? "Importando…" : "Importar alumnos"}
-          </button>
+          </Boton>
         </div>
       </Tarjeta>
 
@@ -132,23 +148,49 @@ export function SeccionAlumnos() {
         {alumnos?.clave !== clave ? (
           <Cargando />
         ) : alumnos.lista.length === 0 ? (
-          <p className="text-xs text-texto-tenue">Todavía no hay alumnos.</p>
+          <p className="text-sm text-texto-tenue">Todavía no hay alumnos.</p>
         ) : (
-          <ul className="divide-y divide-borde">
-            {alumnos.lista.map((alumno) => (
-              <li key={alumno.id} className="py-2 flex items-center justify-between gap-2">
-                <span className={`text-sm ${alumno.activo ? "text-texto-suave" : "text-texto-tenue line-through"}`}>
-                  {alumno.nombre_completo}
-                  <span className="ml-2 font-mono text-xs text-marca">{alumno.codigo}</span>
-                </span>
-                <button onClick={() => alternar(alumno)} className={claseBotonSecundario}>
-                  {alumno.activo ? "Dar de baja" : "Reactivar"}
-                </button>
-              </li>
-            ))}
-          </ul>
+          <>
+            <Buscador valor={busqueda} onCambiar={setBusqueda} />
+            <ListaAlumnos
+              alumnos={alumnos.lista.filter((a) => coincide(busqueda, a.nombre_completo))}
+              busqueda={busqueda}
+              onAlternar={alternar}
+            />
+          </>
         )}
       </Tarjeta>
+
+      {dialogoConfirmar}
     </div>
+  );
+}
+
+function ListaAlumnos({
+  alumnos,
+  busqueda,
+  onAlternar,
+}: {
+  alumnos: Alumno[];
+  busqueda: string;
+  onAlternar: (alumno: Alumno) => void;
+}) {
+  if (alumnos.length === 0) return <p className="mt-3 text-sm text-texto-tenue">Ningún alumno coincide con «{busqueda}».</p>;
+
+  return (
+    <ul className="mt-2 divide-y divide-borde">
+      {alumnos.map((alumno) => (
+        <li key={alumno.id} className="py-2 flex items-center justify-between gap-2">
+          <span className={`text-sm ${alumno.activo ? "text-texto" : "text-texto-tenue"}`}>
+            <span className={alumno.activo ? "" : "line-through"}>{alumno.nombre_completo}</span>
+            {!alumno.activo && " (de baja)"}
+            <span className="ml-2 font-mono text-xs text-marca">{alumno.codigo}</span>
+          </span>
+          <Boton variante="secundario" tamano="pequeno" onClick={() => onAlternar(alumno)}>
+            {alumno.activo ? "Dar de baja" : "Reactivar"}
+          </Boton>
+        </li>
+      ))}
+    </ul>
   );
 }

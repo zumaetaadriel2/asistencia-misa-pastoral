@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { PerfilStaff } from "@/lib/staff/revision";
 import { SeccionAlumnos } from "./seccion-alumnos";
 import { SeccionCiclo } from "./seccion-ciclo";
@@ -18,31 +18,55 @@ const SECCIONES = [
 
 type Seccion = (typeof SECCIONES)[number]["id"];
 
-/** Administración en pestañas; cada sección carga sus datos al abrirse */
+/** Administración en pestañas (← → para moverse entre ellas); cada sección carga sus datos al abrirse */
 export function PanelAdministracion({ perfil }: { perfil: PerfilStaff }) {
   const [seccion, setSeccion] = useState<Seccion>("ciclo");
+  const pestanas = useRef<Partial<Record<Seccion, HTMLButtonElement | null>>>({});
+
+  const moverCon = (e: React.KeyboardEvent) => {
+    const paso = e.key === "ArrowRight" ? 1 : e.key === "ArrowLeft" ? -1 : 0;
+    if (!paso) return;
+    e.preventDefault();
+    const actual = SECCIONES.findIndex((s) => s.id === seccion);
+    const siguiente = SECCIONES[(actual + paso + SECCIONES.length) % SECCIONES.length].id;
+    setSeccion(siguiente);
+    pestanas.current[siguiente]?.focus();
+  };
 
   return (
     <div className="flex-1 flex flex-col gap-4">
-      <div className="flex gap-1.5 overflow-x-auto">
-        {SECCIONES.map((s) => (
-          <button
-            key={s.id}
-            onClick={() => setSeccion(s.id)}
-            className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
-              seccion === s.id ? "bg-marca-solido text-white" : "bg-superficie-2 text-texto-tenue hover:text-texto-suave"
-            }`}
-          >
-            {s.texto}
-          </button>
-        ))}
+      <div role="tablist" aria-label="Secciones de administración" onKeyDown={moverCon} className="flex gap-1.5 overflow-x-auto">
+        {SECCIONES.map((s) => {
+          const elegida = seccion === s.id;
+          return (
+            <button
+              key={s.id}
+              ref={(boton) => {
+                pestanas.current[s.id] = boton;
+              }}
+              id={`pestana-${s.id}`}
+              role="tab"
+              aria-selected={elegida}
+              aria-controls={`seccion-${s.id}`}
+              tabIndex={elegida ? 0 : -1}
+              onClick={() => setSeccion(s.id)}
+              className={`min-h-11 px-4 rounded-full text-sm font-semibold whitespace-nowrap transition-all ${
+                elegida ? "bg-marca-solido text-white" : "bg-superficie-2 text-texto-suave hover:text-texto"
+              }`}
+            >
+              {s.texto}
+            </button>
+          );
+        })}
       </div>
 
-      {seccion === "ciclo" && <SeccionCiclo />}
-      {seccion === "comunidades" && <SeccionComunidades />}
-      {seccion === "staff" && <SeccionStaff perfil={perfil} />}
-      {seccion === "alumnos" && <SeccionAlumnos />}
-      {seccion === "reportes" && <SeccionReportes perfil={perfil} />}
+      <div role="tabpanel" id={`seccion-${seccion}`} aria-labelledby={`pestana-${seccion}`}>
+        {seccion === "ciclo" && <SeccionCiclo />}
+        {seccion === "comunidades" && <SeccionComunidades />}
+        {seccion === "staff" && <SeccionStaff perfil={perfil} />}
+        {seccion === "alumnos" && <SeccionAlumnos />}
+        {seccion === "reportes" && <SeccionReportes perfil={perfil} />}
+      </div>
     </div>
   );
 }

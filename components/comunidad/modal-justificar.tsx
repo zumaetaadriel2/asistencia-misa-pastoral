@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { Boton, claseInput } from "@/components/ui/base";
+import { Modal } from "@/components/ui/modal";
 
 interface Props {
   alumno: string;
@@ -14,7 +16,8 @@ export function ModalJustificar({ alumno, semana, onCerrar, onConfirmar }: Props
   const [motivo, setMotivo] = useState("");
   const [enviando, setEnviando] = useState(false);
 
-  const confirmar = async () => {
+  const confirmar = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!motivo.trim()) return;
     setEnviando(true);
     await onConfirmar(motivo.trim());
@@ -22,14 +25,12 @@ export function ModalJustificar({ alumno, semana, onCerrar, onConfirmar }: Props
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center px-4 print:hidden">
-      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => !enviando && onCerrar()} />
-      <div className="relative w-full max-w-sm tarjeta p-6 animate-fade-in-scale">
-        <h3 className="text-base font-semibold text-texto">Justificar falta</h3>
-        <p className="text-xs text-texto-tenue mt-1 mb-4">
-          {alumno} · Semana {semana}
-        </p>
+    <Modal titulo="Justificar falta" onCerrar={onCerrar} bloqueado={enviando}>
+      <p className="mt-1 text-sm text-texto-suave">
+        {alumno} · Semana {semana}
+      </p>
 
+      <form onSubmit={confirmar} className="mt-4">
         <label htmlFor="motivo-justificacion" className="block text-sm font-medium text-texto-suave mb-1.5">
           Motivo <span className="text-info">*</span>
         </label>
@@ -37,31 +38,26 @@ export function ModalJustificar({ alumno, semana, onCerrar, onConfirmar }: Props
           id="motivo-justificacion"
           value={motivo}
           onChange={(e) => setMotivo(e.target.value)}
-          placeholder="Ej: Estuvo enfermo, avisó su familia."
+          placeholder="Ej.: Estuvo enfermo, avisó su familia."
           rows={3}
-          autoFocus
-          className="w-full px-4 py-3 rounded-xl bg-superficie-2 border border-borde text-texto text-sm
-                     placeholder:text-texto-tenue resize-none focus:outline-none focus:ring-2 focus:ring-info/30"
+          required
+          data-autofocus
+          aria-describedby="motivo-justificacion-ayuda"
+          className={`${claseInput} resize-none`}
         />
-        <p className="mt-1 text-[10px] text-texto-tenue">El alumno verá este motivo en su historial.</p>
+        <p id="motivo-justificacion-ayuda" className="mt-1 text-xs text-texto-tenue">
+          El alumno verá este motivo en su historial. La semana no cuenta como falta.
+        </p>
 
         <div className="flex gap-3 mt-5">
-          <button
-            onClick={onCerrar}
-            disabled={enviando}
-            className="flex-1 py-2.5 rounded-xl bg-superficie-2 hover:bg-borde text-texto-suave text-sm font-medium transition-all disabled:opacity-30"
-          >
+          <Boton variante="secundario" onClick={onCerrar} disabled={enviando} className="flex-1">
             Cancelar
-          </button>
-          <button
-            onClick={confirmar}
-            disabled={!motivo.trim() || enviando}
-            className="flex-[2] py-2.5 rounded-xl bg-info-solido hover:bg-info-solido/85 text-white text-sm font-semibold transition-all disabled:opacity-30"
-          >
+          </Boton>
+          <Boton type="submit" disabled={!motivo.trim() || enviando} className="flex-[2]">
             {enviando ? "Guardando…" : "Justificar"}
-          </button>
+          </Boton>
         </div>
-      </div>
-    </div>
+      </form>
+    </Modal>
   );
 }

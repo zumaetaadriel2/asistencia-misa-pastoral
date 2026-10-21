@@ -10,9 +10,11 @@ import {
   type Comunidad,
   type MiembroStaff,
 } from "@/lib/staff/admin";
+import { coincide } from "@/lib/staff/busqueda";
 import { mensajeDe } from "@/lib/staff/errores";
 import type { PerfilStaff, RolStaff } from "@/lib/staff/revision";
-import { Cargando, claseBoton, claseBotonSecundario, claseInput, Mensaje, Tarjeta, type MensajeAdmin } from "@/components/ui/base";
+import { Boton, Buscador, Campo, Cargando, claseInput, Mensaje, Tarjeta, type MensajeAdmin } from "@/components/ui/base";
+import { useConfirmar } from "@/components/ui/confirmar";
 
 export function SeccionStaff({ perfil }: { perfil: PerfilStaff }) {
   const [staff, setStaff] = useState<MiembroStaff[] | null>(null);
@@ -24,6 +26,9 @@ export function SeccionStaff({ perfil }: { perfil: PerfilStaff }) {
     email: "",
     rol: "guia",
   });
+  const [agregando, setAgregando] = useState(false);
+  const [busqueda, setBusqueda] = useState("");
+  const { confirmar, dialogoConfirmar } = useConfirmar();
 
   useEffect(() => {
     let cancelado = false;
@@ -43,6 +48,7 @@ export function SeccionStaff({ perfil }: { perfil: PerfilStaff }) {
 
   const crear = async (e: React.FormEvent) => {
     e.preventDefault();
+    setAgregando(true);
     try {
       await crearStaff(nuevo);
       setMensaje({
@@ -56,10 +62,31 @@ export function SeccionStaff({ perfil }: { perfil: PerfilStaff }) {
         tipo: "error",
         texto: mensajeDe(error, "No se pudo agregar.", { duplicado: "Ese correo ya está registrado." }),
       });
+    } finally {
+      setAgregando(false);
     }
   };
 
   const cambiar = async (miembro: MiembroStaff, cambios: Partial<Pick<MiembroStaff, "rol" | "activo">>) => {
+    // Desactivar o dar acceso de administrador se confirma antes
+    if (cambios.activo === false) {
+      const seguro = await confirmar({
+        titulo: `¿Desactivar a ${miembro.nombre}?`,
+        mensaje: "Ya no podrá entrar al panel. Puedes volver a activarlo cuando quieras.",
+        aceptar: "Desactivar",
+        peligro: true,
+      });
+      if (!seguro) return;
+    }
+    if (cambios.rol === "admin") {
+      const seguro = await confirmar({
+        titulo: `¿Hacer administrador a ${miembro.nombre}?`,
+        mensaje: "Verá todas las comunidades y podrá cambiar ciclos, comunidades, staff y alumnos.",
+        aceptar: "Hacer administrador",
+        peligro: true,
+      });
+      if (!seguro) return;
+    }
     try {
       await actualizarStaff(miembro.id, cambios);
       setStaff((prev) => prev?.map((m) => (m.id === miembro.id ? { ...m, ...cambios } : m)) ?? prev);
@@ -89,6 +116,7 @@ export function SeccionStaff({ perfil }: { perfil: PerfilStaff }) {
   };
 
   if (!staff) return <Cargando />;
+  const visibles = staff.filter((m) => coincide(busqueda, m.nombre, m.email));
 
   return (
     <div className="space-y-4">
@@ -98,51 +126,55 @@ export function SeccionStaff({ perfil }: { perfil: PerfilStaff }) {
         titulo="Agregar guía o administrador"
         descripcion="Usa el correo de su cuenta de Google: con él entrará a la app. Solo los correos registrados aquí pueden entrar."
       >
-        <form onSubmit={crear} className="grid gap-3 sm:grid-cols-[1fr_1fr_10rem_auto]">
-          <input
-            value={nuevo.nombre}
-            onChange={(e) => setNuevo({ ...nuevo, nombre: e.target.value })}
-            required
-            placeholder="Nombre"
-            className={claseInput}
-          />
-          <input
-            type="email"
-            value={nuevo.email}
-            onChange={(e) => setNuevo({ ...nuevo, email: e.target.value })}
-            required
-            placeholder="correo@gmail.com"
-            className={claseInput}
-          />
-          <select
-            value={nuevo.rol}
-            onChange={(e) => setNuevo({ ...nuevo, rol: e.target.value as RolStaff })}
-            className={`${claseInput} appearance-none cursor-pointer`}
-          >
-            <option value="guia">
-              Guía
-            </option>
-            <option value="admin">
-              Administrador
-            </option>
-          </select>
-          <button type="submit" className={claseBoton}>
-            Agregar
-          </button>
+        <form onSubmit={crear} className="grid gap-3 sm:grid-cols-[1fr_1fr_10rem_auto] sm:items-end">
+          <Campo etiqueta="Nombre">
+            <input
+              value={nuevo.nombre}
+              onChange={(e) => setNuevo({ ...nuevo, nombre: e.target.value })}
+              required
+              className={claseInput}
+            />
+          </Campo>
+          <Campo etiqueta="Correo de Google">
+            <input
+              type="email"
+              value={nuevo.email}
+              onChange={(e) => setNuevo({ ...nuevo, email: e.target.value })}
+              required
+              placeholder="correo@gmail.com"
+              className={claseInput}
+            />
+          </Campo>
+          <Campo etiqueta="Rol">
+            <select
+              value={nuevo.rol}
+              onChange={(e) => setNuevo({ ...nuevo, rol: e.target.value as RolStaff })}
+              className={`${claseInput} cursor-pointer`}
+            >
+              <option value="guia">Guía</option>
+              <option value="admin">Administrador</option>
+            </select>
+          </Campo>
+          <Boton type="submit" disabled={agregando}>
+            {agregando ? "Agregando…" : "Agregar"}
+          </Boton>
         </form>
       </Tarjeta>
 
       <Tarjeta titulo={`Staff (${staff.length})`} descripcion="Toca una comunidad para asignarla o quitarla. El administrador ve todas.">
-        <ul className="divide-y divide-borde">
-          {staff.map((miembro) => {
+        <Buscador valor={busqueda} onCambiar={setBusqueda} etiqueta="Buscar por nombre o correo" />
+        {visibles.length === 0 && <p className="mt-3 text-sm text-texto-tenue">Nadie coincide con «{busqueda}».</p>}
+        <ul className="mt-2 divide-y divide-borde">
+          {visibles.map((miembro) => {
             const esUnoMismo = miembro.id === perfil.id;
             return (
-              <li key={miembro.id} className={`py-3 ${miembro.activo ? "" : "opacity-50"}`}>
+              <li key={miembro.id} className={`py-3 ${miembro.activo ? "" : "opacity-60"}`}>
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
-                    <p className="text-sm text-texto-suave">
+                    <p className="text-sm text-texto">
                       {miembro.nombre}
                       {!miembro.activo && <span className="text-xs text-texto-tenue"> (inactivo)</span>}
+                      {esUnoMismo && <span className="text-xs text-texto-tenue"> (tú)</span>}
                     </p>
                     <p className="text-xs text-texto-tenue">{miembro.email}</p>
                   </div>
@@ -150,41 +182,41 @@ export function SeccionStaff({ perfil }: { perfil: PerfilStaff }) {
                     <select
                       value={miembro.rol}
                       disabled={esUnoMismo}
+                      aria-label={`Rol de ${miembro.nombre}`}
                       onChange={(e) => cambiar(miembro, { rol: e.target.value as RolStaff })}
-                      className="px-2 py-1.5 rounded-lg bg-superficie-2 border border-borde text-texto text-xs appearance-none disabled:opacity-40"
+                      className="min-h-11 px-3 rounded-lg bg-superficie-2 border border-borde text-texto text-sm cursor-pointer disabled:opacity-40"
                     >
-                      <option value="guia">
-                        Guía
-                      </option>
-                      <option value="admin">
-                        Administrador
-                      </option>
+                      <option value="guia">Guía</option>
+                      <option value="admin">Administrador</option>
                     </select>
-                    <button
+                    <Boton
+                      variante="secundario"
+                      tamano="pequeno"
                       onClick={() => cambiar(miembro, { activo: !miembro.activo })}
                       disabled={esUnoMismo}
-                      className={claseBotonSecundario}
                     >
                       {miembro.activo ? "Desactivar" : "Activar"}
-                    </button>
+                    </Boton>
                   </div>
                 </div>
                 {miembro.rol === "guia" && (
-                  <div className="mt-2 flex flex-wrap gap-1.5">
+                  <div className="mt-2 flex flex-wrap gap-1.5" role="group" aria-label={`Comunidades de ${miembro.nombre}`}>
                     {comunidades.map((comunidad) => {
                       const asignada = miembro.comunidades.includes(comunidad.id);
                       return (
                         <button
                           key={comunidad.id}
                           onClick={() => alternarComunidad(miembro, comunidad.id)}
-                          className={`px-2.5 py-1 rounded-full border text-[11px] transition-all ${
+                          aria-pressed={asignada}
+                          className={`min-h-9 px-3 rounded-full border text-xs transition-all ${
                             asignada
-                              ? "bg-marca/20 border-marca/50 text-texto"
-                              : "bg-superficie-2 border-borde text-texto-tenue hover:text-texto-suave"
+                              ? "bg-marca/15 border-marca/50 text-texto font-semibold"
+                              : "bg-superficie-2 border-borde text-texto-suave hover:text-texto"
                           }`}
                         >
+                          {asignada && "✓ "}
                           {comunidad.nombre}
-                          <span className="opacity-60"> · {comunidad.programa === "confirmacion" ? "Conf." : "Com."}</span>
+                          <span className="text-texto-tenue"> · {comunidad.programa === "confirmacion" ? "Conf." : "Com."}</span>
                         </button>
                       );
                     })}
@@ -195,6 +227,8 @@ export function SeccionStaff({ perfil }: { perfil: PerfilStaff }) {
           })}
         </ul>
       </Tarjeta>
+
+      {dialogoConfirmar}
     </div>
   );
 }
