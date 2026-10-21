@@ -11,7 +11,11 @@ interface Props {
   onEnviado: (semana: number) => void;
 }
 
-/** Tomar la foto, verla antes de enviarla y subirla */
+/**
+ * Tomar o elegir la foto, verla antes de enviarla y subirla.
+ * Sin `capture`: el celular ofrece cámara o galería, para quien la toma en misa
+ * sin señal y la sube después (la fecha EXIF y la huella ayudan a detectar fotos viejas).
+ */
 export function EnvioFoto({ codigo, esReenvio, onEnviado }: Props) {
   const [foto, setFoto] = useState<File | null>(null);
   const [vistaPrevia, setVistaPrevia] = useState<string | null>(null);
@@ -66,7 +70,6 @@ export function EnvioFoto({ codigo, esReenvio, onEnviado }: Props) {
         ref={inputRef}
         type="file"
         accept="image/*"
-        capture="environment"
         onChange={elegirFoto}
         className="hidden"
       />
@@ -105,7 +108,7 @@ export function EnvioFoto({ codigo, esReenvio, onEnviado }: Props) {
             />
             <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 12.75a4.5 4.5 0 1 1-9 0 4.5 4.5 0 0 1 9 0Z" />
           </svg>
-          <span className="text-sm font-medium">{esReenvio ? "Tomar una nueva foto" : "Tomar foto"}</span>
+          <span className="text-sm font-medium">{esReenvio ? "Tomar o elegir otra foto" : "Tomar o elegir foto"}</span>
         </button>
       )}
 
