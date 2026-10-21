@@ -34,6 +34,13 @@ Variables de entorno de Next: `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE
 
 Para probar en el navegador con datos del seed: códigos de alumno `TEST22`…`TEST29`, `TESTA2`…`TESTD2`; staff `admin@ejemplo.com`, `guia.uno@ejemplo.com` (San Pablo y San José) y `guia.dos@ejemplo.com` con cualquier contraseña de 6+ caracteres (el primer login crea la cuenta; requiere `NEXT_PUBLIC_LOGIN_CON_CORREO=true` en `.env.development.local`). Las fotos del seed no existen en R2 (se ven rotas); para fotos reales, súbelas por `/alumno`. Fuera del horario (sáb 19:00 → lun 23:59) se puede abrir el formulario a mano con `update public.ciclos set abierto_manual = true where activo` y volverlo a `null` al terminar.
 
+## Flujo de ramas
+
+- `main`: solo versiones listas para producción, por Pull Request desde `develop`.
+- `develop`: integración; recibe cada fase o tarea por Pull Request.
+- `feature/<nombre>`: se crea desde `develop` (`git switch -c feature/administracion develop`). Nunca commitear directo en `main` ni en `develop`.
+- En GitHub los PR se unen con **"Create a merge commit"** (no squash ni rebase), para que los commits se conserven y el siguiente PR muestre solo lo nuevo. La CI (`.github/workflows/ci.yml`) corre en cada PR y en los push a `main` y `develop`.
+
 ## Estado del rediseño
 
 Plan aprobado en fases 0–7. Hechas: base nueva (0–1), fotos en R2 (2), pantalla del alumno (3) y revisión del staff (4). Falta la administración (5): `components/dashboard/panel-admin.tsx` es del esquema viejo (`configuracion_ciclo`, `usuarios_staff`), ya no se usa y se reemplazará por secciones. Por eso `lib/supabase/client.ts` aún no usa el tipo `Database`: tiparlo rompería la compilación de ese archivo; hacerlo al terminar la fase 5. Pendientes de la fase 6: latido y respaldo con GitHub Actions, Vercel y subdominio.
