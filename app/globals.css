@@ -138,6 +138,12 @@ dialog::backdrop {
   100% { background-position: 200% 0; }
 }
 
+/* Barra que se vacía (tiempo para deshacer) */
+@keyframes encoger {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}
+
 @keyframes countdown-pulse {
   0%, 100% { opacity: 1; }
   50%      { opacity: 0.6; }
@@ -163,6 +169,10 @@ dialog::backdrop {
 
 .animate-countdown {
   animation: countdown-pulse 1.5s ease-in-out infinite;
+}
+
+.animate-encoger {
+  animation: encoger linear forwards;
 }
 
 /* Delay helpers for staggered animations */

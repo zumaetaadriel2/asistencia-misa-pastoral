@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import {
   obtenerCola,
   obtenerResumen,
@@ -12,6 +13,9 @@ import {
 import { obtenerUrlsFotos } from "@/lib/staff/fotos";
 import { avisoFechaExif, avisoParecida, type Aviso } from "@/lib/staff/avisos";
 import { mensajeDe } from "@/lib/staff/errores";
+import { accionDeTecla, leerTecla } from "@/lib/staff/atajos";
+import { marcarConsejoVisto, useConsejoVisto } from "@/lib/staff/consejo";
+import { Boton, claseDeBoton, claseInput } from "@/components/ui/base";
 import { Metricas } from "@/components/dashboard/metricas";
 import { TarjetaRevision } from "@/components/dashboard/tarjeta-revision";
 import { ModalRechazo } from "@/components/dashboard/modal-rechazo";
@@ -37,7 +41,7 @@ function fotosParaComparar(item: ItemCola, urls: Map<number, string>): FotoCompa
   if (item.anterior_envio_id) {
     fotos.push({
       envioId: item.anterior_envio_id,
-      etiqueta: `Su foto anterior (semana ${item.anterior_semana})`,
+      etiqueta: `Su foto de la semana ${item.anterior_semana}`,
       url: urls.get(item.anterior_envio_id),
     });
   }
@@ -132,6 +136,8 @@ export function PanelRevision({ perfil }: { perfil: PerfilStaff }) {
     return () => clearTimeout(timer);
   }, [ultimaRevision]);
 
+  const consejoVisto = useConsejoVisto();
+
   // --- Acciones ---
   const quitarDeLaCola = (asistenciaId: number) =>
     setCola((prev) => prev?.filter((item) => item.asistencia_id !== asistenciaId) ?? prev);
@@ -191,6 +197,17 @@ export function PanelRevision({ perfil }: { perfil: PerfilStaff }) {
     }
   };
 
+  // Z deshace la última revisión (validar y rechazar con teclado los maneja TarjetaRevision)
+  useEffect(() => {
+    const alPresionar = (e: KeyboardEvent) => {
+      if (!ultimaRevision || accionDeTecla(leerTecla(e)) !== "deshacer") return;
+      e.preventDefault();
+      deshacer();
+    };
+    window.addEventListener("keydown", alPresionar);
+    return () => window.removeEventListener("keydown", alPresionar);
+  });
+
   const confirmarReasignacion = async (alumnoDestinoId: number) => {
     if (!reasignando) return;
     try {
@@ -220,12 +237,10 @@ export function PanelRevision({ perfil }: { perfil: PerfilStaff }) {
           <select
             value={filtroComunidad ?? ""}
             onChange={(e) => setFiltroComunidad(e.target.value ? Number(e.target.value) : null)}
-            className="flex-1 min-w-0 px-3 py-2.5 rounded-xl bg-superficie-2 border border-borde text-texto text-sm
-                       focus:outline-none focus:ring-2 focus:ring-marca/40 appearance-none cursor-pointer"
+            aria-label="Filtrar por comunidad"
+            className={`${claseInput} flex-1 min-w-0 cursor-pointer`}
           >
-            <option value="">
-              Todas mis comunidades
-            </option>
+            <option value="">Todas mis comunidades</option>
             {comunidades.map(([id, nombre]) => (
               <option key={id} value={id}>
                 {nombre}
@@ -236,8 +251,8 @@ export function PanelRevision({ perfil }: { perfil: PerfilStaff }) {
         <button
           onClick={() => setVerResumen(true)}
           disabled={!perfil.semana_reciente}
-          className="px-3 py-2.5 rounded-xl bg-exito/15 hover:bg-exito/25 border border-exito/25
-                     text-exito text-xs font-semibold transition-all disabled:opacity-30 whitespace-nowrap"
+          className="min-h-11 px-4 rounded-xl bg-exito/15 hover:bg-exito/25 border border-exito/25
+                     text-exito text-sm font-semibold transition-all disabled:opacity-30 whitespace-nowrap"
         >
           Resumen WhatsApp
         </button>
@@ -245,93 +260,121 @@ export function PanelRevision({ perfil }: { perfil: PerfilStaff }) {
 
       {/* ── Error ── */}
       {error && (
-        <div className="mb-4 p-3 rounded-xl bg-error/10 border border-error/25 flex items-center justify-between gap-2 animate-fade-in-scale">
+        <div
+          role="alert"
+          className="mb-4 pl-3 pr-1 py-1 rounded-xl bg-error/10 border border-error/25 flex items-center justify-between gap-2 animate-fade-in-scale"
+        >
           <p className="text-sm text-error">{error}</p>
-          <button onClick={() => setError("")} className="text-error hover:underline text-xs">
+          <button onClick={() => setError("")} className="min-h-11 px-3 text-error text-sm font-medium hover:underline">
             Cerrar
           </button>
         </div>
       )}
 
-      {/* ── Deshacer la última revisión ── */}
+      {/* ── Consejo de la primera vez ── */}
+      {!consejoVisto && actual && (
+        <div className="mb-4 p-3 rounded-xl bg-info/10 border border-info/25 flex items-start justify-between gap-3 animate-fade-in">
+          <p className="text-sm text-info">
+            <strong>Consejo:</strong> desliza la foto a la derecha para validarla o a la izquierda para rechazarla. Tócala
+            para verla en grande.
+          </p>
+          <Boton variante="secundario" tamano="pequeno" onClick={marcarConsejoVisto} className="shrink-0">
+            Entendido
+          </Boton>
+        </div>
+      )}
+
+      {/* ── Deshacer la última revisión (con barra del tiempo que queda) ── */}
       {ultimaRevision && (
         <div
           role="status"
-          className={`mb-4 px-4 py-2.5 rounded-xl border flex items-center justify-between gap-3 animate-fade-in-scale ${
-            ultimaRevision.accion === "validado"
-              ? "bg-exito/10 border-exito/25"
-              : "bg-error/10 border-error/25"
+          key={`${ultimaRevision.item.asistencia_id}-${ultimaRevision.accion}`}
+          className={`mb-4 rounded-xl border overflow-hidden animate-fade-in-scale ${
+            ultimaRevision.accion === "validado" ? "bg-exito/10 border-exito/25" : "bg-error/10 border-error/25"
           }`}
         >
-          <p className={`text-sm truncate ${ultimaRevision.accion === "validado" ? "text-exito" : "text-error"}`}>
-            {ultimaRevision.accion === "validado" ? "Validada" : "Rechazada"}: {ultimaRevision.item.alumno}
-          </p>
-          <button
-            onClick={deshacer}
-            className="shrink-0 px-3 py-1.5 rounded-lg bg-superficie hover:bg-superficie-2 border border-borde text-texto text-xs font-semibold transition-all"
-          >
-            Deshacer
-          </button>
+          <div className="pl-4 pr-1 py-1 flex items-center justify-between gap-3">
+            <p className={`text-sm truncate ${ultimaRevision.accion === "validado" ? "text-exito" : "text-error"}`}>
+              {ultimaRevision.accion === "validado" ? "Validada" : "Rechazada"}: {ultimaRevision.item.alumno}
+            </p>
+            <button
+              onClick={deshacer}
+              className="shrink-0 min-h-11 px-4 rounded-lg text-texto text-sm font-semibold hover:bg-superficie-2 transition-colors"
+            >
+              Deshacer
+            </button>
+          </div>
+          <div
+            className={`h-1 origin-left animate-encoger ${
+              ultimaRevision.accion === "validado" ? "bg-exito-solido" : "bg-error-solido"
+            }`}
+            style={{ animationDuration: `${TIEMPO_DESHACER_MS}ms` }}
+          />
         </div>
       )}
 
       {/* ── Zona de revisión ── */}
       <div className="flex-1 flex flex-col items-center justify-center">
         {cola === null ? (
-          <div className="text-center animate-fade-in">
+          <div role="status" className="text-center animate-fade-in">
             <div className="w-10 h-10 mx-auto mb-3 rounded-full border-2 border-marca border-t-transparent animate-spin" />
             <p className="text-sm text-texto-tenue">Cargando fotos…</p>
           </div>
         ) : actual ? (
           <div className="w-full animate-fade-in-scale" key={actual.asistencia_id}>
-            <div className="w-full max-w-xs mx-auto">
-              <TarjetaRevision
-                urlFoto={urls.get(actual.envio_id) ?? null}
-                alumno={actual.alumno}
-                comunidad={actual.comunidad}
-                semana={actual.semana}
-                enviadoEn={actual.enviado_en}
-                onValidar={() => validar(actual)}
-                onIniciarRechazo={() => setRechazando(actual)}
-              >
-                <AvisosFoto avisos={avisosDe(actual)} />
-              </TarjetaRevision>
-            </div>
-            <div className="text-center mt-3">
-              <button
-                onClick={() => setReasignando(actual)}
-                className="text-xs text-texto-tenue hover:text-texto-suave underline underline-offset-4"
-              >
-                ¿Es de otro alumno? Cambiar alumno
-              </button>
-            </div>
-            <ComparacionFotos fotos={fotosParaComparar(actual, urls)} />
+            <TarjetaRevision
+              urlFoto={urls.get(actual.envio_id) ?? null}
+              alumno={actual.alumno}
+              comunidad={actual.comunidad}
+              semana={actual.semana}
+              enviadoEn={actual.enviado_en}
+              onValidar={() => validar(actual)}
+              onIniciarRechazo={() => setRechazando(actual)}
+              lateral={
+                <>
+                  <ComparacionFotos fotos={fotosParaComparar(actual, urls)} />
+                  <div className="text-center lg:text-left">
+                    <button
+                      onClick={() => setReasignando(actual)}
+                      className="min-h-11 px-2 text-sm text-texto-suave hover:text-texto underline underline-offset-4"
+                    >
+                      ¿Es de otro alumno? Cambiar alumno
+                    </button>
+                  </div>
+                </>
+              }
+            >
+              <AvisosFoto avisos={avisosDe(actual)} />
+            </TarjetaRevision>
           </div>
         ) : (
           <div className="text-center animate-fade-in py-12">
             <h2 className="text-lg font-bold text-texto mb-2">¡Todo al día!</h2>
-            <p className="text-sm text-texto-tenue mb-6">
+            <p className="text-sm text-texto-suave mb-6">
               {filtroComunidad === null
                 ? "No hay fotos pendientes de revisión."
                 : "No hay fotos pendientes en esta comunidad."}
             </p>
-            <button
-              onClick={recargarCola}
-              className="px-6 py-2.5 rounded-xl bg-superficie-2 hover:bg-borde text-texto-tenue text-sm font-medium transition-all"
-            >
-              Actualizar
-            </button>
+            <div className="flex flex-wrap justify-center gap-3">
+              <Boton variante="secundario" onClick={recargarCola}>
+                Buscar fotos nuevas
+              </Boton>
+              <Link href="/dashboard/comunidad" className={claseDeBoton("primario")}>
+                Ver la asistencia
+              </Link>
+            </div>
           </div>
         )}
       </div>
 
       {/* ── Modales ── */}
-      <ModalRechazo
-        abierto={rechazando !== null}
-        alumnoNombre={rechazando?.alumno ?? ""}
-        onCerrar={() => setRechazando(null)}
-        onConfirmar={confirmarRechazo}
-      />
+      {rechazando && (
+        <ModalRechazo
+          alumnoNombre={rechazando.alumno}
+          onCerrar={() => setRechazando(null)}
+          onConfirmar={confirmarRechazo}
+        />
+      )}
       {reasignando && (
         <ModalReasignar
           item={reasignando}
@@ -340,7 +383,7 @@ export function PanelRevision({ perfil }: { perfil: PerfilStaff }) {
         />
       )}
       {verResumen && perfil.semana_reciente && (
-        <ModalResumen semanaInicial={perfil.semana_reciente} onCerrar={() => setVerResumen(false)} />
+        <ModalResumen semanaActual={perfil.semana_reciente} onCerrar={() => setVerResumen(false)} />
       )}
     </div>
   );
