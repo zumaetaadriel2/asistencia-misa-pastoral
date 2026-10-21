@@ -1,7 +1,11 @@
 "use client";
 
+import { Boton } from "@/components/ui/base";
+import { useConfirmar } from "@/components/ui/confirmar";
+import { useEnfocarAlAparecer } from "@/components/ui/enfoque";
+import { LogoOvalo } from "@/components/ui/logo";
 import { NOMBRE_PROGRAMA, type AlumnoIdentificado } from "@/lib/alumno/identificar";
-import { formatearDiaHora } from "@/lib/utils/timeHelpers";
+import { formatearDiaHora, formatearDomingo } from "@/lib/utils/timeHelpers";
 import { EnvioFoto } from "./envio-foto";
 import { FormularioCerrado } from "./formulario-cerrado";
 import { EtiquetaEstado, HistorialSemanas } from "./historial-semanas";
@@ -19,54 +23,70 @@ export function PanelAlumno({ datos, codigo, onCambiarCodigo, onActualizar, onEn
   const { alumno, formulario, accion, semanas } = datos;
   const actual = semanas.find((s) => s.semana === formulario.semana);
   const anteriores = semanas.filter((s) => s.semana !== formulario.semana);
+  const titulo = useEnfocarAlAparecer<HTMLHeadingElement>();
+  const { confirmar, dialogoConfirmar } = useConfirmar();
+
+  const noSoyYo = async () => {
+    const seguro = await confirmar({
+      titulo: "¿Cambiar de alumno?",
+      mensaje: "Se borrará tu código de este celular y tendrás que escribirlo otra vez.",
+      aceptar: "Sí, cambiar",
+    });
+    if (seguro) onCambiarCodigo();
+  };
 
   return (
     <main className="flex-1 flex flex-col max-w-md mx-auto w-full px-4 py-6 gap-5">
       {/* ── Saludo ── */}
       <header className="flex items-start justify-between gap-3 animate-fade-in">
-        <div>
-          <h1 className="text-xl font-bold text-white">Hola, {alumno.nombre_corto}</h1>
-          <p className="text-xs text-white/40">
-            {alumno.comunidad} · {NOMBRE_PROGRAMA[alumno.programa]}
-          </p>
+        <div className="flex items-center gap-3">
+          <LogoOvalo className="h-12" />
+          <div>
+            <h1 ref={titulo} tabIndex={-1} className="text-xl font-bold text-texto focus:outline-none">
+              Hola, {alumno.nombre_corto}
+            </h1>
+            <p className="text-xs text-texto-tenue">
+              {alumno.comunidad} · {NOMBRE_PROGRAMA[alumno.programa]}
+            </p>
+          </div>
         </div>
-        <button
-          onClick={onCambiarCodigo}
-          className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/40 hover:text-white/70 text-xs font-medium transition-all"
-        >
+        <Boton variante="secundario" tamano="pequeno" onClick={noSoyYo}>
           No soy yo
-        </button>
+        </Boton>
       </header>
 
       {/* ── Semana actual ── */}
-      <section className="glass-card p-5 animate-fade-in delay-100">
-        <div className="flex items-baseline justify-between mb-4">
-          <h2 className="text-sm font-semibold text-white">
+      <section className="tarjeta p-5 animate-fade-in delay-100">
+        <div className="flex items-baseline justify-between gap-3 mb-4">
+          <h2 className="text-sm font-semibold text-texto">
             {formulario.semana > 0 ? `Semana ${formulario.semana}` : formulario.ciclo_nombre}
+            {actual?.domingo && (
+              <span className="font-normal text-texto-tenue"> · {formatearDomingo(actual.domingo)}</span>
+            )}
           </h2>
           {actual && actual.estado !== "sin_registro" && <EtiquetaEstado estado={actual.estado} />}
         </div>
 
         {accion === "enviar" && (
           <>
-            <p className="text-sm text-white/60 mb-4">
+            <p className="text-sm text-texto-suave mb-4">
               Envía una foto tuya en la misa de este fin de semana
               {formulario.cierre_envio && <> hasta el {formatearDiaHora(formulario.cierre_envio)}</>}.
             </p>
-            <EnvioFoto codigo={codigo} esReenvio={false} onEnviado={onEnviado} />
+            <EnvioFoto codigo={codigo} esReenvio={false} onEnviado={onEnviado} onActualizar={onActualizar} />
           </>
         )}
 
         {accion === "reenviar" && (
           <>
-            <div className="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20">
-              <p className="text-sm text-rose-300">Tu foto fue rechazada{actual?.motivo && `: ${actual.motivo}`}</p>
+            <div className="mb-4 p-3 rounded-xl bg-error/10 border border-error/25">
+              <p className="text-sm text-error">Tu foto fue rechazada{actual?.motivo && `: ${actual.motivo}`}</p>
             </div>
-            <p className="text-sm text-white/60 mb-4">
+            <p className="text-sm text-texto-suave mb-4">
               Puedes enviar otra
               {formulario.cierre_reenvio && <> hasta el {formatearDiaHora(formulario.cierre_reenvio)}</>}.
             </p>
-            <EnvioFoto codigo={codigo} esReenvio onEnviado={onEnviado} />
+            <EnvioFoto codigo={codigo} esReenvio onEnviado={onEnviado} onActualizar={onActualizar} />
           </>
         )}
 
@@ -75,6 +95,8 @@ export function PanelAlumno({ datos, codigo, onCambiarCodigo, onActualizar, onEn
 
       {/* ── Historial ── */}
       <HistorialSemanas semanas={anteriores} />
+
+      {dialogoConfirmar}
     </main>
   );
 }
@@ -86,20 +108,20 @@ function EstadoSinAccion({ datos, onActualizar }: { datos: AlumnoIdentificado; o
 
   switch (actual?.estado) {
     case "pendiente":
-      return <p className="text-sm text-white/60">Tu foto está en revisión. Tu guía la validará pronto.</p>;
+      return <p className="text-sm text-texto-suave">Tu foto está en revisión. Tu guía la verá pronto.</p>;
     case "validado":
-      return <p className="text-sm text-emerald-300">¡Tu asistencia de esta semana está validada!</p>;
+      return <p className="text-sm text-exito">¡Tu asistencia de esta semana está validada!</p>;
     case "justificada":
       return (
-        <p className="text-sm text-white/60">
+        <p className="text-sm text-texto-suave">
           Tu falta está justificada{actual.motivo && `: ${actual.motivo}`}.
         </p>
       );
     case "inasistencia":
-      return <p className="text-sm text-white/60">Esta semana se cerró sin tu foto.</p>;
+      return <p className="text-sm text-texto-suave">Esta semana se cerró sin tu foto.</p>;
     case "rechazado":
       return (
-        <p className="text-sm text-white/60">
+        <p className="text-sm text-texto-suave">
           Tu foto fue rechazada{actual.motivo && `: ${actual.motivo}`}. El plazo para enviar otra ya terminó.
         </p>
       );
@@ -108,7 +130,7 @@ function EstadoSinAccion({ datos, onActualizar }: { datos: AlumnoIdentificado; o
         <>
           {/* Martes y miércoles la semana sigue abierta solo para reenvíos */}
           {actual?.estado === "sin_registro" && formulario.reenvio_abierto && !formulario.abierto && (
-            <p className="text-sm text-white/60 text-center mb-5">
+            <p className="text-sm text-texto-suave text-center mb-5">
               No enviaste foto esta semana. La próxima vez podrás hacerlo desde el sábado.
             </p>
           )}

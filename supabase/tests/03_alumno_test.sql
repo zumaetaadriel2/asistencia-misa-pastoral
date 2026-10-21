@@ -1,7 +1,7 @@
 -- Flujo del alumno: código, envío, reenvío, fotos parecidas, cierre de semana y límite de intentos.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(25);
+select plan(27);
 
 -- Domingo 18 de octubre de 2026 (semana 34)
 select set_config('app.ahora', '2026-10-18 10:00:00-05', true);
@@ -15,6 +15,8 @@ select is(public.identificar_alumno(' test-22 ') ->> 'ok', 'true', 'acepta el c�
 select is(public.identificar_alumno('TEST22') -> 'alumno' ->> 'nombre_corto', 'Ana P.', 'muestra solo nombre e inicial');
 select is(public.identificar_alumno('TEST22') ->> 'accion', 'enviar', 'puede enviar la foto de esta semana');
 select is(jsonb_array_length(public.identificar_alumno('TEST22') -> 'semanas'), 34, 'devuelve sus 34 semanas');
+select is(public.identificar_alumno('TEST22') -> 'semanas' -> 0 ->> 'domingo', '2026-10-18', 'la semana 34 es la del domingo 18 de octubre');
+select is(public.identificar_alumno('TEST22') -> 'semanas' -> 33 ->> 'domingo', '2026-03-01', 'la semana 1 es la del primer domingo del ciclo');
 select is(public.identificar_alumno('ZZZZZZ') ->> 'error', 'codigo_invalido', 'un código inexistente es rechazado');
 reset role;
 

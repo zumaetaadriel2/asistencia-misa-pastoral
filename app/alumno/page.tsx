@@ -11,13 +11,14 @@ import { MENSAJES_ERROR } from "@/lib/alumno/mensajes";
 import { IngresoCodigo } from "@/components/alumno/ingreso-codigo";
 import { PanelAlumno } from "@/components/alumno/panel-alumno";
 import { PantallaExito } from "@/components/alumno/pantalla-exito";
+import { Boton } from "@/components/ui/base";
 
 function Cargando({ texto }: { texto: string }) {
   return (
     <main className="flex-1 flex items-center justify-center px-4">
-      <div className="text-center animate-fade-in">
-        <div className="w-12 h-12 mx-auto mb-4 rounded-full border-2 border-primary-500 border-t-transparent animate-spin" />
-        <p className="text-sm text-white/50">{texto}</p>
+      <div role="status" className="text-center animate-fade-in">
+        <div className="w-12 h-12 mx-auto mb-4 rounded-full border-2 border-marca border-t-transparent animate-spin" />
+        <p className="text-sm text-texto-tenue">{texto}</p>
       </div>
     </main>
   );
@@ -79,6 +80,7 @@ export default function AlumnoPage() {
         alumnoNombre={enviado.datos.alumno.nombre_corto}
         comunidadNombre={enviado.datos.alumno.comunidad}
         semana={enviado.semana}
+        cierreReenvio={enviado.datos.formulario.cierre_reenvio}
         onVolver={() => {
           setEnviado(null);
           actualizar();
@@ -93,20 +95,16 @@ export default function AlumnoPage() {
   if (!carga.resultado.ok) {
     return (
       <main className="flex-1 flex items-center justify-center px-4">
-        <div className="glass-card p-8 max-w-sm w-full text-center animate-fade-in">
-          <p className="text-sm text-white/60 mb-6">{MENSAJES_ERROR[carga.resultado.error]}</p>
-          <button
-            onClick={actualizar}
-            className="w-full py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium transition-colors"
-          >
+        <div className="tarjeta p-8 max-w-sm w-full text-center animate-fade-in">
+          <p role="alert" className="text-sm text-texto-suave mb-6">
+            {MENSAJES_ERROR[carga.resultado.error]}
+          </p>
+          <Boton onClick={actualizar} className="w-full">
             Reintentar
-          </button>
-          <button
-            onClick={() => guardarCodigo(null)}
-            className="mt-3 w-full py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white/50 text-sm font-medium transition-colors"
-          >
+          </Boton>
+          <Boton variante="secundario" onClick={() => guardarCodigo(null)} className="mt-3 w-full">
             Usar otro código
-          </button>
+          </Boton>
         </div>
       </main>
     );

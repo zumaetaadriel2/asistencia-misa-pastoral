@@ -1,33 +1,117 @@
 @import "tailwindcss";
 
+/* =============================================
+   Colores de la Pastoral Mariana (tomados del logo)
+   =============================================
+   Tema claro por defecto y oscuro si el celular lo pide. Solo se usan estos
+   nombres (bg-fondo, text-texto-suave, bg-error/10…), nunca colores fijos.
+   lib/ui/contraste.test.ts comprueba que los textos se lean (≥ 4.5:1).
+   - marca: textos y enlaces · marca-solido: botones con texto blanco
+   - exito/error/aviso/info: textos y fondos tenues (bg-error/10) · *-solido: botones
+   - dorado: solo decorativo, nunca como texto sobre blanco */
+
 :root {
-  --background: #0a0a0a;
-  --foreground: #ededed;
+  color-scheme: light dark;
+  --fondo: #f4f6fa;
+  --superficie: #ffffff;
+  --superficie-2: #edf1f7;
+  --borde: #d6dee9;
+  --texto: #14233a;
+  --texto-suave: #3f4f66;
+  --texto-tenue: #5b6a80;
+  --marca: #1d598e;
+  --marca-solido: #1d598e;
+  --dorado: #dfcf4d;
+  --exito: #166534;
+  --exito-solido: #15803d;
+  --error: #b91c1c;
+  --error-solido: #c62828;
+  --aviso: #92400e;
+  --aviso-solido: #b45309;
+  --info: #0369a1;
+  --info-solido: #0369a1;
+  --sombra: 0 1px 2px rgb(20 35 58 / 0.06), 0 4px 16px rgb(20 35 58 / 0.06);
+}
+
+/* "screen" para que, aunque el celular esté en oscuro, se imprima en claro */
+@media screen and (prefers-color-scheme: dark) {
+  :root {
+    --fondo: #0b1422;
+    --superficie: #121f33;
+    --superficie-2: #1a2a42;
+    --borde: #2a3d58;
+    --texto: #e7edf5;
+    --texto-suave: #b8c4d4;
+    --texto-tenue: #8d9db3;
+    --marca: #8db8e6;
+    --marca-solido: #2b6cb0;
+    --dorado: #e6d564;
+    --exito: #6ee7a0;
+    --error: #fca5a5;
+    --aviso: #fcd34d;
+    --info: #7dd3fc;
+    --sombra: none;
+  }
+}
+
+@media print {
+  :root {
+    color-scheme: light;
+  }
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 
-  /* Paleta del proyecto */
-  --color-primary-400: #a78bfa;
-  --color-primary-500: #8b5cf6;
-  --color-primary-600: #7c3aed;
-  --color-primary-700: #6d28d9;
-  --color-primary-800: #5b21b6;
-  --color-primary-900: #4c1d95;
-  --color-surface-50: rgba(255, 255, 255, 0.05);
-  --color-surface-100: rgba(255, 255, 255, 0.08);
-  --color-surface-200: rgba(255, 255, 255, 0.12);
-  --color-surface-border: rgba(255, 255, 255, 0.1);
+  --color-fondo: var(--fondo);
+  --color-superficie: var(--superficie);
+  --color-superficie-2: var(--superficie-2);
+  --color-borde: var(--borde);
+  --color-texto: var(--texto);
+  --color-texto-suave: var(--texto-suave);
+  --color-texto-tenue: var(--texto-tenue);
+  --color-marca: var(--marca);
+  --color-marca-solido: var(--marca-solido);
+  --color-dorado: var(--dorado);
+  --color-exito: var(--exito);
+  --color-exito-solido: var(--exito-solido);
+  --color-error: var(--error);
+  --color-error-solido: var(--error-solido);
+  --color-aviso: var(--aviso);
+  --color-aviso-solido: var(--aviso-solido);
+  --color-info: var(--info);
+  --color-info-solido: var(--info-solido);
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--fondo);
+  color: var(--texto);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+}
+
+/* Chrome en Windows no aplica color-scheme a las opciones de los <select> */
+option {
+  background-color: var(--superficie);
+  color: var(--texto);
+}
+
+/* Tarjeta base (con @utility para que bg-*, border-* etc. puedan sobrescribirla) */
+@utility tarjeta {
+  background-color: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: 1rem;
+  box-shadow: var(--sombra);
+}
+
+/* Modales (<dialog>): fondo oscuro y sin scroll de la página mientras están abiertos.
+   El color del fondo va literal: Safari antiguo no pasa variables a ::backdrop. */
+html:has(dialog[open]) {
+  overflow: hidden;
+}
+
+dialog::backdrop {
+  background: rgb(0 0 0 / 0.6);
 }
 
 /* =============================================
@@ -35,23 +119,29 @@ body {
    ============================================= */
 
 @keyframes fade-in {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes fade-in-scale {
-  from { opacity: 0; transform: scale(0.95); }
+  from { opacity: 0; transform: scale(0.97); }
   to   { opacity: 1; transform: scale(1); }
 }
 
 @keyframes pulse-glow {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.4); }
-  50%      { box-shadow: 0 0 20px 4px rgba(139, 92, 246, 0.2); }
+  0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--marca) 40%, transparent); }
+  50%      { box-shadow: 0 0 20px 4px color-mix(in srgb, var(--marca) 20%, transparent); }
 }
 
 @keyframes shimmer {
   0%   { background-position: -200% 0; }
   100% { background-position: 200% 0; }
+}
+
+/* Barra que se vacía (tiempo para deshacer) */
+@keyframes encoger {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
 }
 
 @keyframes countdown-pulse {
@@ -60,11 +150,11 @@ body {
 }
 
 .animate-fade-in {
-  animation: fade-in 0.5s ease-out both;
+  animation: fade-in 0.3s ease-out both;
 }
 
 .animate-fade-in-scale {
-  animation: fade-in-scale 0.4s ease-out both;
+  animation: fade-in-scale 0.25s ease-out both;
 }
 
 .animate-pulse-glow {
@@ -72,7 +162,7 @@ body {
 }
 
 .animate-shimmer {
-  background: linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.05) 50%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, color-mix(in srgb, var(--texto) 6%, transparent) 50%, transparent 100%);
   background-size: 200% 100%;
   animation: shimmer 2s infinite;
 }
@@ -81,19 +171,25 @@ body {
   animation: countdown-pulse 1.5s ease-in-out infinite;
 }
 
-/* Delay helpers for staggered animations */
-.delay-100 { animation-delay: 100ms; }
-.delay-200 { animation-delay: 200ms; }
-.delay-300 { animation-delay: 300ms; }
-.delay-400 { animation-delay: 400ms; }
+.animate-encoger {
+  animation: encoger linear forwards;
+}
 
-/* Glass card */
-.glass-card {
-  background: rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 1rem;
+/* Delay helpers for staggered animations */
+.delay-100 { animation-delay: 60ms; }
+.delay-200 { animation-delay: 120ms; }
+.delay-300 { animation-delay: 180ms; }
+.delay-400 { animation-delay: 240ms; }
+
+/* Sin movimiento para quien lo pide en su celular (los spinners siguen girando) */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in,
+  .animate-fade-in-scale,
+  .animate-pulse-glow,
+  .animate-shimmer,
+  .animate-countdown {
+    animation: none;
+  }
 }
 
 /* Impresión (códigos de los alumnos): fondo blanco y solo lo marcado con print:* */
