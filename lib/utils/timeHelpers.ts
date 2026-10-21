@@ -11,19 +11,24 @@ const MS_MINUTO = 60 * MS_SEGUNDO;
 const MS_HORA = 60 * MS_MINUTO;
 const MS_DIA = 24 * MS_HORA;
 
-const dos = (n: number) => n.toString().padStart(2, "0");
+const plural = (n: number, singular: string, varios: string) => `${n} ${n === 1 ? singular : varios}`;
 
-/** "2d 03h 05m 09s", o sin días si falta menos de uno. Nunca negativo. */
+/**
+ * Tiempo que falta en palabras, con las dos unidades más grandes: "2 días y 3 h",
+ * "3 h y 5 min", "5 min". Los segundos solo aparecen en el último minuto. Nunca negativo.
+ */
 export function formatearCuentaRegresiva(ms: number): string {
   const restante = Math.max(0, ms);
   const dias = Math.floor(restante / MS_DIA);
   const horas = Math.floor((restante % MS_DIA) / MS_HORA);
   const minutos = Math.floor((restante % MS_HORA) / MS_MINUTO);
-  const segundos = Math.floor((restante % MS_MINUTO) / MS_SEGUNDO);
+  const segundos = Math.ceil((restante % MS_MINUTO) / MS_SEGUNDO);
 
-  const partes = [`${dos(horas)}h`, `${dos(minutos)}m`, `${dos(segundos)}s`];
-  if (dias > 0) partes.unshift(`${dias}d`);
-  return partes.join(" ");
+  const unir = (mayor: string, menor: number, texto: string) => (menor > 0 ? `${mayor} y ${menor} ${texto}` : mayor);
+  if (dias > 0) return unir(plural(dias, "día", "días"), horas, "h");
+  if (horas > 0) return unir(`${horas} h`, minutos, "min");
+  if (minutos > 0) return `${minutos} min`;
+  return `${segundos} s`;
 }
 
 const formatoDiaHora = new Intl.DateTimeFormat("es-PE", {
@@ -39,4 +44,15 @@ const formatoDiaHora = new Intl.DateTimeFormat("es-PE", {
 /** "sábado, 24 de octubre, 7:00 p. m." en hora de Lima */
 export function formatearDiaHora(fecha: Date | string): string {
   return formatoDiaHora.format(typeof fecha === "string" ? new Date(fecha) : fecha);
+}
+
+const formatoDiaMes = new Intl.DateTimeFormat("es-PE", { timeZone: ZONA_HORARIA, day: "numeric", month: "short" });
+
+/**
+ * Domingo de una semana ("AAAA-MM-DD", como lo da la base) → "dom 18 oct".
+ * Se lee al mediodía de Lima: new Date("AAAA-MM-DD") es medianoche UTC y en Lima
+ * todavía sería el día anterior.
+ */
+export function formatearDomingo(fecha: string): string {
+  return `dom ${formatoDiaMes.format(new Date(`${fecha}T12:00:00-05:00`)).replace(/\./g, "")}`;
 }
