@@ -40,9 +40,9 @@ export function ModalReasignar({ item, onCerrar, onConfirmar }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
       <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => !enviando && onCerrar()} />
-      <div className="relative w-full max-w-sm glass-card p-6 animate-fade-in-scale">
-        <h3 className="text-base font-semibold text-white">Cambiar alumno</h3>
-        <p className="text-xs text-white/40 mt-1 mb-4">
+      <div className="relative w-full max-w-sm tarjeta p-6 animate-fade-in-scale">
+        <h3 className="text-base font-semibold text-texto">Cambiar alumno</h3>
+        <p className="text-xs text-texto-tenue mt-1 mb-4">
           La foto está a nombre de {item.alumno}. Elige a quién corresponde realmente.
         </p>
 
@@ -50,33 +50,33 @@ export function ModalReasignar({ item, onCerrar, onConfirmar }: Props) {
           value={destino ?? ""}
           onChange={(e) => setDestino(e.target.value ? Number(e.target.value) : null)}
           disabled={!alumnos || enviando}
-          className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm
-                     focus:outline-none focus:ring-2 focus:ring-primary-500/50 appearance-none cursor-pointer"
+          className="w-full px-4 py-2.5 rounded-xl bg-superficie-2 border border-borde text-texto text-sm
+                     focus:outline-none focus:ring-2 focus:ring-marca/40 appearance-none cursor-pointer"
         >
-          <option value="" className="bg-neutral-900">
+          <option value="">
             {alumnos ? "Elige un alumno…" : "Cargando alumnos…"}
           </option>
           {alumnos?.map((a) => (
-            <option key={a.id} value={a.id} className="bg-neutral-900">
+            <option key={a.id} value={a.id}>
               {a.nombre_completo}
             </option>
           ))}
         </select>
 
-        {error && <p className="mt-3 text-xs text-rose-300">{error}</p>}
+        {error && <p className="mt-3 text-xs text-error">{error}</p>}
 
         <div className="flex gap-3 mt-5">
           <button
             onClick={onCerrar}
             disabled={enviando}
-            className="flex-1 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white/60 text-sm font-medium transition-all disabled:opacity-30"
+            className="flex-1 py-2.5 rounded-xl bg-superficie-2 hover:bg-borde text-texto-suave text-sm font-medium transition-all disabled:opacity-30"
           >
             Cancelar
           </button>
           <button
             onClick={confirmar}
             disabled={!destino || enviando}
-            className="flex-[2] py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold transition-all disabled:opacity-30"
+            className="flex-[2] py-2.5 rounded-xl bg-marca-solido hover:bg-marca-solido/85 text-white text-sm font-semibold transition-all disabled:opacity-30"
           >
             {enviando ? "Cambiando…" : "Cambiar"}
           </button>

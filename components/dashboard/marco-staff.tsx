@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cerrarSesion, useSesionStaff } from "@/lib/staff/sesion";
 import type { PerfilStaff } from "@/lib/staff/revision";
+import { LogoOvalo } from "@/components/ui/logo";
 
 interface Props {
   /** Texto fijo o según el perfil (p. ej. "Mi comunidad" para guías y "Asistencia" para admins) */
@@ -18,9 +19,9 @@ interface Props {
 function Aviso({ titulo, texto, accion }: { titulo: string; texto: string; accion: ReactNode }) {
   return (
     <main className="flex-1 flex items-center justify-center px-4">
-      <div className="glass-card p-8 max-w-sm w-full text-center animate-fade-in">
-        <h1 className="text-lg font-semibold text-white mb-2">{titulo}</h1>
-        <p className="text-sm text-white/50 mb-6">{texto}</p>
+      <div className="tarjeta p-8 max-w-sm w-full text-center animate-fade-in">
+        <h1 className="text-lg font-semibold text-texto mb-2">{titulo}</h1>
+        <p className="text-sm text-texto-tenue mb-6">{texto}</p>
         {accion}
       </div>
     </main>
@@ -45,8 +46,8 @@ export function MarcoStaff({ titulo, ancho = "angosto", soloAdmin = false, child
     return (
       <main className="flex-1 flex items-center justify-center">
         <div className="text-center animate-fade-in">
-          <div className="w-10 h-10 mx-auto mb-3 rounded-full border-2 border-primary-500 border-t-transparent animate-spin" />
-          <p className="text-sm text-white/40">Cargando panel…</p>
+          <div className="w-10 h-10 mx-auto mb-3 rounded-full border-2 border-marca border-t-transparent animate-spin" />
+          <p className="text-sm text-texto-tenue">Cargando panel…</p>
         </div>
       </main>
     );
@@ -55,7 +56,7 @@ export function MarcoStaff({ titulo, ancho = "angosto", soloAdmin = false, child
   const botonSalir = (
     <button
       onClick={salir}
-      className="px-6 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium transition-colors"
+      className="px-6 py-2.5 rounded-xl bg-marca-solido hover:bg-marca-solido/85 text-white text-sm font-medium transition-colors"
     >
       Volver al inicio de sesión
     </button>
@@ -83,7 +84,7 @@ export function MarcoStaff({ titulo, ancho = "angosto", soloAdmin = false, child
         titulo="Solo administradores"
         texto="Esta sección es solo para los administradores de la pastoral."
         accion={
-          <Link href="/dashboard" className="text-sm text-primary-400 underline underline-offset-4">
+          <Link href="/dashboard" className="text-sm text-marca underline underline-offset-4">
             Ir a la revisión
           </Link>
         }
@@ -104,30 +105,33 @@ export function MarcoStaff({ titulo, ancho = "angosto", soloAdmin = false, child
       } print:max-w-none print:p-0`}
     >
       <header className="flex items-center justify-between mb-4 animate-fade-in print:hidden">
-        <div>
-          <h1 className="text-lg font-bold text-white">{typeof titulo === "function" ? titulo(perfil) : titulo}</h1>
-          <p className="text-xs text-white/40">
-            {perfil.nombre} · {esAdmin ? "Administrador" : "Guía"}
-            {perfil.semana_reciente ? ` · Semana ${perfil.semana_reciente}` : ""}
-          </p>
+        <div className="flex items-center gap-3">
+          <LogoOvalo className="h-11" />
+          <div>
+            <h1 className="text-lg font-bold text-texto">{typeof titulo === "function" ? titulo(perfil) : titulo}</h1>
+            <p className="text-xs text-texto-tenue">
+              {perfil.nombre} · {esAdmin ? "Administrador" : "Guía"}
+              {perfil.semana_reciente ? ` · Semana ${perfil.semana_reciente}` : ""}
+            </p>
+          </div>
         </div>
         <button
           onClick={salir}
-          className="px-3 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-white/40 hover:text-white/70 text-xs font-medium transition-all"
+          className="px-3 py-2 rounded-xl bg-superficie-2 hover:bg-borde text-texto-tenue hover:text-texto-suave text-xs font-medium transition-all"
         >
           Salir
         </button>
       </header>
 
-      <nav className="flex gap-1 mb-6 border-b border-white/10 overflow-x-auto print:hidden">
+      <nav className="flex gap-1 mb-6 border-b border-borde overflow-x-auto print:hidden">
         {enlaces.map((enlace) => (
           <Link
             key={enlace.href}
             href={enlace.href}
             className={`px-3 py-2.5 text-xs font-semibold border-b-2 whitespace-nowrap transition-all ${
               ruta === enlace.href
-                ? "border-primary-500 text-white"
-                : "border-transparent text-white/40 hover:text-white/70"
+                ? "border-marca text-texto"
+                : "border-transparent text-texto-tenue hover:text-texto-suave"
             }`}
           >
             {enlace.texto}

@@ -10,7 +10,7 @@ import {
 } from "@/lib/staff/admin";
 import { mensajeDe } from "@/lib/staff/errores";
 import type { Programa } from "@/lib/staff/revision";
-import { Cargando, claseBoton, claseBotonSecundario, claseInput, Mensaje, Tarjeta, type MensajeAdmin } from "./ui";
+import { Cargando, claseBoton, claseBotonSecundario, claseInput, Mensaje, Tarjeta, type MensajeAdmin } from "@/components/ui/base";
 
 const PROGRAMAS: { valor: Programa; texto: string }[] = [
   { valor: "confirmacion", texto: "Confirmación" },
@@ -80,7 +80,7 @@ export function SeccionComunidades() {
             className={`${claseInput} appearance-none cursor-pointer`}
           >
             {PROGRAMAS.map((p) => (
-              <option key={p.valor} value={p.valor} className="bg-neutral-900">
+              <option key={p.valor} value={p.valor}>
                 {p.texto}
               </option>
             ))}
@@ -103,12 +103,12 @@ export function SeccionComunidades() {
         return (
           <Tarjeta key={p.valor} titulo={`${p.texto} (${delPrograma.length})`}>
             {delPrograma.length === 0 ? (
-              <p className="text-xs text-white/40">Sin comunidades.</p>
+              <p className="text-xs text-texto-tenue">Sin comunidades.</p>
             ) : (
               <ul className="space-y-2">
                 {delPrograma.map((comunidad) => (
                   <li key={comunidad.id} className="flex items-center justify-between gap-2 text-sm">
-                    <span className={comunidad.activa ? "text-white/80" : "text-white/30 line-through"}>
+                    <span className={comunidad.activa ? "text-texto-suave" : "text-texto-tenue line-through"}>
                       {comunidad.nombre}
                     </span>
                     <button onClick={() => alternar(comunidad)} className={claseBotonSecundario}>

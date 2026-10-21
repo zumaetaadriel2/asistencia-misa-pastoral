@@ -5,7 +5,7 @@ import { cerrarSemana, datosReporte } from "@/lib/staff/admin";
 import { mensajeDe } from "@/lib/staff/errores";
 import { armarCsvAsistencia, descargarCsv } from "@/lib/staff/reporte";
 import type { PerfilStaff } from "@/lib/staff/revision";
-import { claseBoton, claseBotonSecundario, claseInput, Mensaje, Tarjeta, type MensajeAdmin } from "./ui";
+import { claseBoton, claseBotonSecundario, claseInput, Mensaje, Tarjeta, type MensajeAdmin } from "@/components/ui/base";
 
 export function SeccionReportes({ perfil }: { perfil: PerfilStaff }) {
   const semanas = perfil.semana_reciente ?? 0;
@@ -60,7 +60,7 @@ export function SeccionReportes({ perfil }: { perfil: PerfilStaff }) {
         descripcion="Normalmente no hace falta: cada jueves a las 00:05 la semana anterior se cierra sola. Úsalo solo si el cierre automático no corrió."
       >
         <div className="flex flex-wrap items-center gap-2">
-          <label className="text-xs text-white/60 flex items-center gap-2">
+          <label className="text-xs text-texto-suave flex items-center gap-2">
             Semana
             <input
               type="number"

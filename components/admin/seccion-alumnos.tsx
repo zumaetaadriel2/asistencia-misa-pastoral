@@ -11,7 +11,7 @@ import {
 } from "@/lib/staff/admin";
 import { mensajeDe } from "@/lib/staff/errores";
 import { parsearNombres } from "@/lib/staff/importacion";
-import { Cargando, claseBoton, claseBotonSecundario, claseInput, Mensaje, Tarjeta, type MensajeAdmin } from "./ui";
+import { Cargando, claseBoton, claseBotonSecundario, claseInput, Mensaje, Tarjeta, type MensajeAdmin } from "@/components/ui/base";
 
 export function SeccionAlumnos() {
   const [comunidades, setComunidades] = useState<Comunidad[] | null>(null);
@@ -100,7 +100,7 @@ export function SeccionAlumnos() {
         className={`${claseInput} appearance-none cursor-pointer`}
       >
         {comunidades.map((c) => (
-          <option key={c.id} value={c.id} className="bg-neutral-900">
+          <option key={c.id} value={c.id}>
             {c.nombre} · {c.programa === "confirmacion" ? "Confirmación" : "Primera Comunión"}
           </option>
         ))}
@@ -118,7 +118,7 @@ export function SeccionAlumnos() {
           className={`${claseInput} resize-y font-mono text-xs`}
         />
         <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
-          <p className="text-xs text-white/50">
+          <p className="text-xs text-texto-tenue">
             {lista.nombres.length} nombres para importar
             {lista.repetidos.length > 0 && ` · ${lista.repetidos.length} repetidos en lo pegado (se importan una vez)`}
           </p>
@@ -132,14 +132,14 @@ export function SeccionAlumnos() {
         {alumnos?.clave !== clave ? (
           <Cargando />
         ) : alumnos.lista.length === 0 ? (
-          <p className="text-xs text-white/40">Todavía no hay alumnos.</p>
+          <p className="text-xs text-texto-tenue">Todavía no hay alumnos.</p>
         ) : (
-          <ul className="divide-y divide-white/5">
+          <ul className="divide-y divide-borde">
             {alumnos.lista.map((alumno) => (
               <li key={alumno.id} className="py-2 flex items-center justify-between gap-2">
-                <span className={`text-sm ${alumno.activo ? "text-white/80" : "text-white/30 line-through"}`}>
+                <span className={`text-sm ${alumno.activo ? "text-texto-suave" : "text-texto-tenue line-through"}`}>
                   {alumno.nombre_completo}
-                  <span className="ml-2 font-mono text-xs text-primary-300/80">{alumno.codigo}</span>
+                  <span className="ml-2 font-mono text-xs text-marca">{alumno.codigo}</span>
                 </span>
                 <button onClick={() => alternar(alumno)} className={claseBotonSecundario}>
                   {alumno.activo ? "Dar de baja" : "Reactivar"}

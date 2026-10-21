@@ -126,14 +126,14 @@ export function VistaComunidad({ perfil }: { perfil: PerfilStaff }) {
   if (comunidades === null) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <div className="w-10 h-10 rounded-full border-2 border-primary-500 border-t-transparent animate-spin" />
+        <div className="w-10 h-10 rounded-full border-2 border-marca border-t-transparent animate-spin" />
       </div>
     );
   }
 
   if (!comunidad) {
     return (
-      <p className="text-sm text-white/50 text-center py-12">
+      <p className="text-sm text-texto-tenue text-center py-12">
         No tienes comunidades asignadas en el ciclo activo. Pide a un administrador que te asigne una.
       </p>
     );
@@ -149,41 +149,41 @@ export function VistaComunidad({ perfil }: { perfil: PerfilStaff }) {
           <select
             value={comunidad.id}
             onChange={(e) => setElegida(Number(e.target.value))}
-            className="flex-1 min-w-48 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/50 appearance-none cursor-pointer"
+            className="flex-1 min-w-48 px-3 py-2.5 rounded-xl bg-superficie-2 border border-borde text-texto text-sm
+                       focus:outline-none focus:ring-2 focus:ring-marca/40 appearance-none cursor-pointer"
           >
             {comunidades.map((c) => (
-              <option key={c.id} value={c.id} className="bg-neutral-900">
+              <option key={c.id} value={c.id}>
                 {c.nombre} · {NOMBRE_PROGRAMA[c.programa]}
               </option>
             ))}
           </select>
         ) : (
-          <p className="flex-1 text-sm text-white/70">
+          <p className="flex-1 text-sm text-texto-suave">
             {comunidad.nombre} · {NOMBRE_PROGRAMA[comunidad.programa]}
           </p>
         )}
         <button
           onClick={() => window.print()}
           disabled={!listos}
-          className="px-3 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white/70 text-xs font-semibold transition-all disabled:opacity-30"
+          className="px-3 py-2.5 rounded-xl bg-superficie-2 hover:bg-borde text-texto-suave text-xs font-semibold transition-all disabled:opacity-30"
         >
           Imprimir códigos
         </button>
         <button
           onClick={descargar}
           disabled={descargando || semanas < 1}
-          className="px-3 py-2.5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/20
-                     text-emerald-300 text-xs font-semibold transition-all disabled:opacity-30"
+          className="px-3 py-2.5 rounded-xl bg-exito/15 hover:bg-exito/25 border border-exito/25
+                     text-exito text-xs font-semibold transition-all disabled:opacity-30"
         >
           {descargando ? "Generando…" : "Descargar Excel"}
         </button>
       </div>
 
       {error && (
-        <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-between gap-2 print:hidden">
-          <p className="text-sm text-rose-300">{error}</p>
-          <button onClick={() => setError("")} className="text-rose-400 hover:text-rose-300 text-xs">
+        <div className="p-3 rounded-xl bg-error/10 border border-error/25 flex items-center justify-between gap-2 print:hidden">
+          <p className="text-sm text-error">{error}</p>
+          <button onClick={() => setError("")} className="text-error hover:underline text-xs">
             Cerrar
           </button>
         </div>
@@ -205,7 +205,7 @@ export function VistaComunidad({ perfil }: { perfil: PerfilStaff }) {
         </>
       ) : (
         <div className="flex justify-center py-12">
-          <div className="w-10 h-10 rounded-full border-2 border-primary-500 border-t-transparent animate-spin" />
+          <div className="w-10 h-10 rounded-full border-2 border-marca border-t-transparent animate-spin" />
         </div>
       )}
 

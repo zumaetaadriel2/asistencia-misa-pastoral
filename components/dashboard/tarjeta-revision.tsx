@@ -158,7 +158,7 @@ export function TarjetaRevision({
       {/* Tarjeta principal */}
       <div
         ref={cardRef}
-        className="glass-card overflow-hidden cursor-grab active:cursor-grabbing"
+        className="tarjeta overflow-hidden cursor-grab active:cursor-grabbing"
         style={{
           transform: `translateX(${translateX}) rotate(${rotation}deg)`,
           transition: isDragging ? "none" : `all ${FLY_OUT_DURATION}ms ease-out`,
@@ -176,25 +176,25 @@ export function TarjetaRevision({
         {/* Overlays de swipe */}
         {/* Verde (derecha = validar) */}
         <div
-          className="absolute inset-0 bg-emerald-500/30 z-10 pointer-events-none flex items-center justify-center"
+          className="absolute inset-0 bg-exito/25 z-10 pointer-events-none flex items-center justify-center"
           style={{ opacity: dragX > 0 ? getOpacityOverlay(dragX) : 0, transition: isDragging ? "none" : "opacity 0.2s" }}
         >
-          <div className="bg-emerald-500 text-white text-xl font-black px-6 py-2 rounded-xl border-4 border-emerald-400 rotate-[-15deg] shadow-2xl">
+          <div className="bg-exito-solido text-white text-xl font-black px-6 py-2 rounded-xl border-4 border-exito rotate-[-15deg] shadow-2xl">
             VALIDAR
           </div>
         </div>
         {/* Rojo (izquierda = rechazar) */}
         <div
-          className="absolute inset-0 bg-rose-500/30 z-10 pointer-events-none flex items-center justify-center"
+          className="absolute inset-0 bg-error/25 z-10 pointer-events-none flex items-center justify-center"
           style={{ opacity: dragX < 0 ? getOpacityOverlay(dragX) : 0, transition: isDragging ? "none" : "opacity 0.2s" }}
         >
-          <div className="bg-rose-500 text-white text-xl font-black px-6 py-2 rounded-xl border-4 border-rose-400 rotate-[15deg] shadow-2xl">
+          <div className="bg-error-solido text-white text-xl font-black px-6 py-2 rounded-xl border-4 border-error rotate-[15deg] shadow-2xl">
             RECHAZAR
           </div>
         </div>
 
         {/* Foto */}
-        <div className="aspect-[3/4] bg-white/5 relative overflow-hidden">
+        <div className="aspect-[3/4] bg-superficie-2 relative overflow-hidden">
           {urlFoto ? (
             // URL firmada de R2 que vence en minutos: sin next/image, para que ninguna
             // foto de menores pase por el optimizador ni quede en otra caché
@@ -213,15 +213,15 @@ export function TarjetaRevision({
             <span className="text-xs font-semibold text-white">Semana {semana}</span>
           </div>
           {/* Badge de comunidad */}
-          <div className="absolute top-3 right-3 px-3 py-1.5 rounded-full bg-primary-600/60 backdrop-blur-md border border-primary-500/20">
+          <div className="absolute top-3 right-3 px-3 py-1.5 rounded-full bg-marca-solido/85 backdrop-blur-md border border-white/20">
             <span className="text-xs font-medium text-white">{comunidad}</span>
           </div>
         </div>
 
         {/* Info del alumno */}
         <div className="p-4">
-          <h3 className="text-lg font-bold text-white">{alumno}</h3>
-          <p className="text-xs text-white/30 mt-0.5">Enviada el {formatearDiaHora(enviadoEn)}</p>
+          <h3 className="text-lg font-bold text-texto">{alumno}</h3>
+          <p className="text-xs text-texto-tenue mt-0.5">Enviada el {formatearDiaHora(enviadoEn)}</p>
           {children}
         </div>
       </div>
@@ -232,19 +232,19 @@ export function TarjetaRevision({
         <button
           onClick={handleRechazar}
           disabled={isFlying}
-          className="w-16 h-16 rounded-full bg-rose-500/10 border-2 border-rose-500/30
-                     hover:bg-rose-500/20 hover:border-rose-500/50 hover:scale-110
+          className="w-16 h-16 rounded-full bg-error/10 border-2 border-error/25
+                     hover:bg-error/15 hover:border-error/50 hover:scale-110
                      active:scale-95 disabled:opacity-30
                      flex items-center justify-center transition-all duration-200"
           title="Rechazar"
         >
-          <svg className="w-7 h-7 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <svg className="w-7 h-7 text-error" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
           </svg>
         </button>
 
         {/* Indicador de swipe */}
-        <div className="text-[10px] text-white/15 text-center">
+        <div className="text-[10px] text-texto-tenue text-center">
           <p>← desliza →</p>
         </div>
 
@@ -252,13 +252,13 @@ export function TarjetaRevision({
         <button
           onClick={handleValidar}
           disabled={isFlying}
-          className="w-16 h-16 rounded-full bg-emerald-500/10 border-2 border-emerald-500/30
-                     hover:bg-emerald-500/20 hover:border-emerald-500/50 hover:scale-110
+          className="w-16 h-16 rounded-full bg-exito/10 border-2 border-exito/25
+                     hover:bg-exito/15 hover:border-exito/50 hover:scale-110
                      active:scale-95 disabled:opacity-30
                      flex items-center justify-center transition-all duration-200"
           title="Validar"
         >
-          <svg className="w-7 h-7 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <svg className="w-7 h-7 text-exito" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="m4.5 12.75 6 6 9-13.5" />
           </svg>
         </button>

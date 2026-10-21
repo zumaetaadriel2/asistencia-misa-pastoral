@@ -51,7 +51,7 @@ Para probar en el navegador con datos del seed: códigos de alumno `TEST22`…`T
 
 ## Estado del rediseño
 
-Plan aprobado en fases 0–7. Hechas: base nueva (0–1), fotos en R2 (2), pantalla del alumno (3), revisión del staff (4) y administración (5). Falta la fase 6 (latido y respaldo con GitHub Actions, proyecto de Supabase en la nube, Google OAuth, Vercel y subdominio) y, a futuro, la 7 (asistencia a catequesis: el catequista pasa lista). `lib/supabase/client.ts` está tipado con `Database`: tras cambiar el esquema hay que correr `npm run db:types` o `tsc` marcará las consultas.
+Plan aprobado en fases 0–7. Hechas: base nueva (0–1), fotos en R2 (2), pantalla del alumno (3), revisión del staff (4), administración (5) y publicación (6, v1.0.0 en `asistencia-misa-pastoral-mariana.vercel.app`; falta el subdominio). En curso, la v1.1.0 de UI/UX en 4 PR: identidad visual, alumno, revisión y administración. A futuro, la 7 (asistencia a catequesis: el catequista pasa lista). `lib/supabase/client.ts` está tipado con `Database`: tras cambiar el esquema hay que correr `npm run db:types` o `tsc` marcará las consultas.
 
 ## Arquitectura
 
@@ -91,8 +91,12 @@ En los `useEffect` no llames funciones que hagan `setState` de forma síncrona (
 
 `public/manifest.json` y un `public/sw.js` escrito a mano que solo guarda los archivos de la app (`/_next/static/`, íconos, manifest): nunca fotos, datos ni llamadas a Supabase o R2. Lo registra `components/service-worker-registrar.tsx` solo en producción (en `next dev` lo desregistra). `next.config.ts` añade los headers de `/sw.js`. Si cambias lo que se cachea, sube `CACHE_NAME`: la activación borra las cachés viejas.
 
+Íconos y logo: `node scripts/generar-iconos.mjs` genera `app/icon.png`, `app/apple-icon.png`, `public/icons/*` y `marca/web/*.webp` desde `marca/` (usa `marca/logo-completo.png` y `marca/logo-ovalo.png` si existen; si no, recorta el óvalo de `marca/logo-original.jpg`). Al cambiar el logo, vuelve a correrlo y sube `CACHE_NAME`. En la UI el logo va con `LogoCompleto`/`LogoOvalo` (`components/ui/logo.tsx`).
+
 ### Estilos
 
-Tailwind v4 sin `tailwind.config`: los tokens (`primary-*`, `surface-*`) y las clases propias (`glass-card`, `animate-fade-in`, `animate-fade-in-scale`, `delay-100`…`delay-400` como `animation-delay`) están en `app/globals.css`. La UI es solo modo oscuro y está pensada para móvil.
+Tailwind v4 sin `tailwind.config`. Tema automático claro/oscuro con los colores del logo de la Pastoral Mariana: las variables de `app/globals.css` cambian con `prefers-color-scheme` y se usan como clases con nombre (`bg-fondo`, `bg-superficie`, `bg-superficie-2`, `border-borde`, `text-texto`, `text-texto-suave`, `text-texto-tenue`, `text-marca`, `bg-marca-solido`, `text-exito`/`error`/`aviso`/`info`, `bg-*-solido` para botones y tintes como `bg-error/10`). **No uses colores fijos** (`white/*`, `rose-*`, `neutral-*`…): solo quedan `text-white` sobre botones sólidos y sobre las fotos, y los `neutral` de impresión. `lib/ui/contraste.test.ts` comprueba que cada texto tenga contraste ≥ 4.5:1 en los dos temas. Clases propias: `tarjeta` (`@utility`), `animate-fade-in`, `animate-fade-in-scale`, `delay-100`…`delay-400` (como `animation-delay`); las animaciones se apagan con `prefers-reduced-motion`. Está pensada para móvil.
+
+Piezas compartidas en `components/ui/`: `base.tsx` (`Boton` con `variante`/`tamano` y mínimo 44 px, `claseInput`, `Campo`, `Tarjeta`, `Mensaje`, `Cargando`), `modal.tsx` (`Modal` sobre `<dialog>`: Escape, foco atrapado, `data-autofocus`) y `confirmar.tsx` (`useConfirmar`, en lugar de `window.confirm`). Cómo se muestra cada estado de una semana: `lib/ui/estados.ts`.
 
 Alias de imports: `@/*` apunta a la raíz del repo.
