@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { esCodigoValido, LARGO_CODIGO, normalizarCodigo } from "@/lib/alumno/codigo";
 import {
   identificarAlumno,
@@ -127,6 +128,15 @@ export function IngresoCodigo({ aviso, onConfirmado }: Props) {
 
         <p className="mt-6 text-center text-xs text-texto-tenue">
           ¿No tienes tu código? Pídeselo a tu guía de comunidad.
+        </p>
+        {/* La app instalada no tiene barra de direcciones: este es el camino del staff al panel */}
+        <p className="mt-4 text-center">
+          <Link
+            href="/login"
+            className="inline-flex items-center min-h-11 px-2 text-sm text-texto-suave hover:text-texto underline underline-offset-4"
+          >
+            ¿Eres guía o administrador? Entrar al panel
+          </Link>
         </p>
       </div>
     </main>

@@ -69,7 +69,7 @@ Plan aprobado en fases 0–7. Hechas: base nueva (0–1), fotos en R2 (2), panta
 - Cloudflare R2 privado, nunca público ni borrado. Edge Functions (Deno, `supabase/functions/`, fuera de ESLint y tsconfig) con `@supabase/server`: `subir-foto` (auth `publishable`; acciones `preparar` → URL PUT firmada 5 min, y `confirmar` → HEAD en R2 + RPC) y `ver-fotos` (auth `user`; RLS decide qué URLs GET firmadas devuelve). `@supabase/server` no acepta las claves legacy (anon JWT): el frontend usa la clave publishable. El CORS lo maneja `_shared/cors.ts` con `ORIGENES_PERMITIDOS`; en local el gateway de Supabase responde `*` igual, así que la restricción solo se nota en producción.
 - En el navegador (`lib/fotos/`): `procesarFoto` lee la fecha EXIF antes de comprimir, calcula la huella dHash (`huella.ts`, bigint con signo de 64 bits como la columna `huella`) y comprime a **JPEG** de 720 px (Safari no genera WebP desde canvas). `enviarFoto` hace preparar → PUT → confirmar.
 
-### Alumno (`/`, que redirige a `/alumno`)
+### Alumno (`/alumno`)
 
 `app/alumno/page.tsx` orquesta: sin código recordado muestra `IngresoCodigo` (pide el código personal y confirma "¿Eres Ana P.?" antes de recordarlo); con código muestra `PanelAlumno` (semana actual con `EnvioFoto` si `accion` es `enviar`/`reenviar`, o el estado/cuenta regresiva, más el historial). El código se recuerda en `localStorage` mediante `useCodigoGuardado` (`useSyncExternalStore`; `undefined` mientras hidrata, así no hay parpadeo ni error de hidratación). Los textos de error salen de `lib/alumno/mensajes.ts`.
 
@@ -89,7 +89,9 @@ En los `useEffect` no llames funciones que hagan `setState` de forma síncrona (
 
 ### PWA
 
-`public/manifest.json` y un `public/sw.js` escrito a mano que solo guarda los archivos de la app (`/_next/static/`, íconos, manifest): nunca fotos, datos ni llamadas a Supabase o R2. Lo registra `components/service-worker-registrar.tsx` solo en producción (en `next dev` lo desregistra). `next.config.ts` añade los headers de `/sw.js`. Si cambias lo que se cachea, sube `CACHE_NAME`: la activación borra las cachés viejas.
+`public/manifest.json` y un `public/sw.js` escrito a mano que solo guarda los archivos de la app (`/_next/static/`, íconos, manifest): nunca fotos, datos ni llamadas a Supabase o R2. Lo registra `components/service-worker-registrar.tsx` solo en producción (en `next dev` lo desregistra). `next.config.ts` añade los headers de `/sw.js`. Si cambias lo que se cachea (o el manifest, que se sirve desde la caché), sube `CACHE_NAME`: la activación borra las cachés viejas.
+
+La app instalada abre en `/` (`app/page.tsx`), que decide en el navegador porque la sesión del staff vive en localStorage: con sesión va a `/dashboard` y sin ella a `/alumno`. Como la app instalada no tiene barra de direcciones, el staff llega a `/login` por el enlace "¿Eres guía o administrador?" de `IngresoCodigo` o, en Android, por el atajo "Panel de revisión" del manifest (`shortcuts`).
 
 Íconos y logo: `node scripts/generar-iconos.mjs` genera `app/icon.png`, `app/apple-icon.png`, `public/icons/*` y `marca/web/*.webp` desde `marca/` (usa `marca/logo-completo.png` y `marca/logo-ovalo.png` si existen; si no, recorta el óvalo de `marca/logo-original.jpg`). También genera `marca/web/logo-completo-oscuro.webp` para el tema oscuro, pintando de blanco solo las letras de `logo-completo.png` (el óvalo queda igual; si cambias ese archivo, vuelve a medir `OVALO_EN_COMPLETO`). Al cambiar el logo, vuelve a correrlo y sube `CACHE_NAME`. En la UI el logo va con `LogoCompleto` (cambia de versión según el tema) y `LogoOvalo` (`components/ui/logo.tsx`).
 
