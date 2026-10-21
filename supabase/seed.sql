@@ -57,7 +57,7 @@ join public.comunidades c on c.nombre = v.comunidad;
 -- Algunas fotos pendientes para ver la cola de revisión (las fotos no existen en R2)
 with nuevos as (
   insert into public.envios_foto (ciclo_id, alumno_id, semana_numero, foto_key, huella, confirmado)
-  select a_c.ciclo_id, a.id, 33, format('seed/%s-semana-33.webp', a.codigo), v.huella, true
+  select a_c.ciclo_id, a.id, 33, format('seed/%s-semana-33.jpg', a.codigo), v.huella, true
   from (values
     ('TEST22', 1234567890123::bigint),
     ('TEST25', 987654321098::bigint),
