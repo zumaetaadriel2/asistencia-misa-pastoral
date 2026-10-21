@@ -57,7 +57,7 @@ select is(
 );
 select is(
   (select al.codigo from public.envios_foto e join public.alumnos al on al.id = e.alumno_id
-    where e.foto_key = 'seed/TEST28-semana-33.webp'),
+    where e.foto_key = 'seed/TEST28-semana-33.jpg'),
   'TEST29',
   'la foto también pasa al alumno correcto'
 );

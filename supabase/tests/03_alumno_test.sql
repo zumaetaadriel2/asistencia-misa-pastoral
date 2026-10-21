@@ -1,7 +1,7 @@
 -- Flujo del alumno: código, envío, reenvío, fotos parecidas, cierre de semana y límite de intentos.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(24);
+select plan(25);
 
 -- Domingo 18 de octubre de 2026 (semana 34)
 select set_config('app.ahora', '2026-10-18 10:00:00-05', true);
@@ -31,10 +31,11 @@ select set_config('test.envio1', (public.preparar_envio('TEST23', '198.51.100.1'
 select ok(current_setting('test.envio1') is not null, 'prepara el envío y devuelve su id');
 select matches(
   (select foto_key from public.envios_foto where id = current_setting('test.envio1')::bigint),
-  '^\d+/\d+/\d+/semana-34-[0-9a-f-]{36}\.webp$',
+  '^\d+/\d+/\d+/semana-34-[0-9a-f-]{36}\.jpg$',
   'la ruta de la foto la decide el servidor'
 );
-select is(public.confirmar_envio(current_setting('test.envio1')::bigint, 50000) ->> 'ok', 'true', 'confirma el envío');
+select is(public.confirmar_envio(current_setting('test.envio1')::bigint, 'TEST22', 50000) ->> 'error', 'envio_no_existe', 'no se puede confirmar el envío con otro código');
+select is(public.confirmar_envio(current_setting('test.envio1')::bigint, 'test23', 50000) ->> 'ok', 'true', 'confirma el envío con su código');
 select is(
   (select a.estado::text from public.asistencias a join public.alumnos al on al.id = a.alumno_id
     where al.codigo = 'TEST23' and a.semana_numero = 34),
@@ -42,13 +43,13 @@ select is(
   'la asistencia queda pendiente de revisión'
 );
 select is(public.preparar_envio('TEST23', '198.51.100.1') ->> 'error', 'ya_registrada', 'no puede enviar dos veces la misma semana');
-select is(public.confirmar_envio(current_setting('test.envio1')::bigint, 50000) ->> 'error', 'envio_ya_confirmado', 'un envío no se confirma dos veces');
+select is(public.confirmar_envio(current_setting('test.envio1')::bigint, 'TEST23', 50000) ->> 'error', 'envio_ya_confirmado', 'un envío no se confirma dos veces');
 
 -- ---------------------------------------------
 -- Foto parecida (huella a 1 bit de distancia, misma comunidad)
 -- ---------------------------------------------
 select set_config('test.envio2', (public.preparar_envio('TEST24', '198.51.100.2', 43, null) ->> 'envio_id'), true);
-select is(public.confirmar_envio(current_setting('test.envio2')::bigint, 50000) ->> 'similar', 'true', 'detecta que la foto se parece a otra');
+select is(public.confirmar_envio(current_setting('test.envio2')::bigint, 'TEST24', 50000) ->> 'similar', 'true', 'detecta que la foto se parece a otra');
 select is(
   (select similar_a_envio_id from public.envios_foto where id = current_setting('test.envio2')::bigint),
   current_setting('test.envio1')::bigint,
@@ -70,7 +71,7 @@ select is(public.identificar_alumno('TEST24') ->> 'accion', 'reenviar', 'el alum
 reset role;
 
 select set_config('test.envio3', (public.preparar_envio('TEST24', '198.51.100.2', 999, null) ->> 'envio_id'), true);
-select is(public.confirmar_envio(current_setting('test.envio3')::bigint, 50000) ->> 'ok', 'true', 'el reenvío se acepta hasta el miércoles');
+select is(public.confirmar_envio(current_setting('test.envio3')::bigint, 'TEST24', 50000) ->> 'ok', 'true', 'el reenvío se acepta hasta el miércoles');
 select is(
   (select a.estado::text || '|' || coalesce(a.motivo, 'sin motivo') from public.asistencias a
     join public.alumnos al on al.id = a.alumno_id

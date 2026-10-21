@@ -9,7 +9,7 @@ select plan(20);
 select ok(has_function_privilege('anon', 'public.estado_formulario()', 'execute'), 'anon puede consultar el horario');
 select ok(has_function_privilege('anon', 'public.identificar_alumno(text)', 'execute'), 'anon puede identificarse con su código');
 select ok(not has_function_privilege('anon', 'public.preparar_envio(text,text,bigint,timestamptz)', 'execute'), 'anon no puede preparar envíos directamente');
-select ok(not has_function_privilege('authenticated', 'public.confirmar_envio(bigint,int)', 'execute'), 'el staff no puede confirmar envíos');
+select ok(not has_function_privilege('authenticated', 'public.confirmar_envio(bigint,text,int)', 'execute'), 'el staff no puede confirmar envíos');
 select ok(has_function_privilege('service_role', 'public.preparar_envio(text,text,bigint,timestamptz)', 'execute'), 'service_role (Edge Functions) puede preparar envíos');
 select ok(not has_function_privilege('anon', 'public.revisar_asistencia(bigint,text,text)', 'execute'), 'anon no puede revisar');
 select ok(not has_function_privilege('authenticated', 'public._cerrar_semana(bigint,int)', 'execute'), 'nadie llama funciones internas');
