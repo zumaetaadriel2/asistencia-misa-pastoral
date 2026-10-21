@@ -14,26 +14,29 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Asistencia Misa Pastoral",
-  description:
-    "Sistema de control de asistencia para misa y actividades pastorales",
+  title: "Asistencia · Pastoral Mariana",
+  description: "Asistencia a misa de los alumnos de catequesis de la Pastoral Mariana",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Asistencia Misa",
+    title: "Asistencia",
   },
   formatDetection: {
     telephone: false,
   },
 };
 
+// Sin maximumScale/userScalable: hay que poder hacer zoom (fotos, textos pequeños)
 export const viewport: Viewport = {
-  themeColor: "#7c3aed",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#f4f6fa" },
+    { media: "(prefers-color-scheme: dark)", color: "#0b1422" },
+  ],
+  colorScheme: "light dark",
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -46,9 +49,6 @@ export default function RootLayout({
       lang="es"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <head>
-        <link rel="apple-touch-icon" href="/icons/icon-192x192.png" />
-      </head>
       <body className="min-h-full flex flex-col">
         <ServiceWorkerRegistrar />
         {children}

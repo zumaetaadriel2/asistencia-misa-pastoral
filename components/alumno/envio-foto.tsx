@@ -75,13 +75,13 @@ export function EnvioFoto({ codigo, esReenvio, onEnviado }: Props) {
       />
 
       {error && (
-        <div className="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 animate-fade-in-scale">
-          <p className="text-sm text-rose-300 text-center">{error}</p>
+        <div className="mb-4 p-3 rounded-xl bg-error/10 border border-error/25 animate-fade-in-scale">
+          <p className="text-sm text-error text-center">{error}</p>
         </div>
       )}
 
       {vistaPrevia ? (
-        <div className="relative mb-4 rounded-xl overflow-hidden border border-white/10 animate-fade-in-scale">
+        <div className="relative mb-4 rounded-xl overflow-hidden border border-borde animate-fade-in-scale">
           {/* URL blob local: next/image no aplica */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={vistaPrevia} alt="Vista previa de tu foto" className="w-full max-h-80 object-cover" />
@@ -97,8 +97,8 @@ export function EnvioFoto({ codigo, esReenvio, onEnviado }: Props) {
       ) : (
         <button
           onClick={() => inputRef.current?.click()}
-          className="w-full mb-4 py-10 rounded-xl border-2 border-dashed border-white/15 hover:border-primary-500/50
-                     text-white/50 hover:text-white/80 transition-all flex flex-col items-center gap-2"
+          className="w-full mb-4 py-10 rounded-xl border-2 border-dashed border-borde hover:border-marca/50
+                     text-texto-tenue hover:text-texto-suave transition-all flex flex-col items-center gap-2"
         >
           <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path
@@ -115,7 +115,7 @@ export function EnvioFoto({ codigo, esReenvio, onEnviado }: Props) {
       <button
         onClick={enviar}
         disabled={!foto || enviando}
-        className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:opacity-30
+        className="w-full py-3 rounded-xl bg-exito-solido hover:bg-exito-solido/85 disabled:opacity-30
                    disabled:cursor-not-allowed text-white text-sm font-semibold transition-all
                    flex items-center justify-center gap-2"
       >

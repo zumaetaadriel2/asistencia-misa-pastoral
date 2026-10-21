@@ -16,8 +16,8 @@ function Cargando({ texto }: { texto: string }) {
   return (
     <main className="flex-1 flex items-center justify-center px-4">
       <div className="text-center animate-fade-in">
-        <div className="w-12 h-12 mx-auto mb-4 rounded-full border-2 border-primary-500 border-t-transparent animate-spin" />
-        <p className="text-sm text-white/50">{texto}</p>
+        <div className="w-12 h-12 mx-auto mb-4 rounded-full border-2 border-marca border-t-transparent animate-spin" />
+        <p className="text-sm text-texto-tenue">{texto}</p>
       </div>
     </main>
   );
@@ -93,17 +93,17 @@ export default function AlumnoPage() {
   if (!carga.resultado.ok) {
     return (
       <main className="flex-1 flex items-center justify-center px-4">
-        <div className="glass-card p-8 max-w-sm w-full text-center animate-fade-in">
-          <p className="text-sm text-white/60 mb-6">{MENSAJES_ERROR[carga.resultado.error]}</p>
+        <div className="tarjeta p-8 max-w-sm w-full text-center animate-fade-in">
+          <p className="text-sm text-texto-suave mb-6">{MENSAJES_ERROR[carga.resultado.error]}</p>
           <button
             onClick={actualizar}
-            className="w-full py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-medium transition-colors"
+            className="w-full py-2.5 rounded-xl bg-marca-solido hover:bg-marca-solido/85 text-white text-sm font-medium transition-colors"
           >
             Reintentar
           </button>
           <button
             onClick={() => guardarCodigo(null)}
-            className="mt-3 w-full py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white/50 text-sm font-medium transition-colors"
+            className="mt-3 w-full py-2.5 rounded-xl bg-superficie-2 hover:bg-borde text-texto-tenue text-sm font-medium transition-colors"
           >
             Usar otro código
           </button>

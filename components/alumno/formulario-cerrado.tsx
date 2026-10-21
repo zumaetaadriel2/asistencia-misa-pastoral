@@ -39,24 +39,24 @@ export function FormularioCerrado({ proximaApertura, manual, onAbrir }: Props) {
 
   if (manual) {
     return (
-      <p className="text-sm text-white/60 text-center">
+      <p className="text-sm text-texto-suave text-center">
         La pastoral cerró el formulario por ahora. Consulta con tu guía cuándo volverá a abrirse.
       </p>
     );
   }
 
   if (!proximaApertura) {
-    return <p className="text-sm text-white/60 text-center">El ciclo de este año ya terminó.</p>;
+    return <p className="text-sm text-texto-suave text-center">El ciclo de este año ya terminó.</p>;
   }
 
   return (
     <div className="text-center">
-      <p className="text-xs text-white/30 uppercase tracking-wider mb-1">El formulario abre el</p>
-      <p className="text-sm font-medium text-white/70 mb-4">{formatearDiaHora(proximaApertura)}</p>
-      <p className="text-3xl font-mono font-bold text-primary-400 animate-countdown">
+      <p className="text-xs text-texto-tenue uppercase tracking-wider mb-1">El formulario abre el</p>
+      <p className="text-sm font-medium text-texto-suave mb-4">{formatearDiaHora(proximaApertura)}</p>
+      <p className="text-3xl font-mono font-bold text-marca animate-countdown">
         {restante === null ? "…" : formatearCuentaRegresiva(restante)}
       </p>
-      <p className="mt-4 text-xs text-white/25">Horario de envío: sábado 7:00 p. m. a lunes 11:59 p. m.</p>
+      <p className="mt-4 text-xs text-texto-tenue">Horario de envío: sábado 7:00 p. m. a lunes 11:59 p. m.</p>
     </div>
   );
 }

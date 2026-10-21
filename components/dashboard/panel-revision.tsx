@@ -220,14 +220,14 @@ export function PanelRevision({ perfil }: { perfil: PerfilStaff }) {
           <select
             value={filtroComunidad ?? ""}
             onChange={(e) => setFiltroComunidad(e.target.value ? Number(e.target.value) : null)}
-            className="flex-1 min-w-0 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm
-                       focus:outline-none focus:ring-2 focus:ring-primary-500/50 appearance-none cursor-pointer"
+            className="flex-1 min-w-0 px-3 py-2.5 rounded-xl bg-superficie-2 border border-borde text-texto text-sm
+                       focus:outline-none focus:ring-2 focus:ring-marca/40 appearance-none cursor-pointer"
           >
-            <option value="" className="bg-neutral-900">
+            <option value="">
               Todas mis comunidades
             </option>
             {comunidades.map(([id, nombre]) => (
-              <option key={id} value={id} className="bg-neutral-900">
+              <option key={id} value={id}>
                 {nombre}
               </option>
             ))}
@@ -236,8 +236,8 @@ export function PanelRevision({ perfil }: { perfil: PerfilStaff }) {
         <button
           onClick={() => setVerResumen(true)}
           disabled={!perfil.semana_reciente}
-          className="px-3 py-2.5 rounded-xl bg-emerald-600/20 hover:bg-emerald-600/30 border border-emerald-500/20
-                     text-emerald-300 text-xs font-semibold transition-all disabled:opacity-30 whitespace-nowrap"
+          className="px-3 py-2.5 rounded-xl bg-exito/15 hover:bg-exito/25 border border-exito/25
+                     text-exito text-xs font-semibold transition-all disabled:opacity-30 whitespace-nowrap"
         >
           Resumen WhatsApp
         </button>
@@ -245,9 +245,9 @@ export function PanelRevision({ perfil }: { perfil: PerfilStaff }) {
 
       {/* ── Error ── */}
       {error && (
-        <div className="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-between gap-2 animate-fade-in-scale">
-          <p className="text-sm text-rose-300">{error}</p>
-          <button onClick={() => setError("")} className="text-rose-400 hover:text-rose-300 text-xs">
+        <div className="mb-4 p-3 rounded-xl bg-error/10 border border-error/25 flex items-center justify-between gap-2 animate-fade-in-scale">
+          <p className="text-sm text-error">{error}</p>
+          <button onClick={() => setError("")} className="text-error hover:underline text-xs">
             Cerrar
           </button>
         </div>
@@ -259,16 +259,16 @@ export function PanelRevision({ perfil }: { perfil: PerfilStaff }) {
           role="status"
           className={`mb-4 px-4 py-2.5 rounded-xl border flex items-center justify-between gap-3 animate-fade-in-scale ${
             ultimaRevision.accion === "validado"
-              ? "bg-emerald-500/10 border-emerald-500/20"
-              : "bg-rose-500/10 border-rose-500/20"
+              ? "bg-exito/10 border-exito/25"
+              : "bg-error/10 border-error/25"
           }`}
         >
-          <p className={`text-sm truncate ${ultimaRevision.accion === "validado" ? "text-emerald-300" : "text-rose-300"}`}>
+          <p className={`text-sm truncate ${ultimaRevision.accion === "validado" ? "text-exito" : "text-error"}`}>
             {ultimaRevision.accion === "validado" ? "Validada" : "Rechazada"}: {ultimaRevision.item.alumno}
           </p>
           <button
             onClick={deshacer}
-            className="shrink-0 px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white text-xs font-semibold transition-all"
+            className="shrink-0 px-3 py-1.5 rounded-lg bg-superficie hover:bg-superficie-2 border border-borde text-texto text-xs font-semibold transition-all"
           >
             Deshacer
           </button>
@@ -279,8 +279,8 @@ export function PanelRevision({ perfil }: { perfil: PerfilStaff }) {
       <div className="flex-1 flex flex-col items-center justify-center">
         {cola === null ? (
           <div className="text-center animate-fade-in">
-            <div className="w-10 h-10 mx-auto mb-3 rounded-full border-2 border-primary-500 border-t-transparent animate-spin" />
-            <p className="text-sm text-white/30">Cargando fotos…</p>
+            <div className="w-10 h-10 mx-auto mb-3 rounded-full border-2 border-marca border-t-transparent animate-spin" />
+            <p className="text-sm text-texto-tenue">Cargando fotos…</p>
           </div>
         ) : actual ? (
           <div className="w-full animate-fade-in-scale" key={actual.asistencia_id}>
@@ -300,7 +300,7 @@ export function PanelRevision({ perfil }: { perfil: PerfilStaff }) {
             <div className="text-center mt-3">
               <button
                 onClick={() => setReasignando(actual)}
-                className="text-xs text-white/40 hover:text-white/70 underline underline-offset-4"
+                className="text-xs text-texto-tenue hover:text-texto-suave underline underline-offset-4"
               >
                 ¿Es de otro alumno? Cambiar alumno
               </button>
@@ -309,15 +309,15 @@ export function PanelRevision({ perfil }: { perfil: PerfilStaff }) {
           </div>
         ) : (
           <div className="text-center animate-fade-in py-12">
-            <h2 className="text-lg font-bold text-white mb-2">¡Todo al día!</h2>
-            <p className="text-sm text-white/40 mb-6">
+            <h2 className="text-lg font-bold text-texto mb-2">¡Todo al día!</h2>
+            <p className="text-sm text-texto-tenue mb-6">
               {filtroComunidad === null
                 ? "No hay fotos pendientes de revisión."
                 : "No hay fotos pendientes en esta comunidad."}
             </p>
             <button
               onClick={recargarCola}
-              className="px-6 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-white/50 text-sm font-medium transition-all"
+              className="px-6 py-2.5 rounded-xl bg-superficie-2 hover:bg-borde text-texto-tenue text-sm font-medium transition-all"
             >
               Actualizar
             </button>

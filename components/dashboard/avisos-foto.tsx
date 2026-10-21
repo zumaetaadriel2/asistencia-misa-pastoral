@@ -13,8 +13,8 @@ export function AvisosFoto({ avisos }: { avisos: Aviso[] }) {
           key={aviso.texto}
           className={`text-xs px-3 py-2 rounded-lg border ${
             aviso.nivel === "alerta"
-              ? "bg-amber-500/10 border-amber-500/20 text-amber-200"
-              : "bg-white/[0.03] border-white/10 text-white/50"
+              ? "bg-aviso/10 border-aviso/25 text-aviso"
+              : "bg-superficie-2 border-borde text-texto-tenue"
           }`}
         >
           {aviso.nivel === "alerta" ? "⚠ " : ""}

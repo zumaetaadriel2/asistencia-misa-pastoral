@@ -12,7 +12,7 @@ import {
 } from "@/lib/staff/admin";
 import { mensajeDe } from "@/lib/staff/errores";
 import type { PerfilStaff, RolStaff } from "@/lib/staff/revision";
-import { Cargando, claseBoton, claseBotonSecundario, claseInput, Mensaje, Tarjeta, type MensajeAdmin } from "./ui";
+import { Cargando, claseBoton, claseBotonSecundario, claseInput, Mensaje, Tarjeta, type MensajeAdmin } from "@/components/ui/base";
 
 export function SeccionStaff({ perfil }: { perfil: PerfilStaff }) {
   const [staff, setStaff] = useState<MiembroStaff[] | null>(null);
@@ -119,10 +119,10 @@ export function SeccionStaff({ perfil }: { perfil: PerfilStaff }) {
             onChange={(e) => setNuevo({ ...nuevo, rol: e.target.value as RolStaff })}
             className={`${claseInput} appearance-none cursor-pointer`}
           >
-            <option value="guia" className="bg-neutral-900">
+            <option value="guia">
               Guía
             </option>
-            <option value="admin" className="bg-neutral-900">
+            <option value="admin">
               Administrador
             </option>
           </select>
@@ -133,30 +133,30 @@ export function SeccionStaff({ perfil }: { perfil: PerfilStaff }) {
       </Tarjeta>
 
       <Tarjeta titulo={`Staff (${staff.length})`} descripcion="Toca una comunidad para asignarla o quitarla. El administrador ve todas.">
-        <ul className="divide-y divide-white/5">
+        <ul className="divide-y divide-borde">
           {staff.map((miembro) => {
             const esUnoMismo = miembro.id === perfil.id;
             return (
               <li key={miembro.id} className={`py-3 ${miembro.activo ? "" : "opacity-50"}`}>
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
-                    <p className="text-sm text-white/90">
+                    <p className="text-sm text-texto-suave">
                       {miembro.nombre}
-                      {!miembro.activo && <span className="text-xs text-white/40"> (inactivo)</span>}
+                      {!miembro.activo && <span className="text-xs text-texto-tenue"> (inactivo)</span>}
                     </p>
-                    <p className="text-xs text-white/40">{miembro.email}</p>
+                    <p className="text-xs text-texto-tenue">{miembro.email}</p>
                   </div>
                   <div className="flex gap-2">
                     <select
                       value={miembro.rol}
                       disabled={esUnoMismo}
                       onChange={(e) => cambiar(miembro, { rol: e.target.value as RolStaff })}
-                      className="px-2 py-1.5 rounded-lg bg-white/5 border border-white/10 text-white text-xs appearance-none disabled:opacity-40"
+                      className="px-2 py-1.5 rounded-lg bg-superficie-2 border border-borde text-texto text-xs appearance-none disabled:opacity-40"
                     >
-                      <option value="guia" className="bg-neutral-900">
+                      <option value="guia">
                         Guía
                       </option>
-                      <option value="admin" className="bg-neutral-900">
+                      <option value="admin">
                         Administrador
                       </option>
                     </select>
@@ -179,8 +179,8 @@ export function SeccionStaff({ perfil }: { perfil: PerfilStaff }) {
                           onClick={() => alternarComunidad(miembro, comunidad.id)}
                           className={`px-2.5 py-1 rounded-full border text-[11px] transition-all ${
                             asignada
-                              ? "bg-primary-600/30 border-primary-500/50 text-white"
-                              : "bg-white/5 border-white/10 text-white/40 hover:text-white/70"
+                              ? "bg-marca/20 border-marca/50 text-texto"
+                              : "bg-superficie-2 border-borde text-texto-tenue hover:text-texto-suave"
                           }`}
                         >
                           {comunidad.nombre}

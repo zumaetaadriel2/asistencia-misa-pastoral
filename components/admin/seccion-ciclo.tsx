@@ -10,7 +10,7 @@ import {
   type Ciclo,
 } from "@/lib/staff/admin";
 import { mensajeDe } from "@/lib/staff/errores";
-import { Cargando, claseBoton, claseBotonSecundario, claseInput, Mensaje, Tarjeta, type MensajeAdmin } from "./ui";
+import { Cargando, claseBoton, claseBotonSecundario, claseInput, Mensaje, Tarjeta, type MensajeAdmin } from "@/components/ui/base";
 
 const ESTADOS_FORMULARIO: { valor: boolean | null; texto: string; detalle: string }[] = [
   { valor: null, texto: "Automático", detalle: "Sáb 7 p. m. → lun 11:59 p. m." },
@@ -40,15 +40,15 @@ function FormularioCiclo({ ciclo, onGuardado }: { ciclo: Ciclo; onGuardado: (m: 
 
   return (
     <form onSubmit={guardar} className="grid gap-3 sm:grid-cols-3">
-      <label className="text-xs text-white/60">
+      <label className="text-xs text-texto-suave">
         Nombre
         <input value={nombre} onChange={(e) => setNombre(e.target.value)} required className={`mt-1 ${claseInput}`} />
       </label>
-      <label className="text-xs text-white/60">
+      <label className="text-xs text-texto-suave">
         Inicio (la semana 1 es el primer domingo desde esta fecha)
         <input type="date" value={inicio} onChange={(e) => setInicio(e.target.value)} required className={`mt-1 ${claseInput}`} />
       </label>
-      <label className="text-xs text-white/60">
+      <label className="text-xs text-texto-suave">
         Fin
         <input type="date" value={fin} onChange={(e) => setFin(e.target.value)} required className={`mt-1 ${claseInput}`} />
       </label>
@@ -151,8 +151,8 @@ export function SeccionCiclo() {
                   onClick={() => cambiarFormulario(opcion.valor)}
                   className={`p-3 rounded-xl border text-left transition-all ${
                     activo.abierto_manual === opcion.valor
-                      ? "bg-primary-600/30 border-primary-500 text-white"
-                      : "bg-white/5 border-white/5 text-white/50 hover:text-white/80"
+                      ? "bg-marca/20 border-marca text-texto"
+                      : "bg-superficie-2 border-borde text-texto-tenue hover:text-texto-suave"
                   }`}
                 >
                   <span className="block text-sm font-semibold">{opcion.texto}</span>
@@ -196,9 +196,9 @@ export function SeccionCiclo() {
         <Tarjeta titulo="Otros ciclos">
           <ul className="space-y-2">
             {otros.map((ciclo) => (
-              <li key={ciclo.id} className="flex flex-wrap items-center justify-between gap-2 text-sm text-white/80">
+              <li key={ciclo.id} className="flex flex-wrap items-center justify-between gap-2 text-sm text-texto-suave">
                 <span>
-                  {ciclo.nombre} <span className="text-xs text-white/40">({ciclo.fecha_inicio} → {ciclo.fecha_fin})</span>
+                  {ciclo.nombre} <span className="text-xs text-texto-tenue">({ciclo.fecha_inicio} → {ciclo.fecha_fin})</span>
                 </span>
                 <span className="flex gap-2">
                   {activo && (

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
+import { LogoCompleto } from "@/components/ui/logo";
 
 /**
  * Solo para desarrollo local: el staff ficticio del seed entra con correo y contraseña.
@@ -70,26 +71,24 @@ export default function LoginPage() {
     <main className="flex-1 flex items-center justify-center px-4 py-8">
       <div className="max-w-sm w-full animate-fade-in">
         <div className="text-center mb-10">
-          <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-primary-600/20 border border-primary-500/20 flex items-center justify-center">
-            <svg className="w-8 h-8 text-primary-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
-            </svg>
+          <div className="mb-5 flex justify-center">
+            <LogoCompleto className="h-24" />
           </div>
-          <h1 className="text-xl font-bold text-white">Panel de Revisión</h1>
-          <p className="text-sm text-white/40 mt-1">Asistencia Misa Pastoral</p>
+          <h1 className="text-xl font-bold text-texto">Panel de Revisión</h1>
+          <p className="text-sm text-texto-tenue mt-1">Asistencia a misa · Pastoral Mariana</p>
         </div>
 
-        <div className="glass-card p-6">
+        <div className="tarjeta p-6">
           {error && (
-            <div className="mb-4 p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 animate-fade-in-scale">
-              <p className="text-sm text-rose-300 text-center">{error}</p>
+            <div className="mb-4 p-3 rounded-xl bg-error/10 border border-error/25 animate-fade-in-scale">
+              <p className="text-sm text-error text-center">{error}</p>
             </div>
           )}
 
           <button
             onClick={entrarConGoogle}
             disabled={cargando}
-            className="w-full py-3 rounded-xl bg-white hover:bg-white/90 disabled:opacity-40 text-neutral-900 text-sm font-semibold
+            className="w-full py-3 rounded-xl bg-white hover:bg-neutral-100 border border-borde disabled:opacity-40 text-neutral-900 text-sm font-semibold
                        transition-all flex items-center justify-center gap-3"
           >
             <svg className="w-5 h-5" viewBox="0 0 48 48" aria-hidden="true">
@@ -102,15 +101,15 @@ export default function LoginPage() {
           </button>
 
           {LOGIN_CON_CORREO && (
-            <form onSubmit={entrarConCorreo} className="mt-6 pt-6 border-t border-white/10 space-y-3">
-              <p className="text-xs text-amber-300/80">Solo en desarrollo local: staff de prueba del seed.</p>
+            <form onSubmit={entrarConCorreo} className="mt-6 pt-6 border-t border-borde space-y-3">
+              <p className="text-xs text-aviso">Solo en desarrollo local: staff de prueba del seed.</p>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 placeholder="guia.uno@ejemplo.com"
-                className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/20"
+                className="w-full px-4 py-2.5 rounded-xl bg-superficie-2 border border-borde text-texto text-sm placeholder:text-texto-tenue"
               />
               <input
                 type="password"
@@ -119,12 +118,12 @@ export default function LoginPage() {
                 required
                 minLength={6}
                 placeholder="Contraseña (mín. 6)"
-                className="w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white text-sm placeholder:text-white/20"
+                className="w-full px-4 py-2.5 rounded-xl bg-superficie-2 border border-borde text-texto text-sm placeholder:text-texto-tenue"
               />
               <button
                 type="submit"
                 disabled={cargando}
-                className="w-full py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 disabled:opacity-30 text-white text-sm font-semibold"
+                className="w-full py-2.5 rounded-xl bg-marca-solido hover:bg-marca-solido/85 disabled:opacity-30 text-white text-sm font-semibold"
               >
                 Entrar con correo
               </button>
@@ -132,7 +131,7 @@ export default function LoginPage() {
           )}
         </div>
 
-        <p className="mt-6 text-center text-xs text-white/20">
+        <p className="mt-6 text-center text-xs text-texto-tenue">
           Solo guías y administradores registrados por la pastoral
         </p>
       </div>

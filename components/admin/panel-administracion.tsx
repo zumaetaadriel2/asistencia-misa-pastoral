@@ -30,7 +30,7 @@ export function PanelAdministracion({ perfil }: { perfil: PerfilStaff }) {
             key={s.id}
             onClick={() => setSeccion(s.id)}
             className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
-              seccion === s.id ? "bg-primary-600 text-white" : "bg-white/5 text-white/50 hover:text-white/80"
+              seccion === s.id ? "bg-marca-solido text-white" : "bg-superficie-2 text-texto-tenue hover:text-texto-suave"
             }`}
           >
             {s.texto}

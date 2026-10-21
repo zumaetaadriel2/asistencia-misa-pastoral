@@ -1,6 +1,7 @@
 "use client";
 
 import type { AlumnoComunidad } from "@/lib/staff/comunidad";
+import { LogoOvalo } from "@/components/ui/logo";
 
 interface Props {
   comunidad: string;
@@ -20,7 +21,12 @@ export function CodigosImprimibles({ comunidad, alumnos }: Props) {
         .filter((alumno) => alumno.activo)
         .map((alumno) => (
           <article key={alumno.id} className="border border-dashed border-neutral-400 rounded-lg p-4 break-inside-avoid">
-            <p className="text-[10px] uppercase tracking-wider text-neutral-500">Asistencia a misa · {comunidad}</p>
+            <div className="flex items-center gap-2">
+              <LogoOvalo className="h-8" />
+              <p className="text-[10px] uppercase tracking-wider text-neutral-500">
+                Pastoral Mariana · Asistencia a misa · {comunidad}
+              </p>
+            </div>
             <p className="mt-1 text-sm font-semibold">{alumno.nombre_completo}</p>
             <p className="mt-2 text-3xl font-mono font-bold tracking-[0.3em]">{alumno.codigo}</p>
             <p className="mt-2 text-[11px] text-neutral-600 leading-snug">

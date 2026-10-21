@@ -18,15 +18,15 @@ export function ComparacionFotos({ fotos }: { fotos: FotoComparada[] }) {
 
   return (
     <section className="w-full max-w-xs mx-auto mt-4">
-      <p className="text-xs text-white/40 mb-2">Para comparar</p>
+      <p className="text-xs text-texto-tenue mb-2">Para comparar</p>
       <div className="grid grid-cols-2 gap-2">
         {fotos.map((foto) => (
           <button
             key={foto.envioId}
             onClick={() => foto.url && setAmpliada(foto)}
-            className="glass-card overflow-hidden text-left"
+            className="tarjeta overflow-hidden text-left"
           >
-            <div className="aspect-[3/4] bg-white/5">
+            <div className="aspect-[3/4] bg-superficie-2">
               {foto.url ? (
                 // URL firmada temporal de R2 (ver tarjeta-revision.tsx)
                 // eslint-disable-next-line @next/next/no-img-element
@@ -35,7 +35,7 @@ export function ComparacionFotos({ fotos }: { fotos: FotoComparada[] }) {
                 <div className="w-full h-full animate-shimmer" />
               )}
             </div>
-            <p className="px-2 py-1.5 text-[11px] text-white/60 leading-tight">{foto.etiqueta}</p>
+            <p className="px-2 py-1.5 text-[11px] text-texto-suave leading-tight">{foto.etiqueta}</p>
           </button>
         ))}
       </div>
@@ -47,8 +47,8 @@ export function ComparacionFotos({ fotos }: { fotos: FotoComparada[] }) {
         >
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={ampliada.url} alt={ampliada.etiqueta} className="max-h-[80vh] max-w-full rounded-xl" />
-          <p className="mt-3 text-sm text-white/70">{ampliada.etiqueta}</p>
-          <p className="mt-1 text-xs text-white/30">Toca para cerrar</p>
+          <p className="mt-3 text-sm text-white/80">{ampliada.etiqueta}</p>
+          <p className="mt-1 text-xs text-white/60">Toca para cerrar</p>
         </div>
       )}
     </section>
