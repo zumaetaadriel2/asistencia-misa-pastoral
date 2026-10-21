@@ -32,11 +32,11 @@ npm run functions:serve              # Edge Functions locales con supabase/funct
 
 Variables de entorno de Next: `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (ver `.env.example`). Para desarrollo con Supabase local van en `.env.development.local`, que tiene prioridad sobre `.env.local` en `npm run dev`. `lib/supabase/client.ts` lanza un error al importarse si faltan, así que `npm run build` también las necesita. Los secretos de R2 nunca van en Next: viven en las Edge Functions (`supabase/functions/.env.example`).
 
-Para probar en el navegador con datos del seed: códigos de alumno `TEST22`…`TEST29`, `TESTA2`…`TESTD2`. Fuera del horario (sáb 19:00 → lun 23:59) se puede abrir el formulario a mano con `update public.ciclos set abierto_manual = true where activo` y volverlo a `null` al terminar.
+Para probar en el navegador con datos del seed: códigos de alumno `TEST22`…`TEST29`, `TESTA2`…`TESTD2`; staff `admin@ejemplo.com`, `guia.uno@ejemplo.com` (San Pablo y San José) y `guia.dos@ejemplo.com` con cualquier contraseña de 6+ caracteres (el primer login crea la cuenta; requiere `NEXT_PUBLIC_LOGIN_CON_CORREO=true` en `.env.development.local`). Las fotos del seed no existen en R2 (se ven rotas); para fotos reales, súbelas por `/alumno`. Fuera del horario (sáb 19:00 → lun 23:59) se puede abrir el formulario a mano con `update public.ciclos set abierto_manual = true where activo` y volverlo a `null` al terminar.
 
 ## Estado del rediseño
 
-Plan aprobado en fases 0–7. Hechas: base nueva (0–1), fotos en R2 (2) y pantalla del alumno (3). **El panel del staff (`/login`, `/dashboard`, `components/dashboard/`) todavía consulta el esquema viejo** (`configuracion_ciclo`, `usuarios_staff`, `foto_url`, `obtenerTodasLasFilas` en `panel-admin.tsx`) y no funciona contra la base nueva hasta las fases 4 (revisión) y 5 (administración). Por eso `lib/supabase/client.ts` aún no usa el tipo `Database`: tiparlo rompería la compilación del panel viejo; hacerlo al terminar la fase 5.
+Plan aprobado en fases 0–7. Hechas: base nueva (0–1), fotos en R2 (2), pantalla del alumno (3) y revisión del staff (4). Falta la administración (5): `components/dashboard/panel-admin.tsx` es del esquema viejo (`configuracion_ciclo`, `usuarios_staff`), ya no se usa y se reemplazará por secciones. Por eso `lib/supabase/client.ts` aún no usa el tipo `Database`: tiparlo rompería la compilación de ese archivo; hacerlo al terminar la fase 5. Pendientes de la fase 6: latido y respaldo con GitHub Actions, Vercel y subdominio.
 
 ## Arquitectura
 
@@ -58,11 +58,12 @@ Plan aprobado en fases 0–7. Hechas: base nueva (0–1), fotos en R2 (2) y pant
 
 `app/alumno/page.tsx` orquesta: sin código recordado muestra `IngresoCodigo` (pide el código personal y confirma "¿Eres Ana P.?" antes de recordarlo); con código muestra `PanelAlumno` (semana actual con `EnvioFoto` si `accion` es `enviar`/`reenviar`, o el estado/cuenta regresiva, más el historial). El código se recuerda en `localStorage` mediante `useCodigoGuardado` (`useSyncExternalStore`; `undefined` mientras hidrata, así no hay parpadeo ni error de hidratación). Los textos de error salen de `lib/alumno/mensajes.ts`.
 
-### Staff (pendiente de reescribir en fases 4–5)
+### Staff
 
-- `/login` → `/dashboard`; hoy con email/contraseña y `usuarios_staff` (esquema viejo).
-- **Revisión**: `TarjetaRevision` muestra el pendiente más antiguo; swipe a la derecha valida (durante `TIEMPO_DESHACER_MS` se puede deshacer), a la izquierda abre `ModalRechazo` y luego llama a `notificarRechazo` (`lib/services/notificaciones.ts`, un mock). Se reutilizarán en la fase 4.
-- **Panel admin** (`components/dashboard/panel-admin.tsx`): se reemplazará por secciones en la fase 5; su armado del CSV y `obtenerTodasLasFilas` (`lib/supabase/paginacion.ts`, Supabase corta en 1000 filas) se reutilizan.
+- **Login** (`/login`): solo "Entrar con Google" en producción; vuelve a `/login`, que pasa a `/dashboard` si hay sesión o muestra el error del hook. Con `NEXT_PUBLIC_LOGIN_CON_CORREO=true` (solo local) aparece un formulario de correo que, si la cuenta no existe, la crea. Seguro extra: el hook rechaza proveedores distintos de Google salvo que `ajustes.permitir_login_correo` esté activo, y solo el seed lo activa (`db push` no corre el seed).
+- **Revisión** (`/dashboard`): `mi_perfil_staff` (rol y `semana_reciente`, la de la última misa), `cola_revision` (pendientes con el domingo de esa semana, la foto anterior del alumno y la parecida) y `resumen_semana` (estado de cada alumno, para `armarResumenWhatsApp`). Todo en `lib/staff/`; las RPC del staff son `security invoker`, así que RLS limita a sus comunidades. Las URLs de las fotos se piden a `ver-fotos` con caché de 4 min (`lib/staff/fotos.ts`). Las fotos se muestran con `<img>` y no con `next/image` a propósito: así no pasan por el optimizador de Vercel.
+- `TarjetaRevision`: swipe derecha valida, izquierda abre `ModalRechazo` (el motivo lo ve el alumno). "Deshacer" se ofrece 8 s en la UI; la base lo permite 2 min al mismo revisor. "Cambiar alumno" (`ModalReasignar`) pasa una foto pendiente a otro alumno de la comunidad. Los avisos (`lib/staff/avisos.ts`) marcan fotos parecidas y fotos tomadas antes del sábado de esa semana.
+- Lo viejo que se reutilizará en la fase 5: el armado del CSV de `panel-admin.tsx` y `obtenerTodasLasFilas` (`lib/supabase/paginacion.ts`, Supabase corta en 1000 filas).
 
 ### Convenciones de React
 
@@ -70,7 +71,7 @@ En los `useEffect` no llames funciones que hagan `setState` de forma síncrona (
 
 ### PWA
 
-`public/manifest.json` y un `public/sw.js` escrito a mano (network-first, ignora las peticiones a `supabase.co`), registrado por `components/service-worker-registrar.tsx` en el layout raíz; `next.config.ts` añade los headers de `/sw.js`. Si cambias lo que se cachea, sube `CACHE_NAME` en `sw.js`. Pendiente (fase 6): que no cachee fotos ni datos.
+`public/manifest.json` y un `public/sw.js` escrito a mano que solo guarda los archivos de la app (`/_next/static/`, íconos, manifest): nunca fotos, datos ni llamadas a Supabase o R2. Lo registra `components/service-worker-registrar.tsx` solo en producción (en `next dev` lo desregistra). `next.config.ts` añade los headers de `/sw.js`. Si cambias lo que se cachea, sube `CACHE_NAME`: la activación borra las cachés viejas.
 
 ### Estilos
 
