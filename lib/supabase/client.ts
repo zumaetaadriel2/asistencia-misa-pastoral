@@ -1,17 +1,18 @@
 import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+const supabasePublishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
 
-if (!supabaseUrl || !supabaseAnonKey) {
+if (!supabaseUrl || !supabasePublishableKey) {
   throw new Error(
-    "Faltan las variables de entorno NEXT_PUBLIC_SUPABASE_URL y/o NEXT_PUBLIC_SUPABASE_ANON_KEY. " +
+    "Faltan las variables de entorno NEXT_PUBLIC_SUPABASE_URL y/o NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY. " +
       "Revisa tu archivo .env.local"
   );
 }
 
 /**
- * Cliente de Supabase para uso en el lado del cliente (Client Components).
- * Utiliza la clave anónima (anon key) con Row Level Security (RLS).
+ * Cliente de Supabase para los Client Components.
+ * Usa la clave publishable (no la anon legacy): las Edge Functions con
+ * @supabase/server solo aceptan esa. Los permisos los decide RLS.
  */
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(supabaseUrl, supabasePublishableKey);
