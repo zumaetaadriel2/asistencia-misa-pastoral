@@ -44,15 +44,6 @@ export function Boton({
   return <button type={type} className={cn(claseDeBoton(variante, tamano), className)} {...props} />;
 }
 
-// Versiones en texto para las secciones de administración (que aún no usan <Boton>)
-export const claseBoton =
-  "px-4 py-2.5 rounded-xl bg-marca-solido hover:bg-marca-solido/85 text-white text-xs font-semibold transition-all " +
-  "disabled:opacity-30 disabled:cursor-not-allowed";
-
-export const claseBotonSecundario =
-  "px-3 py-2 rounded-lg bg-superficie-2 hover:bg-borde text-texto-suave text-xs font-medium transition-all " +
-  "disabled:opacity-30 disabled:cursor-not-allowed";
-
 /** Campo de formulario con su etiqueta visible */
 export function Campo({ etiqueta, ayuda, children }: { etiqueta: string; ayuda?: string; children: ReactNode }) {
   return (
@@ -61,6 +52,29 @@ export function Campo({ etiqueta, ayuda, children }: { etiqueta: string; ayuda?:
       <div className="mt-1">{children}</div>
       {ayuda && <span className="mt-1 block text-xs text-texto-tenue">{ayuda}</span>}
     </label>
+  );
+}
+
+/** Campo para filtrar una lista por nombre (usar con `coincide` de lib/staff/busqueda.ts) */
+export function Buscador({
+  valor,
+  onCambiar,
+  etiqueta = "Buscar por nombre",
+}: {
+  valor: string;
+  onCambiar: (valor: string) => void;
+  etiqueta?: string;
+}) {
+  return (
+    <input
+      type="search"
+      value={valor}
+      onChange={(e) => onCambiar(e.target.value)}
+      placeholder={etiqueta}
+      aria-label={etiqueta}
+      enterKeyHint="search"
+      className={claseInput}
+    />
   );
 }
 

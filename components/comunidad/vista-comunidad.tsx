@@ -12,9 +12,12 @@ import {
   type RegistroSemana,
 } from "@/lib/staff/comunidad";
 import { datosReporte } from "@/lib/staff/admin";
+import { coincide } from "@/lib/staff/busqueda";
 import { mensajeDe } from "@/lib/staff/errores";
 import { armarCsvAsistencia, descargarCsv } from "@/lib/staff/reporte";
 import type { PerfilStaff } from "@/lib/staff/revision";
+import { Boton, Buscador, claseInput } from "@/components/ui/base";
+import { useConfirmar } from "@/components/ui/confirmar";
 import { CodigosImprimibles } from "./codigos-imprimibles";
 import { MatrizAsistencia } from "./matriz-asistencia";
 import { ModalJustificar } from "./modal-justificar";
@@ -43,6 +46,9 @@ export function VistaComunidad({ perfil }: { perfil: PerfilStaff }) {
   const [justificando, setJustificando] = useState<{ alumno: AlumnoComunidad; semana: number } | null>(null);
   const [descargando, setDescargando] = useState(false);
   const [error, setError] = useState("");
+  const [aviso, setAviso] = useState("");
+  const [busqueda, setBusqueda] = useState("");
+  const { confirmar, dialogoConfirmar } = useConfirmar();
 
   const semanas = perfil.semana_reciente ?? 0;
   const comunidadId = elegida ?? comunidades?.[0]?.id ?? null;
@@ -81,15 +87,19 @@ export function VistaComunidad({ perfil }: { perfil: PerfilStaff }) {
   }, [comunidadId, clave]);
 
   const nuevoCodigo = async (alumno: AlumnoComunidad) => {
-    const confirmado = window.confirm(
-      `¿Dar un código nuevo a ${alumno.nombre_completo}? El código actual dejará de funcionar.`
-    );
-    if (!confirmado) return;
+    const seguro = await confirmar({
+      titulo: `¿Dar un código nuevo a ${alumno.nombre_completo}?`,
+      mensaje: "El código actual dejará de funcionar y tendrás que darle el nuevo.",
+      aceptar: "Dar código nuevo",
+      peligro: true,
+    });
+    if (!seguro) return;
     try {
       const codigo = await regenerarCodigo(alumno.id);
       setDatos((prev) =>
         prev && { ...prev, alumnos: prev.alumnos.map((a) => (a.id === alumno.id ? { ...a, codigo } : a)) }
       );
+      setAviso(`Nuevo código de ${alumno.nombre_completo}: ${codigo}`);
     } catch (e) {
       setError(mensajeDe(e, "No se pudo generar el código."));
     }
@@ -125,8 +135,9 @@ export function VistaComunidad({ perfil }: { perfil: PerfilStaff }) {
 
   if (comunidades === null) {
     return (
-      <div className="flex-1 flex items-center justify-center">
+      <div role="status" className="flex-1 flex items-center justify-center">
         <div className="w-10 h-10 rounded-full border-2 border-marca border-t-transparent animate-spin" />
+        <span className="sr-only">Cargando…</span>
       </div>
     );
   }
@@ -140,6 +151,7 @@ export function VistaComunidad({ perfil }: { perfil: PerfilStaff }) {
   }
 
   const listos = datos?.clave === clave ? datos : null;
+  const alumnosVisibles = listos?.alumnos.filter((a) => coincide(busqueda, a.nombre_completo)) ?? [];
 
   return (
     <div className="flex-1 flex flex-col gap-4">
@@ -149,8 +161,8 @@ export function VistaComunidad({ perfil }: { perfil: PerfilStaff }) {
           <select
             value={comunidad.id}
             onChange={(e) => setElegida(Number(e.target.value))}
-            className="flex-1 min-w-48 px-3 py-2.5 rounded-xl bg-superficie-2 border border-borde text-texto text-sm
-                       focus:outline-none focus:ring-2 focus:ring-marca/40 appearance-none cursor-pointer"
+            aria-label="Comunidad"
+            className={`${claseInput} flex-1 min-w-48 w-auto cursor-pointer`}
           >
             {comunidades.map((c) => (
               <option key={c.id} value={c.id}>
@@ -163,27 +175,38 @@ export function VistaComunidad({ perfil }: { perfil: PerfilStaff }) {
             {comunidad.nombre} · {NOMBRE_PROGRAMA[comunidad.programa]}
           </p>
         )}
-        <button
-          onClick={() => window.print()}
-          disabled={!listos}
-          className="px-3 py-2.5 rounded-xl bg-superficie-2 hover:bg-borde text-texto-suave text-xs font-semibold transition-all disabled:opacity-30"
-        >
+        <Boton variante="secundario" onClick={() => window.print()} disabled={!listos}>
           Imprimir códigos
-        </button>
+        </Boton>
         <button
           onClick={descargar}
           disabled={descargando || semanas < 1}
-          className="px-3 py-2.5 rounded-xl bg-exito/15 hover:bg-exito/25 border border-exito/25
-                     text-exito text-xs font-semibold transition-all disabled:opacity-30"
+          className="min-h-11 px-4 rounded-xl bg-exito/15 hover:bg-exito/25 border border-exito/25
+                     text-exito text-sm font-semibold transition-all disabled:opacity-40"
         >
           {descargando ? "Generando…" : "Descargar Excel"}
         </button>
       </div>
 
       {error && (
-        <div className="p-3 rounded-xl bg-error/10 border border-error/25 flex items-center justify-between gap-2 print:hidden">
+        <div
+          role="alert"
+          className="pl-3 pr-1 py-1 rounded-xl bg-error/10 border border-error/25 flex items-center justify-between gap-2 print:hidden"
+        >
           <p className="text-sm text-error">{error}</p>
-          <button onClick={() => setError("")} className="text-error hover:underline text-xs">
+          <button onClick={() => setError("")} className="min-h-11 px-3 text-error text-sm font-medium hover:underline">
+            Cerrar
+          </button>
+        </div>
+      )}
+
+      {aviso && (
+        <div
+          role="status"
+          className="pl-3 pr-1 py-1 rounded-xl bg-exito/10 border border-exito/25 flex items-center justify-between gap-2 print:hidden"
+        >
+          <p className="text-sm text-exito">{aviso}</p>
+          <button onClick={() => setAviso("")} className="min-h-11 px-3 text-exito text-sm font-medium hover:underline">
             Cerrar
           </button>
         </div>
@@ -192,20 +215,32 @@ export function VistaComunidad({ perfil }: { perfil: PerfilStaff }) {
       {/* ── Matriz ── */}
       {listos ? (
         <>
-          <div className="print:hidden">
-            <MatrizAsistencia
-              alumnos={listos.alumnos}
-              registros={listos.registros}
-              semanas={semanas}
-              onJustificar={(alumno, semana) => setJustificando({ alumno, semana })}
-              onNuevoCodigo={nuevoCodigo}
-            />
+          <div className="print:hidden space-y-3">
+            {listos.alumnos.length === 0 ? (
+              <p className="text-sm text-texto-tenue text-center py-10">Esta comunidad todavía no tiene alumnos.</p>
+            ) : (
+              <>
+                <Buscador valor={busqueda} onCambiar={setBusqueda} />
+                {alumnosVisibles.length === 0 ? (
+                  <p className="text-sm text-texto-tenue text-center py-6">Ningún alumno coincide con «{busqueda}».</p>
+                ) : (
+                  <MatrizAsistencia
+                    alumnos={alumnosVisibles}
+                    registros={listos.registros}
+                    semanas={semanas}
+                    onJustificar={(alumno, semana) => setJustificando({ alumno, semana })}
+                    onNuevoCodigo={nuevoCodigo}
+                  />
+                )}
+              </>
+            )}
           </div>
           <CodigosImprimibles comunidad={comunidad.nombre} alumnos={listos.alumnos} />
         </>
       ) : (
-        <div className="flex justify-center py-12">
+        <div role="status" className="flex justify-center py-12">
           <div className="w-10 h-10 rounded-full border-2 border-marca border-t-transparent animate-spin" />
+          <span className="sr-only">Cargando asistencia…</span>
         </div>
       )}
 
@@ -217,6 +252,8 @@ export function VistaComunidad({ perfil }: { perfil: PerfilStaff }) {
           onConfirmar={confirmarJustificacion}
         />
       )}
+
+      {dialogoConfirmar}
     </div>
   );
 }
