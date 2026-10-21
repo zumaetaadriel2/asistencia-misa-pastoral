@@ -1,29 +1,21 @@
 "use client";
 
-import { useRef, useState, useCallback } from "react";
+import { useRef, useState, useCallback, type ReactNode } from "react";
+import { formatearDiaHora } from "@/lib/utils/timeHelpers";
 
 // =============================================
 // Tipos
 // =============================================
 
-export interface AsistenciaPendiente {
-  id: number;
-  alumno_id: number;
-  semana_numero: number;
-  foto_url: string;
-  foto_public_id: string;
-  fecha_subida: string;
-  alumnos: {
-    nombre_completo: string;
-    comunidad_id: number;
-    comunidades: {
-      nombre: string;
-    };
-  };
-}
-
 interface Props {
-  asistencia: AsistenciaPendiente;
+  /** URL firmada de la foto; null mientras se pide */
+  urlFoto: string | null;
+  alumno: string;
+  comunidad: string;
+  semana: number;
+  enviadoEn: string;
+  /** Avisos que se muestran bajo el nombre (fecha de la foto, foto parecida) */
+  children?: ReactNode;
   /** Debe resolver `true` si la validación se guardó y `false` si falló */
   onValidar: () => Promise<boolean>;
   onIniciarRechazo: () => void;
@@ -44,7 +36,16 @@ const FLY_OUT_DURATION = 400;
  * Tarjeta de revisión estilo "Tinder" con soporte para swipe táctil,
  * arrastre con mouse y botones de acción.
  */
-export function TarjetaRevision({ asistencia, onValidar, onIniciarRechazo }: Props) {
+export function TarjetaRevision({
+  urlFoto,
+  alumno,
+  comunidad,
+  semana,
+  enviadoEn,
+  children,
+  onValidar,
+  onIniciarRechazo,
+}: Props) {
   const [dragX, setDragX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [flyDirection, setFlyDirection] = useState<"left" | "right" | null>(null);
@@ -194,40 +195,34 @@ export function TarjetaRevision({ asistencia, onValidar, onIniciarRechazo }: Pro
 
         {/* Foto */}
         <div className="aspect-[3/4] bg-white/5 relative overflow-hidden">
-          <img
-            src={asistencia.foto_url}
-            alt={`Foto de ${asistencia.alumnos.nombre_completo}`}
-            className="w-full h-full object-cover pointer-events-none"
-            draggable={false}
-          />
+          {urlFoto ? (
+            // URL firmada de R2 que vence en minutos: sin next/image, para que ninguna
+            // foto de menores pase por el optimizador ni quede en otra caché
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={urlFoto}
+              alt={`Foto de ${alumno}`}
+              className="w-full h-full object-cover pointer-events-none"
+              draggable={false}
+            />
+          ) : (
+            <div className="w-full h-full animate-shimmer" />
+          )}
           {/* Badge de semana */}
           <div className="absolute top-3 left-3 px-3 py-1.5 rounded-full bg-black/50 backdrop-blur-md border border-white/10">
-            <span className="text-xs font-semibold text-white">
-              Semana {asistencia.semana_numero}
-            </span>
+            <span className="text-xs font-semibold text-white">Semana {semana}</span>
           </div>
           {/* Badge de comunidad */}
           <div className="absolute top-3 right-3 px-3 py-1.5 rounded-full bg-primary-600/60 backdrop-blur-md border border-primary-500/20">
-            <span className="text-xs font-medium text-white">
-              {asistencia.alumnos.comunidades.nombre}
-            </span>
+            <span className="text-xs font-medium text-white">{comunidad}</span>
           </div>
         </div>
 
         {/* Info del alumno */}
         <div className="p-4">
-          <h3 className="text-lg font-bold text-white">
-            {asistencia.alumnos.nombre_completo}
-          </h3>
-          <p className="text-xs text-white/30 mt-0.5">
-            {new Date(asistencia.fecha_subida).toLocaleDateString("es-ES", {
-              weekday: "short",
-              day: "numeric",
-              month: "short",
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </p>
+          <h3 className="text-lg font-bold text-white">{alumno}</h3>
+          <p className="text-xs text-white/30 mt-0.5">Enviada el {formatearDiaHora(enviadoEn)}</p>
+          {children}
         </div>
       </div>
 
