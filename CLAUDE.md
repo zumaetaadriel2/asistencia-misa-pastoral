@@ -30,9 +30,17 @@ npm run db:types                     # regenera lib/supabase/database.types.ts
 npm run functions:serve              # Edge Functions locales con supabase/functions/.env (claves R2 del token "asistencia-dev")
 ```
 
+Si cambias dependencias en Windows, comprueba que el lockfile sirva en Linux antes de subir (npm en Windows a veces omite dependencias opcionales de Linux y la CI falla en `npm ci` con "Missing: … from lock file"):
+
+```bash
+MSYS_NO_PATHCONV=1 docker run --rm -v "$PWD":/app -w /app node:24 npm ci --ignore-scripts --dry-run
+```
+
+Si falla, regenera el lockfile dentro del contenedor con `npm install --package-lock-only --ignore-scripts` (en una copia de `package.json` y `package-lock.json`) y súbelo.
+
 Variables de entorno de Next: `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (ver `.env.example`). Para desarrollo con Supabase local van en `.env.development.local`, que tiene prioridad sobre `.env.local` en `npm run dev`. `lib/supabase/client.ts` lanza un error al importarse si faltan, así que `npm run build` también las necesita. Los secretos de R2 nunca van en Next: viven en las Edge Functions (`supabase/functions/.env.example`).
 
-Para probar en el navegador con datos del seed: códigos de alumno `TEST22`…`TEST29`, `TESTA2`…`TESTD2`; staff `admin@ejemplo.com`, `guia.uno@ejemplo.com` (San Pablo y San José) y `guia.dos@ejemplo.com` con cualquier contraseña de 6+ caracteres (el primer login crea la cuenta; requiere `NEXT_PUBLIC_LOGIN_CON_CORREO=true` en `.env.development.local`). Las fotos del seed no existen en R2 (se ven rotas); para fotos reales, súbelas por `/alumno`. Fuera del horario (sáb 19:00 → lun 23:59) se puede abrir el formulario a mano con `update public.ciclos set abierto_manual = true where activo` y volverlo a `null` al terminar.
+Para probar en el navegador con datos del seed: códigos de alumno `TEST22`…`TEST29`, `TESTA2`…`TESTD2`; staff `admin@ejemplo.com`, `guia.uno@ejemplo.com` (San Pablo y San José) y `guia.dos@ejemplo.com` (Santa Rosa y Santa María) con cualquier contraseña de 6+ caracteres (el primer login crea la cuenta; requiere `NEXT_PUBLIC_LOGIN_CON_CORREO=true` en `.env.development.local`). Las fotos del seed no existen en R2 (se ven rotas); para fotos reales, súbelas por `/alumno`. Fuera del horario (sáb 19:00 → lun 23:59) se puede abrir el formulario a mano con `update public.ciclos set abierto_manual = true where activo` y volverlo a `null` al terminar.
 
 ## Flujo de ramas
 
@@ -43,7 +51,7 @@ Para probar en el navegador con datos del seed: códigos de alumno `TEST22`…`T
 
 ## Estado del rediseño
 
-Plan aprobado en fases 0–7. Hechas: base nueva (0–1), fotos en R2 (2), pantalla del alumno (3) y revisión del staff (4). Falta la administración (5): `components/dashboard/panel-admin.tsx` es del esquema viejo (`configuracion_ciclo`, `usuarios_staff`), ya no se usa y se reemplazará por secciones. Por eso `lib/supabase/client.ts` aún no usa el tipo `Database`: tiparlo rompería la compilación de ese archivo; hacerlo al terminar la fase 5. Pendientes de la fase 6: latido y respaldo con GitHub Actions, Vercel y subdominio.
+Plan aprobado en fases 0–7. Hechas: base nueva (0–1), fotos en R2 (2), pantalla del alumno (3), revisión del staff (4) y administración (5). Falta la fase 6 (latido y respaldo con GitHub Actions, proyecto de Supabase en la nube, Google OAuth, Vercel y subdominio) y, a futuro, la 7 (asistencia a catequesis: el catequista pasa lista). `lib/supabase/client.ts` está tipado con `Database`: tras cambiar el esquema hay que correr `npm run db:types` o `tsc` marcará las consultas.
 
 ## Arquitectura
 
@@ -67,10 +75,13 @@ Plan aprobado en fases 0–7. Hechas: base nueva (0–1), fotos en R2 (2), panta
 
 ### Staff
 
+Las páginas del staff usan `MarcoStaff` (`components/dashboard/marco-staff.tsx`): valida la sesión con `useSesionStaff` (`lib/staff/sesion.ts`; sin sesión manda a `/login`), muestra el encabezado y el menú (Revisión · Mi comunidad/Asistencia · Administración solo para admins) y entrega el `perfil` a la página como render prop. `soloAdmin` bloquea la página a los guías.
+
 - **Login** (`/login`): solo "Entrar con Google" en producción; vuelve a `/login`, que pasa a `/dashboard` si hay sesión o muestra el error del hook. Con `NEXT_PUBLIC_LOGIN_CON_CORREO=true` (solo local) aparece un formulario de correo que, si la cuenta no existe, la crea. Seguro extra: el hook rechaza proveedores distintos de Google salvo que `ajustes.permitir_login_correo` esté activo, y solo el seed lo activa (`db push` no corre el seed).
-- **Revisión** (`/dashboard`): `mi_perfil_staff` (rol y `semana_reciente`, la de la última misa), `cola_revision` (pendientes con el domingo de esa semana, la foto anterior del alumno y la parecida) y `resumen_semana` (estado de cada alumno, para `armarResumenWhatsApp`). Todo en `lib/staff/`; las RPC del staff son `security invoker`, así que RLS limita a sus comunidades. Las URLs de las fotos se piden a `ver-fotos` con caché de 4 min (`lib/staff/fotos.ts`). Las fotos se muestran con `<img>` y no con `next/image` a propósito: así no pasan por el optimizador de Vercel.
+- **Revisión** (`/dashboard`, `PanelRevision`): `mi_perfil_staff` (rol y `semana_reciente`, la de la última misa), `cola_revision` (pendientes con el domingo de esa semana, la foto anterior del alumno y la parecida) y `resumen_semana` (estado de cada alumno, para `armarResumenWhatsApp`). Las RPC de lectura del staff son `security invoker`, así que RLS limita a sus comunidades. Las URLs de las fotos se piden a `ver-fotos` con caché de 4 min (`lib/staff/fotos.ts`). Las fotos se muestran con `<img>` y no con `next/image` a propósito: así no pasan por el optimizador de Vercel.
 - `TarjetaRevision`: swipe derecha valida, izquierda abre `ModalRechazo` (el motivo lo ve el alumno). "Deshacer" se ofrece 8 s en la UI; la base lo permite 2 min al mismo revisor. "Cambiar alumno" (`ModalReasignar`) pasa una foto pendiente a otro alumno de la comunidad. Los avisos (`lib/staff/avisos.ts`) marcan fotos parecidas y fotos tomadas antes del sábado de esa semana.
-- Lo viejo que se reutilizará en la fase 5: el armado del CSV de `panel-admin.tsx` y `obtenerTodasLasFilas` (`lib/supabase/paginacion.ts`, Supabase corta en 1000 filas).
+- **Mi comunidad** (`/dashboard/comunidad`, `components/comunidad/`): matriz alumno × semana (la más reciente primero) con el porcentaje de `resumirAlumno` (`lib/staff/estadisticas.ts`: no cuenta justificadas ni pendientes); tocar una celda abre "justificar falta"; "nuevo código" usa la RPC `regenerar_codigo`; "Imprimir códigos" usa `window.print()` con las tarjetas de `CodigosImprimibles` (solo visibles con `print:`) y "Descargar Excel" el CSV de la comunidad.
+- **Administración** (`/dashboard/admin`, `components/admin/`): pestañas Ciclo (fechas, formulario automático/abierto/cerrado, crear ciclo, `copiar_comunidades` y `activar_ciclo`), Comunidades, Staff (Gmail, rol, asignación de comunidades), Alumnos (pegar desde Excel con `parsearNombres` y la RPC `importar_alumnos`, que descarta repetidos) y Reportes (CSV del ciclo con `armarCsvAsistencia` y cierre manual de semana). Las escrituras simples van directo a las tablas (RLS solo deja al admin); los errores se traducen con `mensajeDe` (`lib/staff/errores.ts`). Las listas largas usan `obtenerTodasLasFilas` (`lib/supabase/paginacion.ts`, Supabase corta en 1000 filas).
 
 ### Convenciones de React
 
