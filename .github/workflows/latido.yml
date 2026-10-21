@@ -1,0 +1,25 @@
+name: Latido diario
+
+# Mantiene activo el proyecto gratuito de Supabase, que se pausa tras una semana sin uso
+# (por ejemplo, en vacaciones). Los workflows programados corren desde la rama por
+# defecto del repositorio (develop).
+
+on:
+  schedule:
+    - cron: "17 12 * * *" # todos los días, 07:17 en Lima
+  workflow_dispatch:
+
+jobs:
+  latido:
+    name: Llamar a la RPC latido()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Latido
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          curl --fail --silent --show-error -X POST "$SUPABASE_URL/rest/v1/rpc/latido" \
+            -H "apikey: $SUPABASE_PUBLISHABLE_KEY" \
+            -H "Content-Type: application/json" \
+            -d '{}'
