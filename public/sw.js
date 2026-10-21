@@ -6,7 +6,7 @@
 // menores y no deben quedar guardados en el celular de nadie.
 // Al cambiar esta lógica, subir CACHE_NAME: la activación borra las cachés viejas.
 
-const CACHE_NAME = "asistencia-misa-v3";
+const CACHE_NAME = "asistencia-misa-v4";
 
 const ARCHIVOS_INICIALES = ["/manifest.json"];
 
