@@ -261,16 +261,22 @@ isOneToOne: false
 "_registrar_intento_fallido":
 { Args: { "p_ip": string }; Returns: undefined
                            },
+"activar_ciclo":
+{ Args: { "p_ciclo_id": number }; Returns: undefined
+                           },
 "cerrar_semana":
 { Args: { "p_semana": number }; Returns: number
                            },
 "cola_revision":
 { Args: Record<PropertyKey, never>; Returns: {
-              "alumno": string,"alumno_id": number,"anterior_envio_id": number,"anterior_semana": number,"asistencia_id": number,"comunidad": string,"comunidad_id": number,"distancia_similar": number,"enviado_en": string,"envio_id": number,"fecha_exif": string,"programa": Database["public"]['Enums']["programa"],"semana": number,"similar_alumno": string,"similar_envio_id": number,"similar_semana": number
+              "alumno": string,"alumno_id": number,"anterior_envio_id": number,"anterior_semana": number,"asistencia_id": number,"comunidad": string,"comunidad_id": number,"distancia_similar": number,"domingo": string,"enviado_en": string,"envio_id": number,"fecha_exif": string,"programa": Database["public"]['Enums']["programa"],"semana": number,"similar_alumno": string,"similar_envio_id": number,"similar_semana": number
             }[]
                            },
 "confirmar_envio":
 { Args: { "p_codigo": string,"p_envio_id": number,"p_tamano_bytes": number }; Returns: Json
+                           },
+"copiar_comunidades":
+{ Args: { "p_desde_ciclo_id": number,"p_hacia_ciclo_id": number }; Returns: number
                            },
 "domingo_de_referencia":
 { Args: { "p_fecha": string }; Returns: string
@@ -301,6 +307,9 @@ isOneToOne: false
 "identificar_alumno":
 { Args: { "p_codigo": string }; Returns: Json
                            },
+"importar_alumnos":
+{ Args: { "p_comunidad_id": number,"p_nombres": (string)[] }; Returns: Json
+                           },
 "justificar_falta":
 { Args: { "p_alumno_id": number,"p_motivo": string,"p_semana": number }; Returns: number
                            },
@@ -323,6 +332,9 @@ isOneToOne: false
                            },
 "reasignar_asistencia":
 { Args: { "p_alumno_destino_id": number,"p_asistencia_id": number }; Returns: undefined
+                           },
+"regenerar_codigo":
+{ Args: { "p_alumno_id": number }; Returns: string
                            },
 "resumen_semana":
 { Args: { "p_semana": number }; Returns: {
