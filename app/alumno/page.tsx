@@ -11,11 +11,12 @@ import { MENSAJES_ERROR } from "@/lib/alumno/mensajes";
 import { IngresoCodigo } from "@/components/alumno/ingreso-codigo";
 import { PanelAlumno } from "@/components/alumno/panel-alumno";
 import { PantallaExito } from "@/components/alumno/pantalla-exito";
+import { Boton } from "@/components/ui/base";
 
 function Cargando({ texto }: { texto: string }) {
   return (
     <main className="flex-1 flex items-center justify-center px-4">
-      <div className="text-center animate-fade-in">
+      <div role="status" className="text-center animate-fade-in">
         <div className="w-12 h-12 mx-auto mb-4 rounded-full border-2 border-marca border-t-transparent animate-spin" />
         <p className="text-sm text-texto-tenue">{texto}</p>
       </div>
@@ -79,6 +80,7 @@ export default function AlumnoPage() {
         alumnoNombre={enviado.datos.alumno.nombre_corto}
         comunidadNombre={enviado.datos.alumno.comunidad}
         semana={enviado.semana}
+        cierreReenvio={enviado.datos.formulario.cierre_reenvio}
         onVolver={() => {
           setEnviado(null);
           actualizar();
@@ -94,19 +96,15 @@ export default function AlumnoPage() {
     return (
       <main className="flex-1 flex items-center justify-center px-4">
         <div className="tarjeta p-8 max-w-sm w-full text-center animate-fade-in">
-          <p className="text-sm text-texto-suave mb-6">{MENSAJES_ERROR[carga.resultado.error]}</p>
-          <button
-            onClick={actualizar}
-            className="w-full py-2.5 rounded-xl bg-marca-solido hover:bg-marca-solido/85 text-white text-sm font-medium transition-colors"
-          >
+          <p role="alert" className="text-sm text-texto-suave mb-6">
+            {MENSAJES_ERROR[carga.resultado.error]}
+          </p>
+          <Boton onClick={actualizar} className="w-full">
             Reintentar
-          </button>
-          <button
-            onClick={() => guardarCodigo(null)}
-            className="mt-3 w-full py-2.5 rounded-xl bg-superficie-2 hover:bg-borde text-texto-tenue text-sm font-medium transition-colors"
-          >
+          </Boton>
+          <Boton variante="secundario" onClick={() => guardarCodigo(null)} className="mt-3 w-full">
             Usar otro código
-          </button>
+          </Boton>
         </div>
       </main>
     );

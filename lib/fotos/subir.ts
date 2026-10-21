@@ -25,6 +25,12 @@ export type ResultadoEnvio =
   | { ok: true; semana: number; similar: boolean }
   | { ok: false; error: ErrorEnvio };
 
+/** Pasos del envío, para mostrarle al alumno en qué va */
+export type EtapaEnvio = "preparando" | "subiendo" | "confirmando";
+
+/** Tiempo máximo para subir la foto (≤ 1 MB) a R2 antes de darla por fallida */
+export const TIEMPO_MAXIMO_SUBIDA_MS = 90_000;
+
 type RespuestaFuncion =
   | { ok: true; envio_id?: number; semana?: number; url_subida?: string; similar?: boolean }
   | { ok: false; error: ErrorEnvio };
@@ -40,8 +46,15 @@ async function llamarSubirFoto(cuerpo: Record<string, unknown>): Promise<Respues
 /**
  * Procesa la foto (fecha EXIF, huella, JPEG), la sube a R2 con una URL firmada
  * y confirma el envío. La asistencia queda pendiente de revisión.
+ * `alAvanzar` avisa cada paso; si la subida tarda más de TIEMPO_MAXIMO_SUBIDA_MS
+ * (señal muy débil) se corta y devuelve error_de_red.
  */
-export async function enviarFoto(codigo: string, archivo: File): Promise<ResultadoEnvio> {
+export async function enviarFoto(
+  codigo: string,
+  archivo: File,
+  alAvanzar?: (etapa: EtapaEnvio) => void
+): Promise<ResultadoEnvio> {
+  alAvanzar?.("preparando");
   const foto = await procesarFoto(archivo);
 
   const preparado = await llamarSubirFoto({
@@ -55,17 +68,26 @@ export async function enviarFoto(codigo: string, archivo: File): Promise<Resulta
     return { ok: false, error: "error_interno" };
   }
 
+  alAvanzar?.("subiendo");
+  // AbortController + setTimeout y no AbortSignal.timeout(), que no existe antes de iOS 16
+  const limite = new AbortController();
+  const temporizador = setTimeout(() => limite.abort(), TIEMPO_MAXIMO_SUBIDA_MS);
   try {
     const subida = await fetch(preparado.url_subida, {
       method: "PUT",
       headers: { "Content-Type": TIPO_FOTO },
       body: foto.blob,
+      signal: limite.signal,
     });
     if (!subida.ok) return { ok: false, error: "foto_no_subida" };
   } catch {
+    // Sin conexión o se agotó el tiempo
     return { ok: false, error: "error_de_red" };
+  } finally {
+    clearTimeout(temporizador);
   }
 
+  alAvanzar?.("confirmando");
   const confirmado = await llamarSubirFoto({
     accion: "confirmar",
     codigo,

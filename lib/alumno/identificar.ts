@@ -26,6 +26,8 @@ export interface EstadoFormulario {
 
 export interface SemanaAlumno {
   semana: number;
+  /** Domingo de esa semana ("AAAA-MM-DD"); opcional por si la base aún no tiene la migración */
+  domingo?: string;
   estado: EstadoSemana;
   /** Motivo del rechazo o de la justificación */
   motivo: string | null;

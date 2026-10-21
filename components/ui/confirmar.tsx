@@ -47,14 +47,20 @@ export function useConfirmar() {
     <Modal titulo={pedido.titulo} onCerrar={() => responder(false)}>
       {pedido.mensaje && <div className="mt-2 text-sm text-texto-suave">{pedido.mensaje}</div>}
       <div className="mt-6 flex gap-3">
-        <Boton variante="secundario" className="flex-1" onClick={() => responder(false)}>
+        {/* Si la acción es peligrosa, el foco (y Enter) quedan en Cancelar */}
+        <Boton
+          variante="secundario"
+          className="flex-1"
+          onClick={() => responder(false)}
+          data-autofocus={pedido.peligro || undefined}
+        >
           Cancelar
         </Boton>
         <Boton
           variante={pedido.peligro ? "peligro" : "primario"}
           className="flex-1"
           onClick={() => responder(true)}
-          data-autofocus
+          data-autofocus={!pedido.peligro || undefined}
         >
           {pedido.aceptar ?? "Aceptar"}
         </Boton>

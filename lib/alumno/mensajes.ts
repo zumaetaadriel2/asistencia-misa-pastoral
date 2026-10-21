@@ -26,3 +26,15 @@ export const MENSAJES_ERROR: Record<ErrorIdentificacion | ErrorEnvio, string> = 
 };
 
 export const MENSAJE_FOTO_ILEGIBLE = "No pudimos leer esa foto. Prueba con otra.";
+
+/** Errores que significan que la semana cambió mientras el alumno elegía la foto */
+export const ERRORES_QUE_CAMBIAN_LA_SEMANA: readonly ErrorEnvio[] = ["ya_registrada", "formulario_cerrado", "semana_cerrada"];
+
+/** Horario fijo de envío (lo aplica estado_formulario en la base, en hora de Lima) */
+export const HORARIO_ENVIO = "sábado 7:00 p. m. a lunes 11:59 p. m.";
+
+export const ETAPAS_ENVIO = {
+  preparando: "Preparando la foto…",
+  subiendo: "Subiendo la foto…",
+  confirmando: "Confirmando…",
+} as const;

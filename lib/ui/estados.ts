@@ -26,13 +26,18 @@ export const ESTADOS: Record<EstadoSemana, InfoEstado> = {
     clases: "bg-aviso/15 border-aviso/25 text-aviso",
   },
   rechazado: {
-    alumno: "Rechazada",
+    alumno: "Foto rechazada",
     staff: "Foto rechazada",
     simbolo: "✕",
     clases: "bg-error/15 border-error/25 text-error",
   },
   justificada: { alumno: "Justificada", staff: "Justificada", simbolo: "J", clases: "bg-info/15 border-info/25 text-info" },
-  inasistencia: { alumno: "Faltó", staff: "Faltó", simbolo: "F", clases: "bg-superficie-2 border-borde text-texto-suave" },
+  inasistencia: {
+    alumno: "No asistió",
+    staff: "Faltó",
+    simbolo: "F",
+    clases: "bg-superficie-2 border-borde text-texto-suave",
+  },
   sin_registro: {
     alumno: "Sin foto",
     staff: "Sin registro",

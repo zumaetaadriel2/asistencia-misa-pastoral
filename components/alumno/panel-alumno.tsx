@@ -1,8 +1,11 @@
 "use client";
 
+import { Boton } from "@/components/ui/base";
+import { useConfirmar } from "@/components/ui/confirmar";
+import { useEnfocarAlAparecer } from "@/components/ui/enfoque";
 import { LogoOvalo } from "@/components/ui/logo";
 import { NOMBRE_PROGRAMA, type AlumnoIdentificado } from "@/lib/alumno/identificar";
-import { formatearDiaHora } from "@/lib/utils/timeHelpers";
+import { formatearDiaHora, formatearDomingo } from "@/lib/utils/timeHelpers";
 import { EnvioFoto } from "./envio-foto";
 import { FormularioCerrado } from "./formulario-cerrado";
 import { EtiquetaEstado, HistorialSemanas } from "./historial-semanas";
@@ -20,6 +23,17 @@ export function PanelAlumno({ datos, codigo, onCambiarCodigo, onActualizar, onEn
   const { alumno, formulario, accion, semanas } = datos;
   const actual = semanas.find((s) => s.semana === formulario.semana);
   const anteriores = semanas.filter((s) => s.semana !== formulario.semana);
+  const titulo = useEnfocarAlAparecer<HTMLHeadingElement>();
+  const { confirmar, dialogoConfirmar } = useConfirmar();
+
+  const noSoyYo = async () => {
+    const seguro = await confirmar({
+      titulo: "¿Cambiar de alumno?",
+      mensaje: "Se borrará tu código de este celular y tendrás que escribirlo otra vez.",
+      aceptar: "Sí, cambiar",
+    });
+    if (seguro) onCambiarCodigo();
+  };
 
   return (
     <main className="flex-1 flex flex-col max-w-md mx-auto w-full px-4 py-6 gap-5">
@@ -28,25 +42,27 @@ export function PanelAlumno({ datos, codigo, onCambiarCodigo, onActualizar, onEn
         <div className="flex items-center gap-3">
           <LogoOvalo className="h-12" />
           <div>
-            <h1 className="text-xl font-bold text-texto">Hola, {alumno.nombre_corto}</h1>
+            <h1 ref={titulo} tabIndex={-1} className="text-xl font-bold text-texto focus:outline-none">
+              Hola, {alumno.nombre_corto}
+            </h1>
             <p className="text-xs text-texto-tenue">
               {alumno.comunidad} · {NOMBRE_PROGRAMA[alumno.programa]}
             </p>
           </div>
         </div>
-        <button
-          onClick={onCambiarCodigo}
-          className="px-3 py-2 rounded-xl bg-superficie-2 hover:bg-borde text-texto-tenue hover:text-texto-suave text-xs font-medium transition-all"
-        >
+        <Boton variante="secundario" tamano="pequeno" onClick={noSoyYo}>
           No soy yo
-        </button>
+        </Boton>
       </header>
 
       {/* ── Semana actual ── */}
       <section className="tarjeta p-5 animate-fade-in delay-100">
-        <div className="flex items-baseline justify-between mb-4">
+        <div className="flex items-baseline justify-between gap-3 mb-4">
           <h2 className="text-sm font-semibold text-texto">
             {formulario.semana > 0 ? `Semana ${formulario.semana}` : formulario.ciclo_nombre}
+            {actual?.domingo && (
+              <span className="font-normal text-texto-tenue"> · {formatearDomingo(actual.domingo)}</span>
+            )}
           </h2>
           {actual && actual.estado !== "sin_registro" && <EtiquetaEstado estado={actual.estado} />}
         </div>
@@ -57,7 +73,7 @@ export function PanelAlumno({ datos, codigo, onCambiarCodigo, onActualizar, onEn
               Envía una foto tuya en la misa de este fin de semana
               {formulario.cierre_envio && <> hasta el {formatearDiaHora(formulario.cierre_envio)}</>}.
             </p>
-            <EnvioFoto codigo={codigo} esReenvio={false} onEnviado={onEnviado} />
+            <EnvioFoto codigo={codigo} esReenvio={false} onEnviado={onEnviado} onActualizar={onActualizar} />
           </>
         )}
 
@@ -70,7 +86,7 @@ export function PanelAlumno({ datos, codigo, onCambiarCodigo, onActualizar, onEn
               Puedes enviar otra
               {formulario.cierre_reenvio && <> hasta el {formatearDiaHora(formulario.cierre_reenvio)}</>}.
             </p>
-            <EnvioFoto codigo={codigo} esReenvio onEnviado={onEnviado} />
+            <EnvioFoto codigo={codigo} esReenvio onEnviado={onEnviado} onActualizar={onActualizar} />
           </>
         )}
 
@@ -79,6 +95,8 @@ export function PanelAlumno({ datos, codigo, onCambiarCodigo, onActualizar, onEn
 
       {/* ── Historial ── */}
       <HistorialSemanas semanas={anteriores} />
+
+      {dialogoConfirmar}
     </main>
   );
 }
@@ -90,7 +108,7 @@ function EstadoSinAccion({ datos, onActualizar }: { datos: AlumnoIdentificado; o
 
   switch (actual?.estado) {
     case "pendiente":
-      return <p className="text-sm text-texto-suave">Tu foto está en revisión. Tu guía la validará pronto.</p>;
+      return <p className="text-sm text-texto-suave">Tu foto está en revisión. Tu guía la verá pronto.</p>;
     case "validado":
       return <p className="text-sm text-exito">¡Tu asistencia de esta semana está validada!</p>;
     case "justificada":
