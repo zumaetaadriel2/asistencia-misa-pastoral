@@ -18,6 +18,10 @@ export interface PerfilStaff {
   ciclo_nombre: string | null;
   /** Semana de la última misa (domingo más reciente); null si no hay ciclo activo */
   semana_reciente: number | null;
+  /** Admin, o guía en alguna comunidad del ciclo activo: ve fotos y misa */
+  es_guia: boolean;
+  /** Catequista en alguna comunidad del ciclo activo: pasa lista ahí */
+  es_catequista: boolean;
 }
 
 /** Una foto pendiente de revisión (RPC cola_revision) */
