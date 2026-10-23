@@ -57,6 +57,43 @@ from (values
 join public.staff s on s.email = v.email
 join public.comunidades c on c.nombre = v.comunidad;
 
+-- Catequesis: la función va por comunidad. Catequista Uno solo pasa lista en San Pablo;
+-- "Guía y Catequista" es guía en Santa Rosa (Confirmación) y catequista en San José (Comunión)
+insert into public.staff (email, nombre, rol)
+values
+  ('catequista.uno@ejemplo.com', 'Catequista Uno', 'guia'),
+  ('mixto@ejemplo.com', 'Guía y Catequista', 'guia');
+
+insert into public.staff_comunidades (staff_id, comunidad_id, funcion)
+select s.id, c.id, v.funcion::public.funcion_comunidad
+from (values
+  ('catequista.uno@ejemplo.com', 'San Pablo', 'catequista'),
+  ('mixto@ejemplo.com', 'Santa Rosa', 'guia'),
+  ('mixto@ejemplo.com', 'San José', 'catequista')
+) as v(email, comunidad, funcion)
+join public.staff s on s.email = v.email
+join public.comunidades c on c.nombre = v.comunidad;
+
+-- San Pablo: la clase del sábado 17 de octubre y un retiro el domingo 18
+insert into public.sesiones_catequesis (comunidad_id, fecha, titulo, creada_por)
+select c.id, v.fecha::date, v.titulo, s.id
+from (values ('2026-10-17', 'Catequesis'), ('2026-10-18', 'Retiro')) as v(fecha, titulo)
+join public.comunidades c on c.nombre = 'San Pablo'
+join public.staff s on s.email = 'catequista.uno@ejemplo.com';
+
+insert into public.asistencias_catequesis (sesion_id, alumno_id, estado, motivo, marcado_por)
+select se.id, a.id, v.estado::public.estado_catequesis, v.motivo, s.id
+from (values
+  ('Catequesis', 'TEST22', 'presente', null),
+  ('Catequesis', 'TEST23', 'tardanza', null),
+  ('Catequesis', 'TEST24', 'justificada', 'Estuvo enfermo, avisó su familia.'),
+  ('Retiro', 'TEST22', 'presente', null),
+  ('Retiro', 'TEST23', 'falta', null)
+) as v(titulo, codigo, estado, motivo)
+join public.sesiones_catequesis se on se.titulo = v.titulo
+join public.alumnos a on a.codigo = v.codigo
+join public.staff s on s.email = 'catequista.uno@ejemplo.com';
+
 -- Algunas fotos pendientes para ver la cola de revisión (las fotos no existen en R2)
 with nuevos as (
   insert into public.envios_foto (ciclo_id, alumno_id, semana_numero, foto_key, huella, confirmado)
