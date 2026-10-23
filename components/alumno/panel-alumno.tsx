@@ -5,7 +5,7 @@ import { useConfirmar } from "@/components/ui/confirmar";
 import { useEnfocarAlAparecer } from "@/components/ui/enfoque";
 import { LogoOvalo } from "@/components/ui/logo";
 import { NOMBRE_PROGRAMA, type AlumnoIdentificado } from "@/lib/alumno/identificar";
-import { formatearDiaHora, formatearDomingo } from "@/lib/utils/timeHelpers";
+import { formatearDiaHora, formatearFecha } from "@/lib/utils/timeHelpers";
 import { EnvioFoto } from "./envio-foto";
 import { FormularioCerrado } from "./formulario-cerrado";
 import { EtiquetaEstado, HistorialSemanas } from "./historial-semanas";
@@ -61,7 +61,7 @@ export function PanelAlumno({ datos, codigo, onCambiarCodigo, onActualizar, onEn
           <h2 className="text-sm font-semibold text-texto">
             {formulario.semana > 0 ? `Semana ${formulario.semana}` : formulario.ciclo_nombre}
             {actual?.domingo && (
-              <span className="font-normal text-texto-tenue"> · {formatearDomingo(actual.domingo)}</span>
+              <span className="font-normal text-texto-tenue"> · {formatearFecha(actual.domingo)}</span>
             )}
           </h2>
           {actual && actual.estado !== "sin_registro" && <EtiquetaEstado estado={actual.estado} />}

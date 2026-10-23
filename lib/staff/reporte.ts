@@ -31,8 +31,13 @@ const NOMBRE_PROGRAMA: Record<Programa, string> = {
   primera_comunion: "Primera Comunión",
 };
 
-function celda(valor: string | number): string {
-  return `"${String(valor).replace(/"/g, '""')}"`;
+/**
+ * Valor de una celda CSV entre comillas. Un texto que empieza con = + - @ (por ejemplo,
+ * un motivo escrito a mano) se antepone con ' para que Excel no lo ejecute como fórmula.
+ */
+export function celda(valor: string | number): string {
+  const texto = typeof valor === "string" && /^[=+\-@]/.test(valor) ? `'${valor}` : String(valor);
+  return `"${texto.replace(/"/g, '""')}"`;
 }
 
 /**
@@ -84,6 +89,16 @@ export function armarCsvAsistencia(
   });
 
   return "﻿" + [encabezado, ...filas].map((fila) => fila.map(celda).join(",")).join("\r\n");
+}
+
+/** Texto apto para nombre de archivo: "San José" → "san-jose" */
+export function nombreArchivo(texto: string): string {
+  return texto
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
 /** Descarga un texto como archivo .csv (solo en el navegador) */
