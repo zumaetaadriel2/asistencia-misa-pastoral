@@ -135,7 +135,7 @@ export function IngresoCodigo({ aviso, onConfirmado }: Props) {
             href="/login"
             className="inline-flex items-center min-h-11 px-2 text-sm text-texto-suave hover:text-texto underline underline-offset-4"
           >
-            ¿Eres guía o administrador? Entrar al panel
+            ¿Eres guía, catequista o administrador? Entrar al panel
           </Link>
         </p>
       </div>
