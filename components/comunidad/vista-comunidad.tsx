@@ -14,7 +14,7 @@ import {
 import { datosReporte } from "@/lib/staff/admin";
 import { coincide } from "@/lib/staff/busqueda";
 import { mensajeDe } from "@/lib/staff/errores";
-import { armarCsvAsistencia, descargarCsv } from "@/lib/staff/reporte";
+import { armarCsvAsistencia, descargarCsv, nombreArchivo } from "@/lib/staff/reporte";
 import type { PerfilStaff } from "@/lib/staff/revision";
 import { Boton, Buscador, claseInput } from "@/components/ui/base";
 import { useConfirmar } from "@/components/ui/confirmar";
@@ -23,15 +23,6 @@ import { MatrizAsistencia } from "./matriz-asistencia";
 import { ModalJustificar } from "./modal-justificar";
 
 const NOMBRE_PROGRAMA = { confirmacion: "Confirmación", primera_comunion: "Primera Comunión" } as const;
-
-function nombreArchivo(texto: string): string {
-  return texto
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
 
 /** Alumnos de una comunidad: asistencia semana a semana, códigos y justificaciones */
 export function VistaComunidad({ perfil }: { perfil: PerfilStaff }) {
@@ -57,7 +48,7 @@ export function VistaComunidad({ perfil }: { perfil: PerfilStaff }) {
 
   useEffect(() => {
     let cancelado = false;
-    obtenerMisComunidades()
+    obtenerMisComunidades(perfil)
       .then((lista) => {
         if (!cancelado) setComunidades(lista);
       })
@@ -69,7 +60,7 @@ export function VistaComunidad({ perfil }: { perfil: PerfilStaff }) {
     return () => {
       cancelado = true;
     };
-  }, []);
+  }, [perfil]);
 
   useEffect(() => {
     if (!comunidadId) return;

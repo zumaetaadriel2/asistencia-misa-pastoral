@@ -2,7 +2,7 @@
 
 import type { EstadoSemana, SemanaAlumno } from "@/lib/alumno/identificar";
 import { ESTADOS } from "@/lib/ui/estados";
-import { formatearDomingo } from "@/lib/utils/timeHelpers";
+import { formatearFecha } from "@/lib/utils/timeHelpers";
 
 export function EtiquetaEstado({ estado }: { estado: EstadoSemana }) {
   const { alumno, clases } = ESTADOS[estado];
@@ -32,7 +32,7 @@ export function HistorialSemanas({ semanas }: { semanas: SemanaAlumno[] }) {
             <div>
               <p className="text-sm text-texto">
                 Semana {s.semana}
-                {s.domingo && <span className="text-texto-tenue"> · {formatearDomingo(s.domingo)}</span>}
+                {s.domingo && <span className="text-texto-tenue"> · {formatearFecha(s.domingo)}</span>}
               </p>
               {s.motivo && <p className="text-xs text-texto-suave mt-0.5">Motivo: {s.motivo}</p>}
             </div>

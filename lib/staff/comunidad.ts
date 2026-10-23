@@ -5,7 +5,7 @@
 
 import { supabase } from "@/lib/supabase/client";
 import { obtenerTodasLasFilas } from "@/lib/supabase/paginacion";
-import type { EstadoAsistencia, Programa } from "./revision";
+import type { EstadoAsistencia, PerfilStaff, Programa } from "./revision";
 
 export interface ComunidadStaff {
   id: number;
@@ -27,13 +27,35 @@ export interface RegistroSemana {
   motivo: string | null;
 }
 
-/** Comunidades activas del ciclo activo que el staff puede ver (el admin, todas) */
-export async function obtenerMisComunidades(): Promise<ComunidadStaff[]> {
+/**
+ * Comunidades activas del ciclo activo que el staff ve (RLS): donde es guía o catequista;
+ * el admin, todas. Es la lista para pasar lista en catequesis.
+ */
+export async function obtenerComunidadesVisibles(): Promise<ComunidadStaff[]> {
   const { data, error } = await supabase
     .from("comunidades")
     .select("id, nombre, programa, ciclos!inner(activo)")
     .eq("ciclos.activo", true)
     .eq("activa", true)
+    .order("nombre");
+  if (error) throw error;
+  return data.map(({ id, nombre, programa }) => ({ id, nombre, programa }));
+}
+
+/**
+ * Comunidades donde es guía (misa, fotos y códigos); el admin, todas. Las de catequista
+ * se dejan fuera: ahí RLS no le muestra alumnos ni asistencias de misa.
+ */
+export async function obtenerMisComunidades(perfil: Pick<PerfilStaff, "id" | "rol">): Promise<ComunidadStaff[]> {
+  if (perfil.rol === "admin") return obtenerComunidadesVisibles();
+
+  const { data, error } = await supabase
+    .from("comunidades")
+    .select("id, nombre, programa, ciclos!inner(activo), staff_comunidades!inner(staff_id, funcion)")
+    .eq("ciclos.activo", true)
+    .eq("activa", true)
+    .eq("staff_comunidades.staff_id", perfil.id)
+    .eq("staff_comunidades.funcion", "guia")
     .order("nombre");
   if (error) throw error;
   return data.map(({ id, nombre, programa }) => ({ id, nombre, programa }));

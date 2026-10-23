@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatearCuentaRegresiva, formatearDiaHora, formatearDomingo } from "./timeHelpers";
+import { formatearCuentaRegresiva, formatearDiaHora, formatearFecha, hoyEnLima } from "./timeHelpers";
 
 const SEGUNDO = 1000;
 const MINUTO = 60 * SEGUNDO;
@@ -42,9 +42,17 @@ describe("formatearDiaHora", () => {
   });
 });
 
-describe("formatearDomingo", () => {
+describe("formatearFecha", () => {
   it("muestra el mismo día que viene de la base (sin correrse al anterior)", () => {
-    expect(formatearDomingo("2026-10-18")).toBe("dom 18 oct");
-    expect(formatearDomingo("2026-03-01")).toBe("dom 1 mar");
+    expect(formatearFecha("2026-10-18")).toBe("dom 18 oct");
+    expect(formatearFecha("2026-03-01")).toBe("dom 1 mar");
+    expect(formatearFecha("2026-10-17")).toBe("sáb 17 oct");
+  });
+});
+
+describe("hoyEnLima", () => {
+  it("usa la fecha de Lima aunque en UTC ya sea el día siguiente", () => {
+    // 2026-10-18 03:00 UTC = sábado 17, 22:00 en Lima
+    expect(hoyEnLima(new Date("2026-10-18T03:00:00Z"))).toBe("2026-10-17");
   });
 });

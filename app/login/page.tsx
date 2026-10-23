@@ -132,7 +132,7 @@ export default function LoginPage() {
         </div>
 
         <p className="mt-6 text-center text-xs text-texto-tenue">
-          Solo guías y administradores registrados por la pastoral
+          Solo guías, catequistas y administradores registrados por la pastoral
         </p>
       </div>
     </main>

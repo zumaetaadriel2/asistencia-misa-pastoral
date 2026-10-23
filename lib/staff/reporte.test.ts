@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { armarCsvAsistencia } from "./reporte";
+import { armarCsvAsistencia, celda, nombreArchivo } from "./reporte";
 
 describe("armarCsvAsistencia", () => {
   const csv = armarCsvAsistencia(
@@ -32,5 +32,24 @@ describe("armarCsvAsistencia", () => {
 
   it("escapa comillas y deja vacías las semanas sin registro", () => {
     expect(lineas[2]).toBe('"Bruno ""Tito"" Díaz","San Pablo","Confirmación","","Justificada","0","1","0","0",""');
+  });
+});
+
+describe("celda", () => {
+  it("no deja que un texto se abra en Excel como fórmula", () => {
+    expect(celda("=HYPERLINK(1)")).toBe(`"'=HYPERLINK(1)"`);
+    expect(celda("-2+3")).toBe(`"'-2+3"`);
+    expect(celda("@usuario")).toBe(`"'@usuario"`);
+  });
+
+  it("deja igual los números y el texto normal, y duplica las comillas", () => {
+    expect(celda(-3)).toBe(`"-3"`);
+    expect(celda('Dijo "hola"')).toBe(`"Dijo ""hola"""`);
+  });
+});
+
+describe("nombreArchivo", () => {
+  it("quita tildes, espacios y signos", () => {
+    expect(nombreArchivo("San José · Primera Comunión")).toBe("san-jose-primera-comunion");
   });
 });
