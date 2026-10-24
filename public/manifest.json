@@ -12,9 +12,9 @@
   "scope": "/",
   "shortcuts": [
     {
-      "name": "Panel de revisión",
+      "name": "Panel del staff",
       "short_name": "Panel",
-      "description": "Entrar como guía o administrador",
+      "description": "Entrar como guía, catequista o administrador",
       "url": "/login",
       "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     }

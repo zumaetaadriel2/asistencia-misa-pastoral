@@ -46,13 +46,27 @@ export function formatearDiaHora(fecha: Date | string): string {
   return formatoDiaHora.format(typeof fecha === "string" ? new Date(fecha) : fecha);
 }
 
-const formatoDiaMes = new Intl.DateTimeFormat("es-PE", { timeZone: ZONA_HORARIA, day: "numeric", month: "short" });
+const formatoFechaCorta = new Intl.DateTimeFormat("es-PE", {
+  timeZone: ZONA_HORARIA,
+  weekday: "short",
+  day: "numeric",
+  month: "short",
+});
 
 /**
- * Domingo de una semana ("AAAA-MM-DD", como lo da la base) → "dom 18 oct".
+ * Fecha "AAAA-MM-DD" (como la da la base) → "sáb 17 oct" o "dom 18 oct".
  * Se lee al mediodía de Lima: new Date("AAAA-MM-DD") es medianoche UTC y en Lima
  * todavía sería el día anterior.
  */
-export function formatearDomingo(fecha: string): string {
-  return `dom ${formatoDiaMes.format(new Date(`${fecha}T12:00:00-05:00`)).replace(/\./g, "")}`;
+export function formatearFecha(fecha: string): string {
+  return formatoFechaCorta
+    .format(new Date(`${fecha}T12:00:00-05:00`))
+    .replace(/[.,]/g, "")
+    .replace(/\s+/g, " ");
+}
+
+/** Hoy en Lima como "AAAA-MM-DD" (para el valor por defecto de un campo de fecha) */
+export function hoyEnLima(ahora: Date = new Date()): string {
+  // en-CA da el formato AAAA-MM-DD
+  return new Intl.DateTimeFormat("en-CA", { timeZone: ZONA_HORARIA }).format(ahora);
 }

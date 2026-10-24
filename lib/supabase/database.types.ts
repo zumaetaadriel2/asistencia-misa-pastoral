@@ -95,6 +95,38 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"asistencias_catequesis": {
+                  Row: {
+                    "actualizado_en": string,"alumno_id": number,"creado_en": string,"estado": Database["public"]['Enums']["estado_catequesis"],"marcado_por": number | null,"motivo": string | null,"sesion_id": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "actualizado_en"?: string,"alumno_id": number,"creado_en"?: string,"estado": Database["public"]['Enums']["estado_catequesis"],"marcado_por"?: number | null,"motivo"?: string | null,"sesion_id": number
+                  }
+                  Update: {
+                    "actualizado_en"?: string,"alumno_id"?: number,"creado_en"?: string,"estado"?: Database["public"]['Enums']["estado_catequesis"],"marcado_por"?: number | null,"motivo"?: string | null,"sesion_id"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "asistencias_catequesis_alumno_id_fkey"
+      columns: ["alumno_id"]
+isOneToOne: false
+      referencedRelation: "alumnos"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "asistencias_catequesis_marcado_por_fkey"
+      columns: ["marcado_por"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "asistencias_catequesis_sesion_id_fkey"
+      columns: ["sesion_id"]
+isOneToOne: false
+      referencedRelation: "sesiones_catequesis"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"ciclos": {
                   Row: {
                     "abierto_manual": boolean | null,"activo": boolean,"anio": number,"creado_en": string,"fecha_fin": string,"fecha_inicio": string,"id": number,"nombre": string
@@ -189,6 +221,32 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"sesiones_catequesis": {
+                  Row: {
+                    "comunidad_id": number,"creada_por": number | null,"creado_en": string,"fecha": string,"id": number,"titulo": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "comunidad_id": number,"creada_por"?: number | null,"creado_en"?: string,"fecha": string,"id"?: never,"titulo"?: string
+                  }
+                  Update: {
+                    "comunidad_id"?: number,"creada_por"?: number | null,"creado_en"?: string,"fecha"?: string,"id"?: never,"titulo"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "sesiones_catequesis_comunidad_id_fkey"
+      columns: ["comunidad_id"]
+isOneToOne: false
+      referencedRelation: "comunidades"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "sesiones_catequesis_creada_por_fkey"
+      columns: ["creada_por"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"staff": {
                   Row: {
                     "activo": boolean,"creado_en": string,"email": string,"id": number,"nombre": string,"rol": Database["public"]['Enums']["rol_staff"]
@@ -205,14 +263,14 @@ isOneToOne: false
                   ]
                 },"staff_comunidades": {
                   Row: {
-                    "comunidad_id": number,"staff_id": number
+                    "comunidad_id": number,"funcion": Database["public"]['Enums']["funcion_comunidad"],"staff_id": number
                   }
                   ComputedFields: never
                   Insert: {
-                    "comunidad_id": number,"staff_id": number
+                    "comunidad_id": number,"funcion"?: Database["public"]['Enums']["funcion_comunidad"],"staff_id": number
                   }
                   Update: {
-                    "comunidad_id"?: number,"staff_id"?: number
+                    "comunidad_id"?: number,"funcion"?: Database["public"]['Enums']["funcion_comunidad"],"staff_id"?: number
                   }
                   Relationships: [
                     {
@@ -261,8 +319,17 @@ isOneToOne: false
 "_registrar_intento_fallido":
 { Args: { "p_ip": string }; Returns: undefined
                            },
+"_titulo_sesion":
+{ Args: { "p_titulo": string }; Returns: string
+                           },
+"_validar_fecha_sesion":
+{ Args: { "p_comunidad_id": number,"p_fecha": string }; Returns: undefined
+                           },
 "activar_ciclo":
 { Args: { "p_ciclo_id": number }; Returns: undefined
+                           },
+"borrar_sesion_catequesis":
+{ Args: { "p_sesion_id": number }; Returns: undefined
                            },
 "cerrar_semana":
 { Args: { "p_semana": number }; Returns: number
@@ -278,8 +345,17 @@ isOneToOne: false
 "copiar_comunidades":
 { Args: { "p_desde_ciclo_id": number,"p_hacia_ciclo_id": number }; Returns: number
                            },
+"crear_evento_catequesis":
+{ Args: { "p_comunidades": (number)[],"p_fecha": string,"p_titulo": string }; Returns: number
+                           },
+"crear_sesion_catequesis":
+{ Args: { "p_comunidad_id": number,"p_fecha"?: string,"p_titulo"?: string }; Returns: number
+                           },
 "domingo_de_referencia":
 { Args: { "p_fecha": string }; Returns: string
+                           },
+"editar_sesion_catequesis":
+{ Args: { "p_fecha": string,"p_sesion_id": number,"p_titulo": string }; Returns: undefined
                            },
 "es_admin":
 { Args: Record<PropertyKey, never>; Returns: boolean
@@ -316,9 +392,20 @@ isOneToOne: false
 "latido":
 { Args: Record<PropertyKey, never>; Returns: string
                            },
+"lista_de_sesion":
+{ Args: { "p_sesion_id": number }; Returns: {
+              "alumno_id": number,"estado": Database["public"]['Enums']["estado_catequesis"],"motivo": string,"nombre_completo": string
+            }[]
+                           },
+"marcar_catequesis":
+{ Args: { "p_alumno_id": number,"p_estado": Database["public"]['Enums']["estado_catequesis"],"p_motivo"?: string,"p_sesion_id": number }; Returns: undefined
+                           },
+"marcar_todos_presentes":
+{ Args: { "p_sesion_id": number }; Returns: number
+                           },
 "mi_perfil_staff":
 { Args: Record<PropertyKey, never>; Returns: {
-              "ciclo_nombre": string,"id": number,"nombre": string,"rol": Database["public"]['Enums']["rol_staff"],"semana_reciente": number
+              "ciclo_nombre": string,"es_catequista": boolean,"es_guia": boolean,"id": number,"nombre": string,"rol": Database["public"]['Enums']["rol_staff"],"semana_reciente": number
             }[]
                            },
 "momento_actual":
@@ -330,11 +417,22 @@ isOneToOne: false
 "primer_domingo":
 { Args: { "p_fecha": string }; Returns: string
                            },
+"puede_pasar_lista":
+{ Args: { "p_comunidad_id": number }; Returns: boolean
+                           },
+"puede_pasar_lista_sesion":
+{ Args: { "p_sesion_id": number }; Returns: boolean
+                           },
 "reasignar_asistencia":
 { Args: { "p_alumno_destino_id": number,"p_asistencia_id": number }; Returns: undefined
                            },
 "regenerar_codigo":
 { Args: { "p_alumno_id": number }; Returns: string
+                           },
+"resumen_catequesis":
+{ Args: { "p_comunidad_id": number }; Returns: {
+              "activo": boolean,"alumno_id": number,"estado": Database["public"]['Enums']["estado_catequesis"],"motivo": string,"nombre_completo": string,"sesion_id": number
+            }[]
                            },
 "resumen_semana":
 { Args: { "p_semana": number }; Returns: {
@@ -350,12 +448,17 @@ isOneToOne: false
 "semana_reciente":
 { Args: Record<PropertyKey, never>; Returns: number
                            },
+"sesiones_de_comunidad":
+{ Args: { "p_comunidad_id": number }; Returns: {
+              "alumnos_activos": number,"creada_por": number,"faltas": number,"fecha": string,"id": number,"justificadas": number,"presentes": number,"tardanzas": number,"titulo": string
+            }[]
+                           },
 "staff_actual_id":
 { Args: Record<PropertyKey, never>; Returns: number
                            }
           }
           Enums: {
-            "actividad": "misa"|"catequesis","estado_asistencia": "pendiente"|"validado"|"rechazado"|"inasistencia"|"justificada","programa": "confirmacion"|"primera_comunion","rol_staff": "admin"|"guia"
+            "actividad": "misa"|"catequesis","estado_asistencia": "pendiente"|"validado"|"rechazado"|"inasistencia"|"justificada","estado_catequesis": "presente"|"tardanza"|"falta"|"justificada","funcion_comunidad": "guia"|"catequista","programa": "confirmacion"|"primera_comunion","rol_staff": "admin"|"guia"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -475,7 +578,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "actividad": ["misa", "catequesis"],"estado_asistencia": ["pendiente", "validado", "rechazado", "inasistencia", "justificada"],"programa": ["confirmacion", "primera_comunion"],"rol_staff": ["admin", "guia"]
+            "actividad": ["misa", "catequesis"],"estado_asistencia": ["pendiente", "validado", "rechazado", "inasistencia", "justificada"],"estado_catequesis": ["presente", "tardanza", "falta", "justificada"],"funcion_comunidad": ["guia", "catequista"],"programa": ["confirmacion", "primera_comunion"],"rol_staff": ["admin", "guia"]
           }
         }
 } as const

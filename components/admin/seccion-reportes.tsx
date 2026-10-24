@@ -1,16 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { cerrarSemana, datosReporte } from "@/lib/staff/admin";
+import { cerrarSemana, datosCatequesisCiclo, datosReporte } from "@/lib/staff/admin";
+import { armarCsvCatequesisCiclo } from "@/lib/staff/catequesis";
 import { mensajeDe } from "@/lib/staff/errores";
 import { armarCsvAsistencia, descargarCsv } from "@/lib/staff/reporte";
 import type { PerfilStaff } from "@/lib/staff/revision";
+import { hoyEnLima } from "@/lib/utils/timeHelpers";
 import { Boton, Campo, claseInput, Mensaje, Tarjeta, type MensajeAdmin } from "@/components/ui/base";
 import { useConfirmar } from "@/components/ui/confirmar";
 
 export function SeccionReportes({ perfil }: { perfil: PerfilStaff }) {
   const semanas = perfil.semana_reciente ?? 0;
   const [descargando, setDescargando] = useState(false);
+  const [descargandoCatequesis, setDescargandoCatequesis] = useState(false);
   const [semanaCierre, setSemanaCierre] = useState(Math.max(1, semanas - 1));
   const [cerrando, setCerrando] = useState(false);
   const [mensaje, setMensaje] = useState<MensajeAdmin | null>(null);
@@ -25,6 +28,22 @@ export function SeccionReportes({ perfil }: { perfil: PerfilStaff }) {
       setMensaje({ tipo: "error", texto: mensajeDe(e, "No se pudo generar el reporte.") });
     } finally {
       setDescargando(false);
+    }
+  };
+
+  const descargarCatequesis = async () => {
+    setDescargandoCatequesis(true);
+    try {
+      const { sesiones, alumnos, marcas } = await datosCatequesisCiclo();
+      if (sesiones.length === 0) {
+        setMensaje({ tipo: "error", texto: "Todavía no hay sesiones de catequesis en este ciclo." });
+        return;
+      }
+      descargarCsv(`catequesis-ciclo-${hoyEnLima()}.csv`, armarCsvCatequesisCiclo(sesiones, alumnos, marcas));
+    } catch (e) {
+      setMensaje({ tipo: "error", texto: mensajeDe(e, "No se pudo generar el reporte de catequesis.") });
+    } finally {
+      setDescargandoCatequesis(false);
     }
   };
 
@@ -57,6 +76,15 @@ export function SeccionReportes({ perfil }: { perfil: PerfilStaff }) {
       >
         <Boton onClick={descargar} disabled={descargando || semanas < 1}>
           {descargando ? "Generando…" : "Descargar Excel (CSV)"}
+        </Boton>
+      </Tarjeta>
+
+      <Tarjeta
+        titulo="Catequesis del ciclo"
+        descripcion="Una fila por alumno y sesión de todas las comunidades, con fecha, estado y motivo. En Excel puedes filtrar por comunidad, fecha o estado."
+      >
+        <Boton onClick={descargarCatequesis} disabled={descargandoCatequesis}>
+          {descargandoCatequesis ? "Generando…" : "Descargar catequesis (CSV)"}
         </Boton>
       </Tarjeta>
 

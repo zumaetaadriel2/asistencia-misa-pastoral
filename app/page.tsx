@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabase/client";
 /**
  * Página raíz (con la que abre la app instalada). La sesión del staff vive en el
  * celular (localStorage), así que el servidor no puede decidir: si este celular
- * tiene una sesión de guía o administrador va al panel; si no, a la vista del alumno.
+ * tiene una sesión del staff va al panel; si no, a la vista del alumno.
  */
 export default function Inicio() {
   const router = useRouter();

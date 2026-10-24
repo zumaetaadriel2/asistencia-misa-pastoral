@@ -11,10 +11,17 @@ import {
   type MiembroStaff,
 } from "@/lib/staff/admin";
 import { coincide } from "@/lib/staff/busqueda";
+import type { FuncionComunidad } from "@/lib/staff/catequesis";
 import { mensajeDe } from "@/lib/staff/errores";
 import type { PerfilStaff, RolStaff } from "@/lib/staff/revision";
 import { Boton, Buscador, Campo, Cargando, claseInput, Mensaje, Tarjeta, type MensajeAdmin } from "@/components/ui/base";
 import { useConfirmar } from "@/components/ui/confirmar";
+
+// Lo que hace en cada comunidad: el guía también pasa lista; el catequista solo eso
+const GRUPOS: { funcion: FuncionComunidad; titulo: string; elegida: string }[] = [
+  { funcion: "guia", titulo: "Guía en", elegida: "bg-marca/15 border-marca/50 text-texto font-semibold" },
+  { funcion: "catequista", titulo: "Catequista en", elegida: "bg-info/15 border-info/50 text-texto font-semibold" },
+];
 
 export function SeccionStaff({ perfil }: { perfil: PerfilStaff }) {
   const [staff, setStaff] = useState<MiembroStaff[] | null>(null);
@@ -53,7 +60,9 @@ export function SeccionStaff({ perfil }: { perfil: PerfilStaff }) {
       await crearStaff(nuevo);
       setMensaje({
         tipo: "ok",
-        texto: `${nuevo.nombre.trim()} ya puede entrar con "Entrar con Google" usando ${nuevo.email.trim()}.`,
+        texto:
+          `${nuevo.nombre.trim()} ya puede entrar con "Entrar con Google" usando ${nuevo.email.trim()}.` +
+          (nuevo.rol === "admin" ? "" : " Asígnale abajo sus comunidades."),
       });
       setNuevo({ nombre: "", email: "", rol: "guia" });
       setRecargas((n) => n + 1);
@@ -95,20 +104,30 @@ export function SeccionStaff({ perfil }: { perfil: PerfilStaff }) {
     }
   };
 
-  const alternarComunidad = async (miembro: MiembroStaff, comunidadId: number) => {
-    const asignado = !miembro.comunidades.includes(comunidadId);
+  /** Tocar una comunidad en "Guía en" o "Catequista en": la asigna con esa función, o se la quita si ya la tenía */
+  const alternarComunidad = async (miembro: MiembroStaff, comunidad: Comunidad, funcion: FuncionComunidad) => {
+    const actual = miembro.funciones[comunidad.id];
+    const nueva = actual === funcion ? null : funcion;
+    // De catequista a guía gana acceso a las fotos de menores y a los códigos
+    if (actual === "catequista" && nueva === "guia") {
+      const seguro = await confirmar({
+        titulo: `¿Hacer guía a ${miembro.nombre} en ${comunidad.nombre}?`,
+        mensaje: "Además de pasar lista, verá las fotos de misa, la asistencia y los códigos de esa comunidad.",
+        aceptar: "Hacer guía",
+      });
+      if (!seguro) return;
+    }
     try {
-      await asignarComunidad(miembro.id, comunidadId, asignado);
+      await asignarComunidad(miembro.id, comunidad.id, nueva);
       setStaff(
         (prev) =>
-          prev?.map((m) =>
-            m.id === miembro.id
-              ? {
-                  ...m,
-                  comunidades: asignado ? [...m.comunidades, comunidadId] : m.comunidades.filter((id) => id !== comunidadId),
-                }
-              : m
-          ) ?? prev
+          prev?.map((m) => {
+            if (m.id !== miembro.id) return m;
+            const funciones = { ...m.funciones };
+            if (nueva) funciones[comunidad.id] = nueva;
+            else delete funciones[comunidad.id];
+            return { ...m, funciones };
+          }) ?? prev
       );
     } catch (e) {
       setMensaje({ tipo: "error", texto: mensajeDe(e, "No se pudo cambiar la asignación.") });
@@ -123,10 +142,10 @@ export function SeccionStaff({ perfil }: { perfil: PerfilStaff }) {
       <Mensaje mensaje={mensaje} />
 
       <Tarjeta
-        titulo="Agregar guía o administrador"
+        titulo="Agregar guía, catequista o administrador"
         descripcion="Usa el correo de su cuenta de Google: con él entrará a la app. Solo los correos registrados aquí pueden entrar."
       >
-        <form onSubmit={crear} className="grid gap-3 sm:grid-cols-[1fr_1fr_10rem_auto] sm:items-end">
+        <form onSubmit={crear} className="grid gap-3 sm:grid-cols-[1fr_1fr_12rem_auto] sm:items-end">
           <Campo etiqueta="Nombre">
             <input
               value={nuevo.nombre}
@@ -151,7 +170,7 @@ export function SeccionStaff({ perfil }: { perfil: PerfilStaff }) {
               onChange={(e) => setNuevo({ ...nuevo, rol: e.target.value as RolStaff })}
               className={`${claseInput} cursor-pointer`}
             >
-              <option value="guia">Guía</option>
+              <option value="guia">Guía o catequista</option>
               <option value="admin">Administrador</option>
             </select>
           </Campo>
@@ -161,7 +180,10 @@ export function SeccionStaff({ perfil }: { perfil: PerfilStaff }) {
         </form>
       </Tarjeta>
 
-      <Tarjeta titulo={`Staff (${staff.length})`} descripcion="Toca una comunidad para asignarla o quitarla. El administrador ve todas.">
+      <Tarjeta
+        titulo={`Staff (${staff.length})`}
+        descripcion="Toca una comunidad para asignarla o quitarla. El guía revisa fotos, ve la misa y los códigos y pasa lista; el catequista solo pasa lista. El administrador ve todas."
+      >
         <Buscador valor={busqueda} onCambiar={setBusqueda} etiqueta="Buscar por nombre o correo" />
         {visibles.length === 0 && <p className="mt-3 text-sm text-texto-tenue">Nadie coincide con «{busqueda}».</p>}
         <ul className="mt-2 divide-y divide-borde">
@@ -186,7 +208,7 @@ export function SeccionStaff({ perfil }: { perfil: PerfilStaff }) {
                       onChange={(e) => cambiar(miembro, { rol: e.target.value as RolStaff })}
                       className="min-h-11 px-3 rounded-lg bg-superficie-2 border border-borde text-texto text-sm cursor-pointer disabled:opacity-40"
                     >
-                      <option value="guia">Guía</option>
+                      <option value="guia">Guía o catequista</option>
                       <option value="admin">Administrador</option>
                     </select>
                     <Boton
@@ -199,29 +221,48 @@ export function SeccionStaff({ perfil }: { perfil: PerfilStaff }) {
                     </Boton>
                   </div>
                 </div>
-                {miembro.rol === "guia" && (
-                  <div className="mt-2 flex flex-wrap gap-1.5" role="group" aria-label={`Comunidades de ${miembro.nombre}`}>
-                    {comunidades.map((comunidad) => {
-                      const asignada = miembro.comunidades.includes(comunidad.id);
-                      return (
-                        <button
-                          key={comunidad.id}
-                          onClick={() => alternarComunidad(miembro, comunidad.id)}
-                          aria-pressed={asignada}
-                          className={`min-h-9 px-3 rounded-full border text-xs transition-all ${
-                            asignada
-                              ? "bg-marca/15 border-marca/50 text-texto font-semibold"
-                              : "bg-superficie-2 border-borde text-texto-suave hover:text-texto"
-                          }`}
-                        >
-                          {asignada && "✓ "}
-                          {comunidad.nombre}
-                          <span className="text-texto-tenue"> · {comunidad.programa === "confirmacion" ? "Conf." : "Com."}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                )}
+                {miembro.rol === "guia" &&
+                  GRUPOS.map((grupo) => (
+                    <div key={grupo.funcion} className="mt-2">
+                      <p className="text-xs font-medium text-texto-suave">{grupo.titulo}</p>
+                      <div
+                        className="mt-1 flex flex-wrap gap-1.5"
+                        role="group"
+                        aria-label={`${miembro.nombre}: ${grupo.titulo.toLowerCase()}`}
+                      >
+                        {comunidades.map((comunidad) => {
+                          const funcion = miembro.funciones[comunidad.id];
+                          const elegida = funcion === grupo.funcion;
+                          return (
+                            <button
+                              key={comunidad.id}
+                              onClick={() => alternarComunidad(miembro, comunidad, grupo.funcion)}
+                              aria-pressed={elegida}
+                              title={
+                                funcion && !elegida
+                                  ? `Ahora es ${funcion === "guia" ? "guía" : "catequista"} aquí: tócala para cambiarlo`
+                                  : undefined
+                              }
+                              className={`min-h-9 px-3 rounded-full border text-xs transition-all ${
+                                elegida
+                                  ? grupo.elegida
+                                  : funcion
+                                    ? "bg-superficie-2 border-dashed border-borde text-texto-tenue hover:text-texto"
+                                    : "bg-superficie-2 border-borde text-texto-suave hover:text-texto"
+                              }`}
+                            >
+                              {elegida && "✓ "}
+                              {comunidad.nombre}
+                              <span className="text-texto-tenue">
+                                {" "}
+                                · {comunidad.programa === "confirmacion" ? "Conf." : "Com."}
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ))}
               </li>
             );
           })}

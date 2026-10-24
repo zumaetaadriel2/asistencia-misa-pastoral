@@ -7,6 +7,7 @@
 import { supabase } from "@/lib/supabase/client";
 import type { Tables } from "@/lib/supabase/database.types";
 import { obtenerTodasLasFilas } from "@/lib/supabase/paginacion";
+import type { AlumnoCiclo, FuncionComunidad, MarcaCiclo, SesionCiclo } from "./catequesis";
 import type { AlumnoReporte, RegistroReporte } from "./reporte";
 import type { Programa, RolStaff } from "./revision";
 
@@ -20,7 +21,8 @@ export interface MiembroStaff {
   nombre: string;
   rol: RolStaff;
   activo: boolean;
-  comunidades: number[];
+  /** Comunidades asignadas → si es guía o catequista en cada una */
+  funciones: Record<number, FuncionComunidad>;
 }
 
 // ---------------------------------------------
@@ -103,12 +105,12 @@ export async function cambiarComunidadActiva(id: number, activa: boolean): Promi
 export async function listarStaff(): Promise<MiembroStaff[]> {
   const { data, error } = await supabase
     .from("staff")
-    .select("id, email, nombre, rol, activo, staff_comunidades(comunidad_id)")
+    .select("id, email, nombre, rol, activo, staff_comunidades(comunidad_id, funcion)")
     .order("nombre");
   if (error) throw error;
   return data.map(({ staff_comunidades, ...miembro }) => ({
     ...miembro,
-    comunidades: staff_comunidades.map((sc) => sc.comunidad_id),
+    funciones: Object.fromEntries(staff_comunidades.map((sc) => [sc.comunidad_id, sc.funcion])),
   }));
 }
 
@@ -127,9 +129,16 @@ export async function actualizarStaff(
   if (error) throw error;
 }
 
-export async function asignarComunidad(staffId: number, comunidadId: number, asignado: boolean): Promise<void> {
-  const { error } = asignado
-    ? await supabase.from("staff_comunidades").insert({ staff_id: staffId, comunidad_id: comunidadId })
+/** Asigna la comunidad con esa función (o se la cambia); con `funcion` null se la quita */
+export async function asignarComunidad(
+  staffId: number,
+  comunidadId: number,
+  funcion: FuncionComunidad | null
+): Promise<void> {
+  const { error } = funcion
+    ? await supabase
+        .from("staff_comunidades")
+        .upsert({ staff_id: staffId, comunidad_id: comunidadId, funcion }, { onConflict: "staff_id,comunidad_id" })
     : await supabase.from("staff_comunidades").delete().eq("staff_id", staffId).eq("comunidad_id", comunidadId);
   if (error) throw error;
 }
@@ -204,6 +213,54 @@ export async function datosReporte(comunidadId?: number): Promise<{
       }))
       .sort((x, y) => x.comunidad.localeCompare(y.comunidad, "es") || x.nombre.localeCompare(y.nombre, "es")),
     registros: registros.map(({ alumno_id, semana_numero, estado }) => ({ alumno_id, semana_numero, estado })),
+  };
+}
+
+/** Sesiones, alumnos y marcas de catequesis del ciclo activo, para el CSV del ciclo */
+export async function datosCatequesisCiclo(): Promise<{
+  sesiones: SesionCiclo[];
+  alumnos: AlumnoCiclo[];
+  marcas: MarcaCiclo[];
+}> {
+  const [sesiones, alumnos, marcas] = await Promise.all([
+    obtenerTodasLasFilas((desde, hasta) =>
+      supabase
+        .from("sesiones_catequesis")
+        .select("id, comunidad_id, fecha, titulo, comunidades!inner(nombre, programa, ciclos!inner(activo))")
+        .eq("comunidades.ciclos.activo", true)
+        .order("id")
+        .range(desde, hasta)
+    ),
+    obtenerTodasLasFilas((desde, hasta) =>
+      supabase
+        .from("alumnos")
+        .select("id, nombre_completo, activo, comunidad_id, comunidades!inner(ciclos!inner(activo))")
+        .eq("comunidades.ciclos.activo", true)
+        .order("id")
+        .range(desde, hasta)
+    ),
+    obtenerTodasLasFilas((desde, hasta) =>
+      supabase
+        .from("asistencias_catequesis")
+        .select("sesion_id, alumno_id, estado, motivo, sesiones_catequesis!inner(comunidades!inner(ciclos!inner(activo)))")
+        .eq("sesiones_catequesis.comunidades.ciclos.activo", true)
+        .order("sesion_id")
+        .order("alumno_id")
+        .range(desde, hasta)
+    ),
+  ]);
+
+  return {
+    sesiones: sesiones.map((s) => ({
+      id: s.id,
+      comunidad_id: s.comunidad_id,
+      comunidad: s.comunidades.nombre,
+      programa: s.comunidades.programa,
+      fecha: s.fecha,
+      titulo: s.titulo,
+    })),
+    alumnos: alumnos.map((a) => ({ id: a.id, nombre: a.nombre_completo, activo: a.activo, comunidad_id: a.comunidad_id })),
+    marcas: marcas.map(({ sesion_id, alumno_id, estado, motivo }) => ({ sesion_id, alumno_id, estado, motivo })),
   };
 }
 
