@@ -7,7 +7,8 @@
 import { supabase } from "@/lib/supabase/client";
 import type { Database } from "@/lib/supabase/database.types";
 import { formatearFecha } from "@/lib/utils/timeHelpers";
-import { celda } from "./reporte";
+import { celda, NOMBRE_PROGRAMA } from "./reporte";
+import type { Programa } from "./revision";
 
 export type EstadoCatequesis = Database["public"]["Enums"]["estado_catequesis"];
 export type FuncionComunidad = Database["public"]["Enums"]["funcion_comunidad"];
@@ -224,4 +225,69 @@ export function armarCsvCatequesis(
   });
 
   return "﻿" + [encabezado, ...lineas].map((fila) => fila.map(celda).join(",")).join("\r\n");
+}
+
+// ---------------------------------------------
+// Reporte de todo el ciclo (Administración → Reportes)
+// ---------------------------------------------
+
+export interface SesionCiclo {
+  id: number;
+  comunidad_id: number;
+  comunidad: string;
+  programa: Programa;
+  /** "AAAA-MM-DD" */
+  fecha: string;
+  titulo: string;
+}
+
+export interface AlumnoCiclo {
+  id: number;
+  nombre: string;
+  activo: boolean;
+  comunidad_id: number;
+}
+
+export interface MarcaCiclo {
+  sesion_id: number;
+  alumno_id: number;
+  estado: EstadoCatequesis;
+  motivo: string | null;
+}
+
+/**
+ * Una fila por alumno y sesión de todas las comunidades (formato largo, para filtrar
+ * en Excel), ordenadas por comunidad, fecha y alumno. Los inactivos solo aparecen en
+ * las sesiones donde tienen marca. La fecha va como AAAA-MM-DD para que Excel la ordene.
+ */
+export function armarCsvCatequesisCiclo(sesiones: SesionCiclo[], alumnos: AlumnoCiclo[], marcas: MarcaCiclo[]): string {
+  const marcaDe = new Map(marcas.map((m) => [`${m.sesion_id}:${m.alumno_id}`, m]));
+  const alumnosDe = new Map<number, AlumnoCiclo[]>();
+  for (const alumno of [...alumnos].sort((a, b) => a.nombre.localeCompare(b.nombre, "es"))) {
+    alumnosDe.set(alumno.comunidad_id, [...(alumnosDe.get(alumno.comunidad_id) ?? []), alumno]);
+  }
+
+  const ordenadas = [...sesiones].sort(
+    (a, b) => a.comunidad.localeCompare(b.comunidad, "es") || a.fecha.localeCompare(b.fecha) || a.id - b.id
+  );
+  const filas = ordenadas.flatMap((sesion) =>
+    (alumnosDe.get(sesion.comunidad_id) ?? []).flatMap((alumno) => {
+      const marca = marcaDe.get(`${sesion.id}:${alumno.id}`);
+      if (!marca && !alumno.activo) return [];
+      return [
+        [
+          sesion.comunidad,
+          NOMBRE_PROGRAMA[sesion.programa],
+          sesion.fecha,
+          sesion.titulo,
+          alumno.activo ? alumno.nombre : `${alumno.nombre} (inactivo)`,
+          marca ? ETIQUETA_CSV[marca.estado] : "Sin marcar",
+          marca?.motivo ?? "",
+        ],
+      ];
+    })
+  );
+
+  const encabezado = ["Comunidad", "Programa", "Fecha", "Sesión", "Alumno", "Estado", "Motivo"];
+  return "﻿" + [encabezado, ...filas].map((fila) => fila.map(celda).join(",")).join("\r\n");
 }

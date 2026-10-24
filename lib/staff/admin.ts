@@ -7,7 +7,7 @@
 import { supabase } from "@/lib/supabase/client";
 import type { Tables } from "@/lib/supabase/database.types";
 import { obtenerTodasLasFilas } from "@/lib/supabase/paginacion";
-import type { FuncionComunidad } from "./catequesis";
+import type { AlumnoCiclo, FuncionComunidad, MarcaCiclo, SesionCiclo } from "./catequesis";
 import type { AlumnoReporte, RegistroReporte } from "./reporte";
 import type { Programa, RolStaff } from "./revision";
 
@@ -213,6 +213,54 @@ export async function datosReporte(comunidadId?: number): Promise<{
       }))
       .sort((x, y) => x.comunidad.localeCompare(y.comunidad, "es") || x.nombre.localeCompare(y.nombre, "es")),
     registros: registros.map(({ alumno_id, semana_numero, estado }) => ({ alumno_id, semana_numero, estado })),
+  };
+}
+
+/** Sesiones, alumnos y marcas de catequesis del ciclo activo, para el CSV del ciclo */
+export async function datosCatequesisCiclo(): Promise<{
+  sesiones: SesionCiclo[];
+  alumnos: AlumnoCiclo[];
+  marcas: MarcaCiclo[];
+}> {
+  const [sesiones, alumnos, marcas] = await Promise.all([
+    obtenerTodasLasFilas((desde, hasta) =>
+      supabase
+        .from("sesiones_catequesis")
+        .select("id, comunidad_id, fecha, titulo, comunidades!inner(nombre, programa, ciclos!inner(activo))")
+        .eq("comunidades.ciclos.activo", true)
+        .order("id")
+        .range(desde, hasta)
+    ),
+    obtenerTodasLasFilas((desde, hasta) =>
+      supabase
+        .from("alumnos")
+        .select("id, nombre_completo, activo, comunidad_id, comunidades!inner(ciclos!inner(activo))")
+        .eq("comunidades.ciclos.activo", true)
+        .order("id")
+        .range(desde, hasta)
+    ),
+    obtenerTodasLasFilas((desde, hasta) =>
+      supabase
+        .from("asistencias_catequesis")
+        .select("sesion_id, alumno_id, estado, motivo, sesiones_catequesis!inner(comunidades!inner(ciclos!inner(activo)))")
+        .eq("sesiones_catequesis.comunidades.ciclos.activo", true)
+        .order("sesion_id")
+        .order("alumno_id")
+        .range(desde, hasta)
+    ),
+  ]);
+
+  return {
+    sesiones: sesiones.map((s) => ({
+      id: s.id,
+      comunidad_id: s.comunidad_id,
+      comunidad: s.comunidades.nombre,
+      programa: s.comunidades.programa,
+      fecha: s.fecha,
+      titulo: s.titulo,
+    })),
+    alumnos: alumnos.map((a) => ({ id: a.id, nombre: a.nombre_completo, activo: a.activo, comunidad_id: a.comunidad_id })),
+    marcas: marcas.map(({ sesion_id, alumno_id, estado, motivo }) => ({ sesion_id, alumno_id, estado, motivo })),
   };
 }
 
