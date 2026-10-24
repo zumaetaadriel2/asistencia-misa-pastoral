@@ -32,6 +32,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          # Versión fija: con "latest" la acción consulta la API de GitHub y a veces
+          # falla por límite de pedidos. Súbela cuando actualices la CLI local.
+          version: 2.121.0
       - run: supabase start -x studio,imgproxy,storage-api,realtime,logflare,vector,supavisor,mailpit,edge-runtime
       - run: supabase test db
