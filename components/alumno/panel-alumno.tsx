@@ -9,6 +9,7 @@ import { formatearDiaHora, formatearFecha } from "@/lib/utils/timeHelpers";
 import { EnvioFoto } from "./envio-foto";
 import { FormularioCerrado } from "./formulario-cerrado";
 import { EtiquetaEstado, HistorialSemanas } from "./historial-semanas";
+import { TuCatequesis } from "./tu-catequesis";
 
 interface Props {
   datos: AlumnoIdentificado;
@@ -18,9 +19,9 @@ interface Props {
   onEnviado: (semana: number) => void;
 }
 
-/** Pantalla principal del alumno ya identificado: semana actual e historial */
+/** Pantalla principal del alumno ya identificado: semana actual, su catequesis e historial */
 export function PanelAlumno({ datos, codigo, onCambiarCodigo, onActualizar, onEnviado }: Props) {
-  const { alumno, formulario, accion, semanas } = datos;
+  const { alumno, formulario, accion, semanas, catequesis = [] } = datos;
   const actual = semanas.find((s) => s.semana === formulario.semana);
   const anteriores = semanas.filter((s) => s.semana !== formulario.semana);
   const titulo = useEnfocarAlAparecer<HTMLHeadingElement>();
@@ -92,6 +93,9 @@ export function PanelAlumno({ datos, codigo, onCambiarCodigo, onActualizar, onEn
 
         {accion === null && <EstadoSinAccion datos={datos} onActualizar={onActualizar} />}
       </section>
+
+      {/* ── Catequesis ── */}
+      <TuCatequesis sesiones={catequesis} />
 
       {/* ── Historial ── */}
       <HistorialSemanas semanas={anteriores} />

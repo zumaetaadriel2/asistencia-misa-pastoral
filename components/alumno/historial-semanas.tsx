@@ -18,7 +18,7 @@ export function HistorialSemanas({ semanas }: { semanas: SemanaAlumno[] }) {
   const asistidas = semanas.filter((s) => s.estado === "validado").length;
 
   return (
-    <section className="tarjeta p-5 animate-fade-in delay-200">
+    <section className="tarjeta p-5 animate-fade-in delay-300">
       <div className="flex items-baseline justify-between gap-3 mb-4">
         <h2 className="text-sm font-semibold text-texto">Tus semanas</h2>
         <p className="text-xs text-texto-tenue">

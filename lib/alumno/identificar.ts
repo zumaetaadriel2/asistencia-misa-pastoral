@@ -33,6 +33,17 @@ export interface SemanaAlumno {
   motivo: string | null;
 }
 
+export type EstadoCatequesisAlumno = "sin_marcar" | Enums["estado_catequesis"];
+
+export interface SesionAlumno {
+  /** "AAAA-MM-DD" */
+  fecha: string;
+  titulo: string;
+  estado: EstadoCatequesisAlumno;
+  /** Motivo de la justificación */
+  motivo: string | null;
+}
+
 export interface AlumnoIdentificado {
   ok: true;
   alumno: { nombre_corto: string; comunidad: string; programa: Programa };
@@ -41,6 +52,8 @@ export interface AlumnoIdentificado {
   accion: "enviar" | "reenviar" | null;
   /** De la más reciente a la más antigua */
   semanas: SemanaAlumno[];
+  /** Sesiones de catequesis de su comunidad, la más reciente primero; opcional por si la base aún no tiene la migración */
+  catequesis?: SesionAlumno[];
 }
 
 export type ErrorIdentificacion =

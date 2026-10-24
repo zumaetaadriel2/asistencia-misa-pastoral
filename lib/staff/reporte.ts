@@ -26,7 +26,7 @@ const ETIQUETA_ESTADO: Record<EstadoAsistencia, string> = {
   justificada: "Justificada",
 };
 
-const NOMBRE_PROGRAMA: Record<Programa, string> = {
+export const NOMBRE_PROGRAMA: Record<Programa, string> = {
   confirmacion: "Confirmación",
   primera_comunion: "Primera Comunión",
 };
