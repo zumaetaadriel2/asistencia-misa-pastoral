@@ -26,7 +26,9 @@ jobs:
     steps:
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          # Versión fija: con "latest" la acción consulta la API de GitHub y a veces
+          # falla por límite de pedidos. Súbela cuando actualices la CLI local.
+          version: 2.121.0
 
       - name: Volcar esquema y datos
         run: |
