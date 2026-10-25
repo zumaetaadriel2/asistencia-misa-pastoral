@@ -1,7 +1,7 @@
 -- Flujo del alumno: código, envío, reenvío, fotos parecidas, cierre de semana y límite de intentos.
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(27);
+select plan(29);
 
 -- Domingo 18 de octubre de 2026 (semana 34)
 select set_config('app.ahora', '2026-10-18 10:00:00-05', true);
@@ -105,12 +105,26 @@ select set_config('app.ahora', '2026-10-19 12:00:00-05', true);
 select is(public.preparar_envio('TEST25', '198.51.100.4') ->> 'error', 'semana_cerrada', 'una semana cerrada ya no acepta fotos');
 
 -- ---------------------------------------------
--- Límite de intentos por IP
+-- Límite de intentos por IP y en total
 -- ---------------------------------------------
-insert into public.intentos_codigo (ip) select '192.0.2.9' from generate_series(1, 10);
+-- Un salón en el WiFi del colegio comparte IP: con 29 errores todavía se puede entrar
+insert into public.intentos_codigo (ip) select '192.0.2.9' from generate_series(1, 29);
 select set_config('request.headers', '{"x-forwarded-for": "192.0.2.9"}', true);
 set local role anon;
-select is(public.identificar_alumno('TEST22') ->> 'error', 'demasiados_intentos', 'tras 10 intentos fallidos la IP queda bloqueada 15 minutos');
+select is((public.identificar_alumno('TEST22') ->> 'ok')::boolean, true, 'con 29 intentos fallidos desde la misma IP todavía se entra');
+reset role;
+
+insert into public.intentos_codigo (ip) values ('192.0.2.9');
+set local role anon;
+select is(public.identificar_alumno('TEST22') ->> 'error', 'demasiados_intentos', 'con 30 intentos fallidos la IP queda bloqueada 15 minutos');
+reset role;
+
+-- Muchos fallos desde IPs distintas: al llegar a 3.000 en total se bloquea a todos
+insert into public.intentos_codigo (ip)
+select '198.18.' || (n / 250) || '.' || (n % 250) from generate_series(1, 2970) n;
+select set_config('request.headers', '{"x-forwarded-for": "203.0.113.77"}', true);
+set local role anon;
+select is(public.identificar_alumno('TEST22') ->> 'error', 'demasiados_intentos', 'con 3.000 intentos fallidos en total se bloquea a todos');
 reset role;
 
 select * from finish();
