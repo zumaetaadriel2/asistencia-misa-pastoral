@@ -193,6 +193,40 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"horarios_misa": {
+                  Row: {
+                    "dia": number,"hora": string,"id": number,"iglesia_id": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "dia": number,"hora": string,"id"?: never,"iglesia_id": number
+                  }
+                  Update: {
+                    "dia"?: number,"hora"?: string,"id"?: never,"iglesia_id"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "horarios_misa_iglesia_id_fkey"
+      columns: ["iglesia_id"]
+isOneToOne: false
+      referencedRelation: "iglesias"
+      referencedColumns: ["id"]
+    }
+                  ]
+                },"iglesias": {
+                  Row: {
+                    "activa": boolean,"actualizado_en": string,"creado_en": string,"direccion": string,"distrito": string,"id": number,"latitud": number,"longitud": number,"nombre": string,"notas": string | null,"telefono": string | null,"verificado_en": string | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "activa"?: boolean,"actualizado_en"?: string,"creado_en"?: string,"direccion"?: string,"distrito": string,"id"?: never,"latitud": number,"longitud": number,"nombre": string,"notas"?: string | null,"telefono"?: string | null,"verificado_en"?: string | null
+                  }
+                  Update: {
+                    "activa"?: boolean,"actualizado_en"?: string,"creado_en"?: string,"direccion"?: string,"distrito"?: string,"id"?: never,"latitud"?: number,"longitud"?: number,"nombre"?: string,"notas"?: string | null,"telefono"?: string | null,"verificado_en"?: string | null
+                  }
+                  Relationships: [
+                    
+                  ]
                 },"intentos_codigo": {
                   Row: {
                     "creado_en": string,"id": number,"ip": string
@@ -307,6 +341,9 @@ isOneToOne: false
 "_fin_de_reenvio":
 { Args: { "p_fecha_inicio": string,"p_semana": number }; Returns: string
                            },
+"_guardar_iglesia":
+{ Args: { "p_datos": Json,"p_id": number }; Returns: Record<string, unknown>
+                           },
 "_ip_cliente":
 { Args: Record<PropertyKey, never>; Returns: string
                            },
@@ -377,14 +414,23 @@ isOneToOne: false
 "generar_codigo_alumno":
 { Args: Record<PropertyKey, never>; Returns: string
                            },
+"guardar_iglesia":
+{ Args: { "p_datos": Json,"p_id": number }; Returns: number
+                           },
 "hook_antes_de_crear_usuario":
 { Args: { "event": Json }; Returns: Json
                            },
 "identificar_alumno":
 { Args: { "p_codigo": string }; Returns: Json
                            },
+"iglesias_con_misas":
+{ Args: Record<PropertyKey, never>; Returns: Json
+                           },
 "importar_alumnos":
 { Args: { "p_comunidad_id": number,"p_nombres": (string)[] }; Returns: Json
+                           },
+"importar_iglesias":
+{ Args: { "p_filas": Json }; Returns: Json
                            },
 "justificar_falta":
 { Args: { "p_alumno_id": number,"p_motivo": string,"p_semana": number }; Returns: number
