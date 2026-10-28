@@ -2,7 +2,7 @@
 // Envío de la foto del alumno (Edge Function subir-foto + R2)
 // =============================================
 
-import { supabase } from "@/lib/supabase/client";
+import { supabasePublico } from "@/lib/supabase/client";
 import { procesarFoto, TIPO_FOTO } from "./procesar";
 
 /** Errores que devuelve la base o la Edge Function, más los del propio navegador */
@@ -36,7 +36,7 @@ type RespuestaFuncion =
   | { ok: false; error: ErrorEnvio };
 
 async function llamarSubirFoto(cuerpo: Record<string, unknown>): Promise<RespuestaFuncion> {
-  const { data, error } = await supabase.functions.invoke<RespuestaFuncion>("subir-foto", {
+  const { data, error } = await supabasePublico.functions.invoke<RespuestaFuncion>("subir-foto", {
     body: cuerpo,
   });
   if (error || !data) return { ok: false, error: "error_de_red" };
