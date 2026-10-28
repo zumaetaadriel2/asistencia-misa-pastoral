@@ -51,7 +51,7 @@ Para probar en el navegador con datos del seed: códigos de alumno `TEST22`…`T
 
 ## Estado del rediseño
 
-Plan aprobado en fases 0–7. Hechas: base nueva (0–1), fotos en R2 (2), pantalla del alumno (3), revisión del staff (4), administración (5) y publicación (6, v1.0.0 en `asistencia-misa-pastoral-mariana.vercel.app`; falta el subdominio). La v1.1.0 de UI/UX (identidad visual, alumno, revisión y administración) se publica con `npx supabase db push` antes de unir `develop` → `main`, por la migración `20261024000001_semanas_con_fecha.sql`. La 7 (asistencia a catequesis: base, lista del staff, y vista del alumno y reportes) sale como v1.2.0 con `npx supabase db push` antes de unir `develop` → `main`, por la migración `20261025000001_catequesis.sql`. En curso, la 8 (misas cerca de mí, plan en 3 PR: base, Administración → Misas y la página pública `/misas`; sale como v1.4.0 con `npx supabase db push`, por la migración `20261027000001_misas.sql`). `lib/supabase/client.ts` está tipado con `Database`: tras cambiar el esquema hay que correr `npm run db:types` o `tsc` marcará las consultas.
+Plan aprobado en fases 0–7. Hechas: base nueva (0–1), fotos en R2 (2), pantalla del alumno (3), revisión del staff (4), administración (5) y publicación (6, v1.0.0 en `asistencia-misa-pastoral-mariana.vercel.app`; falta el subdominio). La v1.1.0 de UI/UX (identidad visual, alumno, revisión y administración) se publica con `npx supabase db push` antes de unir `develop` → `main`, por la migración `20261024000001_semanas_con_fecha.sql`. La 7 (asistencia a catequesis: base, lista del staff, y vista del alumno y reportes) sale como v1.2.0 con `npx supabase db push` antes de unir `develop` → `main`, por la migración `20261025000001_catequesis.sql`. La 8 (misas cerca de mí: base, Administración → Misas y la página pública `/misas`) sale como v1.4.0 con `npx supabase db push` antes de unir `develop` → `main`, por la migración `20261027000001_misas.sql`. `lib/supabase/client.ts` está tipado con `Database`: tras cambiar el esquema hay que correr `npm run db:types` o `tsc` marcará las consultas.
 
 ## Arquitectura
 
@@ -74,6 +74,10 @@ Plan aprobado en fases 0–7. Hechas: base nueva (0–1), fotos en R2 (2), panta
 ### Alumno (`/alumno`)
 
 `app/alumno/page.tsx` orquesta: sin código recordado muestra `IngresoCodigo` (pide el código personal y confirma "¿Eres Ana P.?" antes de recordarlo); con código muestra `PanelAlumno` (semana actual con `EnvioFoto` si `accion` es `enviar`/`reenviar`, o el estado/cuenta regresiva; `TuCatequesis` con las últimas sesiones de `catequesis`, que es opcional en el tipo por si la base no tiene la migración; y el historial de misa). El código se recuerda en `localStorage` mediante `useCodigoGuardado` (`useSyncExternalStore`; `undefined` mientras hidrata, así no hay parpadeo ni error de hidratación). Los textos de error salen de `lib/alumno/mensajes.ts`.
+
+### Misas cerca de mí (`/misas`)
+
+Página pública, sin código (`app/misas/page.tsx` con su `metadata`, que muestra `PaginaMisas` de `components/misas/`). Pide `iglesias_con_misas()` una sola vez. "Usar mi ubicación" llama a `navigator.geolocation` solo al tocar el botón, y la ubicación vive en el estado de React (nunca en `localStorage` ni en la red) para ordenar con `distanciaKm` (`lib/misas/ubicacion.ts`); sin permiso se filtra por distrito. `TarjetaIglesia` marca con `marcarMisas` (`lib/misas/proxima.ts`, en hora de Lima) las misas que ya empezaron y la próxima, y "Cómo llegar" abre Google Maps (`enlaceComoLlegar`). Se llega desde `PanelAlumno`, desde `IngresoCodigo` y por el atajo "Misas cerca" del manifest.
 
 ### Staff
 

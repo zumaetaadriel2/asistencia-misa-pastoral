@@ -42,3 +42,30 @@ export function parsearUbicacion(texto: string): Coordenadas | { error: string }
 export function formatearUbicacion({ latitud, longitud }: Coordenadas): string {
   return `${latitud.toFixed(6)}, ${longitud.toFixed(6)}`;
 }
+
+const RADIO_TIERRA_KM = 6371;
+const aRadianes = (grados: number) => (grados * Math.PI) / 180;
+
+/** Distancia en línea recta (fórmula de Haversine). Se calcula en el celular: la ubicación no sale de ahí. */
+export function distanciaKm(a: Coordenadas, b: Coordenadas): number {
+  const dLatitud = aRadianes(b.latitud - a.latitud);
+  const dLongitud = aRadianes(b.longitud - a.longitud);
+  const h =
+    Math.sin(dLatitud / 2) ** 2 +
+    Math.cos(aRadianes(a.latitud)) * Math.cos(aRadianes(b.latitud)) * Math.sin(dLongitud / 2) ** 2;
+  return 2 * RADIO_TIERRA_KM * Math.asin(Math.sqrt(h));
+}
+
+const formatoKm = new Intl.NumberFormat("es-PE", { maximumFractionDigits: 1 });
+
+/** "350 m", "1.2 km" o "15 km" (en Perú el decimal es punto) */
+export function formatearDistancia(km: number): string {
+  if (km < 1) return `${Math.max(50, Math.round((km * 1000) / 50) * 50)} m`;
+  if (km < 10) return `${formatoKm.format(km)} km`;
+  return `${Math.round(km)} km`;
+}
+
+/** Enlace de Google Maps con la ruta hasta la iglesia (Maps usa su propia ubicación del celular) */
+export function enlaceComoLlegar({ latitud, longitud }: Coordenadas): string {
+  return `https://www.google.com/maps/dir/?api=1&destination=${latitud},${longitud}`;
+}
