@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // El cliente real de Supabase exige variables de entorno: se reemplaza por uno falso
 const invoke = vi.fn();
-vi.mock("@/lib/supabase/client", () => ({ supabase: { functions: { invoke } } }));
+vi.mock("@/lib/supabase/client", () => ({ supabasePublico: { functions: { invoke } } }));
 vi.mock("./procesar", () => ({
   TIPO_FOTO: "image/jpeg",
   procesarFoto: vi.fn(async () => ({ blob: new Blob(["x"]), huella: BigInt(1), fechaExif: null })),

@@ -5,7 +5,7 @@
 // (RLS); crear, editar e importar va por RPC, que valida y reemplaza las misas en una sola
 // operación.
 
-import { supabase } from "@/lib/supabase/client";
+import { supabase, supabasePublico } from "@/lib/supabase/client";
 import type { Json } from "@/lib/supabase/database.types";
 import type { DiaMisa, Misa } from "./horarios";
 import type { DatosIglesia, Distrito } from "./importacion";
@@ -21,7 +21,7 @@ export interface IglesiaAdmin extends DatosIglesia {
 export type IglesiaPublica = Omit<IglesiaAdmin, "activa">;
 
 export async function obtenerIglesiasPublicas(): Promise<IglesiaPublica[]> {
-  const { data, error } = await supabase.rpc("iglesias_con_misas");
+  const { data, error } = await supabasePublico.rpc("iglesias_con_misas");
   if (error) throw error;
   return data as unknown as IglesiaPublica[];
 }
