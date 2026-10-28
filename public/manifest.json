@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "Asistencia · Pastoral Mariana",
-  "short_name": "Asistencia",
-  "description": "Asistencia a misa de los alumnos de catequesis de la Pastoral Mariana",
+  "name": "Mi Misa PS · Pastoral Mariana",
+  "short_name": "Mi Misa PS",
+  "description": "Asistencia a misa y catequesis de los alumnos de la Pastoral Mariana, y misas cerca de ti",
   "lang": "es",
   "start_url": "/",
   "display": "standalone",
