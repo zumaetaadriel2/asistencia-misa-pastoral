@@ -5,6 +5,7 @@ import type { PerfilStaff } from "@/lib/staff/revision";
 import { SeccionAlumnos } from "./seccion-alumnos";
 import { SeccionCiclo } from "./seccion-ciclo";
 import { SeccionComunidades } from "./seccion-comunidades";
+import { SeccionMisas } from "./seccion-misas";
 import { SeccionReportes } from "./seccion-reportes";
 import { SeccionStaff } from "./seccion-staff";
 
@@ -14,6 +15,7 @@ const SECCIONES = [
   { id: "staff", texto: "Staff" },
   { id: "alumnos", texto: "Alumnos" },
   { id: "reportes", texto: "Reportes" },
+  { id: "misas", texto: "Misas" },
 ] as const;
 
 type Seccion = (typeof SECCIONES)[number]["id"];
@@ -66,6 +68,7 @@ export function PanelAdministracion({ perfil }: { perfil: PerfilStaff }) {
         {seccion === "staff" && <SeccionStaff perfil={perfil} />}
         {seccion === "alumnos" && <SeccionAlumnos />}
         {seccion === "reportes" && <SeccionReportes perfil={perfil} />}
+        {seccion === "misas" && <SeccionMisas />}
       </div>
     </div>
   );

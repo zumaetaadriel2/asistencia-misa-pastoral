@@ -110,3 +110,26 @@ with nuevos as (
 insert into public.asistencias (ciclo_id, alumno_id, semana_numero, estado, envio_actual_id)
 select ciclo_id, alumno_id, semana_numero, 'pendiente', id
 from nuevos;
+
+-- Misas cerca de mí: iglesias ficticias con coordenadas en Trujillo. San Miguel y San Juan
+-- salen en /misas; Santa Ana está inactiva y Cristo Rey no tiene misas (ninguna de las dos sale).
+insert into public.iglesias (nombre, distrito, direccion, latitud, longitud, telefono, notas, activa, verificado_en)
+values
+  ('Parroquia de Prueba San Miguel', 'Trujillo', 'Jr. Ficticio 123', -8.111600, -79.028700, '044 000000', 'Misa de jóvenes el domingo a las 19:00.', true, '2026-10-20'),
+  ('Parroquia de Prueba San Juan', 'El Porvenir', 'Av. Imaginaria 456', -8.077500, -79.000800, null, null, true, '2026-10-20'),
+  ('Capilla de Prueba Santa Ana', 'Víctor Larco Herrera', 'Calle Inventada 789', -8.133000, -79.045000, null, null, false, null),
+  ('Parroquia de Prueba Cristo Rey', 'La Esperanza', 'Av. Supuesta 321', -8.075000, -79.045500, null, null, true, null);
+
+insert into public.horarios_misa (iglesia_id, dia, hora)
+select i.id, v.dia, v.hora::time
+from (values
+  ('Parroquia de Prueba San Miguel', 6, '19:00'),
+  ('Parroquia de Prueba San Miguel', 7, '08:00'),
+  ('Parroquia de Prueba San Miguel', 7, '11:00'),
+  ('Parroquia de Prueba San Miguel', 7, '19:00'),
+  ('Parroquia de Prueba San Juan', 6, '18:00'),
+  ('Parroquia de Prueba San Juan', 7, '07:00'),
+  ('Parroquia de Prueba San Juan', 7, '10:00'),
+  ('Capilla de Prueba Santa Ana', 7, '09:00')
+) as v(nombre, dia, hora)
+join public.iglesias i on i.nombre = v.nombre;

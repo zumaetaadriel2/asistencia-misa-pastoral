@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Boton } from "@/components/ui/base";
 import { useConfirmar } from "@/components/ui/confirmar";
 import { useEnfocarAlAparecer } from "@/components/ui/enfoque";
@@ -93,6 +94,21 @@ export function PanelAlumno({ datos, codigo, onCambiarCodigo, onActualizar, onEn
 
         {accion === null && <EstadoSinAccion datos={datos} onActualizar={onActualizar} />}
       </section>
+
+      {/* ── Dónde ir a misa ── */}
+      <Link
+        href="/misas"
+        className="tarjeta p-4 flex items-center justify-between gap-3 animate-fade-in delay-100 transition-colors hover:border-marca/40
+                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marca/50"
+      >
+        <span>
+          <span className="block text-sm font-semibold text-texto">¿Dónde hay misa este fin de semana?</span>
+          <span className="block text-xs text-texto-tenue">Iglesias cerca de ti, con sus horarios</span>
+        </span>
+        <span aria-hidden="true" className="text-marca text-lg">
+          →
+        </span>
+      </Link>
 
       {/* ── Catequesis ── */}
       <TuCatequesis sesiones={catequesis} />

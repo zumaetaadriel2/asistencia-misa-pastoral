@@ -129,8 +129,17 @@ export function IngresoCodigo({ aviso, onConfirmado }: Props) {
         <p className="mt-6 text-center text-xs text-texto-tenue">
           ¿No tienes tu código? Pídeselo a tu guía de comunidad.
         </p>
-        {/* La app instalada no tiene barra de direcciones: este es el camino del staff al panel */}
+        {/* Las misas cercanas son públicas: no hace falta el código */}
         <p className="mt-4 text-center">
+          <Link
+            href="/misas"
+            className="inline-flex items-center min-h-11 px-2 text-sm text-marca hover:underline underline-offset-4 font-medium"
+          >
+            Ver misas cerca de ti
+          </Link>
+        </p>
+        {/* La app instalada no tiene barra de direcciones: este es el camino del staff al panel */}
+        <p className="text-center">
           <Link
             href="/login"
             className="inline-flex items-center min-h-11 px-2 text-sm text-texto-suave hover:text-texto underline underline-offset-4"
