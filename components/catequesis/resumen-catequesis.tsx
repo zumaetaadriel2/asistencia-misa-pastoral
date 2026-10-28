@@ -1,17 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { descargarExcel } from "@/lib/excel/libro";
 import {
-  armarCsvCatequesis,
   marcasPorAlumno,
   resumenCatequesis,
   resumirCatequesis,
+  tablaCatequesis,
   type FilaResumenCatequesis,
   type SesionCatequesis,
 } from "@/lib/staff/catequesis";
 import { coincide } from "@/lib/staff/busqueda";
 import { mensajeDe } from "@/lib/staff/errores";
-import { descargarCsv, nombreArchivo } from "@/lib/staff/reporte";
+import { nombreArchivo } from "@/lib/staff/reporte";
 import { ESTADOS_CATEQUESIS, type EstadoCatequesisVista } from "@/lib/ui/estados";
 import { formatearFecha } from "@/lib/utils/timeHelpers";
 import { Buscador, Cargando } from "@/components/ui/base";
@@ -31,6 +32,8 @@ export function ResumenCatequesis({ comunidadId, comunidad, sesiones, onAbrir }:
   const [datos, setDatos] = useState<{ comunidadId: number; filas: FilaResumenCatequesis[] } | null>(null);
   const [error, setError] = useState("");
   const [busqueda, setBusqueda] = useState("");
+  const [descargando, setDescargando] = useState(false);
+  const [errorExcel, setErrorExcel] = useState("");
 
   useEffect(() => {
     let cancelado = false;
@@ -61,8 +64,17 @@ export function ResumenCatequesis({ comunidadId, comunidad, sesiones, onAbrir }:
   const alumnos = marcasPorAlumno(filas);
   const visibles = alumnos.filter((a) => coincide(busqueda, a.nombre));
 
-  const descargar = () =>
-    descargarCsv(`catequesis-${nombreArchivo(comunidad)}.csv`, armarCsvCatequesis(sesiones, filas));
+  const descargar = async () => {
+    setDescargando(true);
+    setErrorExcel("");
+    try {
+      await descargarExcel(`catequesis-${nombreArchivo(comunidad)}.xlsx`, [tablaCatequesis(sesiones, filas)]);
+    } catch (e) {
+      setErrorExcel(mensajeDe(e, "No se pudo armar el Excel."));
+    } finally {
+      setDescargando(false);
+    }
+  };
 
   return (
     <div className="space-y-3">
@@ -72,13 +84,18 @@ export function ResumenCatequesis({ comunidadId, comunidad, sesiones, onAbrir }:
         </div>
         <button
           onClick={descargar}
-          disabled={sesiones.length === 0}
+          disabled={sesiones.length === 0 || descargando}
           className="min-h-11 px-4 rounded-xl bg-exito/15 hover:bg-exito/25 border border-exito/25
                      text-exito text-sm font-semibold transition-all disabled:opacity-40"
         >
-          Descargar Excel
+          {descargando ? "Generando…" : "Descargar Excel"}
         </button>
       </div>
+      {errorExcel && (
+        <p role="alert" className="text-sm text-error">
+          {errorExcel}
+        </p>
+      )}
 
       {alumnos.length === 0 ? (
         <p className="text-sm text-texto-tenue text-center py-10">Esta comunidad todavía no tiene alumnos.</p>

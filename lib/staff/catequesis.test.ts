@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 // El cliente real de Supabase exige variables de entorno: aquí solo se prueba la lógica pura
 vi.mock("@/lib/supabase/client", () => ({ supabase: {} }));
 
-const { armarCsvCatequesis, armarCsvCatequesisCiclo, marcasPorAlumno, resumirCatequesis } = await import("./catequesis");
+const { marcasPorAlumno, resumirCatequesis, tablaCatequesis, tablaCatequesisCiclo } = await import("./catequesis");
 
 describe("resumirCatequesis", () => {
   it("la tardanza cuenta como asistencia y se cuenta aparte", () => {
@@ -44,25 +44,33 @@ describe("marcasPorAlumno", () => {
   });
 });
 
-describe("armarCsvCatequesis", () => {
-  const lineas = armarCsvCatequesis(sesiones, filas).replace("﻿", "").split("\r\n");
+describe("tablaCatequesis", () => {
+  const tabla = tablaCatequesis(sesiones, filas);
 
-  it("ordena las sesiones de la más antigua a la más reciente", () => {
-    expect(lineas[0]).toBe(
-      '"Alumno","sáb 17 oct · Catequesis","dom 18 oct · Retiro","Asistió","Tardanzas","Faltas","Justificadas","% asistencia"'
-    );
+  it("ordena las sesiones de la más antigua a la más reciente, con el alumno fijo", () => {
+    expect(tabla.columnas.map((c) => c.titulo)).toEqual([
+      "Alumno",
+      "sáb 17 oct · Catequesis",
+      "dom 18 oct · Retiro",
+      "Asistió",
+      "Tardanzas",
+      "Faltas",
+      "Justificadas",
+      "% asistencia",
+    ]);
+    expect(tabla.columnasFijas).toBe(1);
   });
 
-  it("pone la marca de cada sesión y los totales", () => {
-    expect(lineas[1]).toBe('"Ana Pérez","Presente","Tardanza","2","1","0","0","100%"');
+  it("pone la marca de cada sesión y los totales (el porcentaje de 0 a 1)", () => {
+    expect(tabla.filas[0]).toEqual(["Ana Pérez", "Presente", "Tardanza", 2, 1, 0, 0, 1]);
   });
 
   it("marca a los inactivos y deja vacío lo sin marcar", () => {
-    expect(lineas[2]).toBe('"Bruno Díaz (inactivo)","","","0","0","0","0",""');
+    expect(tabla.filas[1]).toEqual(["Bruno Díaz (inactivo)", null, null, 0, 0, 0, 0, null]);
   });
 });
 
-describe("armarCsvCatequesisCiclo", () => {
+describe("tablaCatequesisCiclo", () => {
   const sesionesCiclo = [
     { id: 3, comunidad_id: 2, comunidad: "Santa Rosa", programa: "confirmacion" as const, fecha: "2026-10-17", titulo: "Catequesis" },
     { id: 1, comunidad_id: 1, comunidad: "San José", programa: "primera_comunion" as const, fecha: "2026-10-17", titulo: "Catequesis" },
@@ -74,17 +82,17 @@ describe("armarCsvCatequesisCiclo", () => {
     { id: 13, nombre: "Diego Solís", activo: false, comunidad_id: 2 },
   ];
   const marcasCiclo = [
-    { sesion_id: 1, alumno_id: 11, estado: "justificada" as const, motivo: "=Viaje" },
+    { sesion_id: 1, alumno_id: 11, estado: "justificada" as const, motivo: "Viaje" },
     { sesion_id: 3, alumno_id: 12, estado: "tardanza" as const, motivo: null },
   ];
-  const lineas = armarCsvCatequesisCiclo(sesionesCiclo, alumnosCiclo, marcasCiclo).replace("﻿", "").split("\r\n");
+  const tabla = tablaCatequesisCiclo(sesionesCiclo, alumnosCiclo, marcasCiclo);
 
   it("una fila por alumno y sesión, ordenadas por comunidad", () => {
-    expect(lineas).toEqual([
-      '"Comunidad","Programa","Fecha","Sesión","Alumno","Estado","Motivo"',
-      '"San José","Primera Comunión","2026-10-17","Catequesis","Ana Pérez","Sin marcar",""',
-      `"San José","Primera Comunión","2026-10-17","Catequesis","Bruno Díaz (inactivo)","Justificada","'=Viaje"`,
-      '"Santa Rosa","Confirmación","2026-10-17","Catequesis","Carla Ruiz","Tardanza",""',
+    expect(tabla.columnas.map((c) => c.titulo)).toEqual(["Comunidad", "Programa", "Fecha", "Sesión", "Alumno", "Estado", "Motivo"]);
+    expect(tabla.filas).toEqual([
+      ["San José", "Primera Comunión", "2026-10-17", "Catequesis", "Ana Pérez", "Sin marcar", null],
+      ["San José", "Primera Comunión", "2026-10-17", "Catequesis", "Bruno Díaz (inactivo)", "Justificada", "Viaje"],
+      ["Santa Rosa", "Confirmación", "2026-10-17", "Catequesis", "Carla Ruiz", "Tardanza", null],
     ]);
   });
 });

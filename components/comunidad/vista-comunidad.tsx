@@ -14,7 +14,8 @@ import {
 import { datosReporte } from "@/lib/staff/admin";
 import { coincide } from "@/lib/staff/busqueda";
 import { mensajeDe } from "@/lib/staff/errores";
-import { armarCsvAsistencia, descargarCsv, nombreArchivo } from "@/lib/staff/reporte";
+import { descargarExcel } from "@/lib/excel/libro";
+import { nombreArchivo, tablaAsistencia } from "@/lib/staff/reporte";
 import type { PerfilStaff } from "@/lib/staff/revision";
 import { Boton, Buscador, claseInput } from "@/components/ui/base";
 import { useConfirmar } from "@/components/ui/confirmar";
@@ -113,10 +114,9 @@ export function VistaComunidad({ perfil }: { perfil: PerfilStaff }) {
     setDescargando(true);
     try {
       const { alumnos, registros } = await datosReporte(comunidad.id);
-      descargarCsv(
-        `asistencia-${nombreArchivo(comunidad.nombre)}-semana-${semanas}.csv`,
-        armarCsvAsistencia(alumnos, registros, semanas)
-      );
+      await descargarExcel(`asistencia-${nombreArchivo(comunidad.nombre)}-semana-${semanas}.xlsx`, [
+        tablaAsistencia(alumnos, registros, semanas),
+      ]);
     } catch (e) {
       setError(mensajeDe(e, "No se pudo generar el reporte."));
     } finally {
