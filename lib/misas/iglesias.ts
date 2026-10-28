@@ -1,8 +1,9 @@
 // =============================================
-// Iglesias y misas en la base (Administración → Misas)
+// Iglesias y misas en la base
 // =============================================
-// El admin las lee directo (RLS); crear, editar e importar va por RPC, que valida y
-// reemplaza las misas en una sola operación.
+// Cualquiera lee las activas con misas (página pública /misas). El admin las lee directo
+// (RLS); crear, editar e importar va por RPC, que valida y reemplaza las misas en una sola
+// operación.
 
 import { supabase } from "@/lib/supabase/client";
 import type { Json } from "@/lib/supabase/database.types";
@@ -14,6 +15,15 @@ export interface IglesiaAdmin extends DatosIglesia {
   activa: boolean;
   /** "AAAA-MM-DD": la última vez que se guardaron sus misas */
   verificado_en: string | null;
+}
+
+/** Lo que devuelve iglesias_con_misas(): solo activas y con al menos una misa */
+export type IglesiaPublica = Omit<IglesiaAdmin, "activa">;
+
+export async function obtenerIglesiasPublicas(): Promise<IglesiaPublica[]> {
+  const { data, error } = await supabase.rpc("iglesias_con_misas");
+  if (error) throw error;
+  return data as unknown as IglesiaPublica[];
 }
 
 /** "19:00:00" (time de Postgres) → "19:00" */

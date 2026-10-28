@@ -81,6 +81,17 @@ export function formatearFechaConAnio(fecha: string): string {
     .replace(/\s+/g, " ");
 }
 
+const formatoMesAnio = new Intl.DateTimeFormat("es-PE", { timeZone: ZONA_HORARIA, month: "short", year: "numeric" });
+
+/** Fecha "AAAA-MM-DD" → "oct 2026" */
+export function formatearMesAnio(fecha: string): string {
+  return formatoMesAnio
+    .format(new Date(`${fecha}T12:00:00-05:00`))
+    .replace(/[.,]/g, "")
+    .replace(/\s+de\s+/g, " ")
+    .replace(/\s+/g, " ");
+}
+
 /** Hoy en Lima como "AAAA-MM-DD" (para el valor por defecto de un campo de fecha) */
 export function hoyEnLima(ahora: Date = new Date()): string {
   // en-CA da el formato AAAA-MM-DD
