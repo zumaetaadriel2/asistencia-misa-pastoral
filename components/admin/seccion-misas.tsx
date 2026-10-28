@@ -1,12 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { coincide } from "@/lib/staff/busqueda";
 import { mensajeDe } from "@/lib/staff/errores";
-import { descargarCsv } from "@/lib/staff/reporte";
+import { descargarExcel, leerExcel } from "@/lib/excel/libro";
+import type { Tabla } from "@/lib/excel/tabla";
 import { formatearMisas } from "@/lib/misas/horarios";
 import { borrarIglesia, cambiarIglesiaActiva, importarIglesias, listarIglesias, type IglesiaAdmin } from "@/lib/misas/iglesias";
-import { armarCsvIglesias, parsearFilasIglesias, plantillaCsv } from "@/lib/misas/importacion";
+import {
+  HOJA_IGLESIAS,
+  libroIglesias,
+  parsearCeldasIglesias,
+  parsearFilasIglesias,
+  plantillaIglesias,
+  type LecturaIglesias,
+} from "@/lib/misas/importacion";
 import { formatearFechaConAnio, hoyEnLima } from "@/lib/utils/timeHelpers";
 import { Boton, Buscador, Cargando, claseInput, Mensaje, Tarjeta, type MensajeAdmin } from "@/components/ui/base";
 import { useConfirmar } from "@/components/ui/confirmar";
@@ -20,13 +28,20 @@ const FILTROS = {
 
 type Filtro = keyof typeof FILTROS;
 
+/** La plantilla llena pesa unos KB: algo más grande no es la plantilla de iglesias */
+const PESO_MAXIMO = 5 * 1024 * 1024;
+
 /** Iglesias y misas de la página pública /misas: importar desde Excel y corregir una por una */
 export function SeccionMisas() {
   const [iglesias, setIglesias] = useState<IglesiaAdmin[] | null>(null);
   const [recargas, setRecargas] = useState(0);
   const [mensaje, setMensaje] = useState<MensajeAdmin | null>(null);
   const [texto, setTexto] = useState("");
+  const [archivo, setArchivo] = useState<{ nombre: string; lectura: LecturaIglesias } | null>(null);
+  const [leyendo, setLeyendo] = useState(false);
+  const [descargando, setDescargando] = useState(false);
   const [importando, setImportando] = useState(false);
+  const selectorArchivo = useRef<HTMLInputElement>(null);
   const [busqueda, setBusqueda] = useState("");
   const [filtro, setFiltro] = useState<Filtro>("todas");
   const [editando, setEditando] = useState<IglesiaAdmin | "nueva" | null>(null);
@@ -46,7 +61,8 @@ export function SeccionMisas() {
     };
   }, [recargas]);
 
-  const filas = parsearFilasIglesias(texto);
+  const lectura = archivo ? archivo.lectura : parsearFilasIglesias(texto);
+  const filas = lectura.filas;
   const validas = filas.filter((f) => f.datos);
   const conErrores = filas.filter((f) => !f.datos);
 
@@ -54,7 +70,7 @@ export function SeccionMisas() {
     if (conErrores.length > 0) {
       const seguro = await confirmar({
         titulo: `¿Importar ${validas.length} de ${filas.length}?`,
-        mensaje: `${conErrores.length === 1 ? "Una fila tiene" : `${conErrores.length} filas tienen`} errores y no se importará${conErrores.length === 1 ? "" : "n"}. Quedarán en el cuadro para que las corrijas.`,
+        mensaje: `${conErrores.length === 1 ? "Una fila tiene" : `${conErrores.length} filas tienen`} errores y no se importará${conErrores.length === 1 ? "" : "n"}. ${archivo ? "Quedarán en la lista para que las corrijas en tu Excel." : "Quedarán en el cuadro para que las corrijas."}`,
         aceptar: "Importar las válidas",
       });
       if (!seguro) return;
@@ -66,14 +82,59 @@ export function SeccionMisas() {
         tipo: "ok",
         texto: `Listo: ${creadas} ${creadas === 1 ? "nueva" : "nuevas"} y ${actualizadas} ${actualizadas === 1 ? "actualizada" : "actualizadas"}.`,
       });
-      // Quedan solo las filas con errores, para corregirlas ahí mismo
-      const lineas = texto.split(/\r?\n/);
-      setTexto(conErrores.map((f) => lineas[f.numero - 1]).join("\n"));
+      // Quedan solo las filas con errores (y el encabezado, que dice qué es cada columna)
+      if (archivo) {
+        setArchivo(conErrores.length ? { ...archivo, lectura: { ...lectura, filas: conErrores } } : null);
+      } else {
+        const lineas = texto.split(/\r?\n/);
+        const quedan = conErrores.length ? [lectura.encabezado, ...conErrores.map((f) => f.numero)] : [];
+        setTexto(
+          quedan
+            .filter((n): n is number => n !== null)
+            .map((n) => lineas[n - 1])
+            .join("\n")
+        );
+      }
       setRecargas((n) => n + 1);
     } catch (e) {
       setMensaje({ tipo: "error", texto: mensajeDe(e, "No se pudo importar.") });
     } finally {
       setImportando(false);
+    }
+  };
+
+  const subir = async (elegido: File) => {
+    if (elegido.size > PESO_MAXIMO) {
+      setMensaje({ tipo: "error", texto: "El archivo pesa demasiado: sube la plantilla de iglesias llena." });
+      return;
+    }
+    setLeyendo(true);
+    try {
+      const leida = parsearCeldasIglesias(await leerExcel(await elegido.arrayBuffer(), HOJA_IGLESIAS));
+      if (leida.filas.length === 0) {
+        setMensaje({ tipo: "error", texto: `«${elegido.name}» no tiene iglesias: llénalas en la hoja «${HOJA_IGLESIAS}».` });
+        return;
+      }
+      setArchivo({ nombre: elegido.name, lectura: leida });
+      setMensaje(null);
+    } catch {
+      setMensaje({
+        tipo: "error",
+        texto: "No se pudo leer el archivo. Debe ser un Excel .xlsx (en Excel: Archivo → Guardar como → Libro de Excel).",
+      });
+    } finally {
+      setLeyendo(false);
+    }
+  };
+
+  const descargar = async (nombre: string, tablas: Tabla[]) => {
+    setDescargando(true);
+    try {
+      await descargarExcel(nombre, tablas);
+    } catch (e) {
+      setMensaje({ tipo: "error", texto: mensajeDe(e, "No se pudo armar el Excel.") });
+    } finally {
+      setDescargando(false);
     }
   };
 
@@ -123,21 +184,51 @@ export function SeccionMisas() {
 
       <Tarjeta
         titulo="Importar desde Excel"
-        descripcion="Copia las filas de tu Excel (con o sin encabezado) y pégalas aquí. Columnas: Nombre, Distrito, Dirección, Ubicación, Teléfono, Misas y Notas; las de más se ignoran. Si la iglesia ya existe (mismo nombre y distrito), se actualiza y sus misas se reemplazan."
+        descripcion="Descarga la plantilla, llénala (una fila por iglesia) y súbela. Si una iglesia ya existe (mismo nombre y distrito), se actualiza y sus misas se reemplazan."
       >
         <div className="flex flex-wrap gap-2 mb-3">
-          <Boton variante="secundario" tamano="pequeno" onClick={() => descargarCsv("plantilla-iglesias.csv", plantillaCsv())}>
-            Descargar plantilla
+          <Boton
+            variante="secundario"
+            tamano="pequeno"
+            onClick={() => descargar("plantilla-iglesias.xlsx", plantillaIglesias())}
+            disabled={descargando}
+          >
+            Descargar plantilla (Excel)
           </Boton>
+          <Boton tamano="pequeno" onClick={() => selectorArchivo.current?.click()} disabled={leyendo || importando}>
+            {leyendo ? "Leyendo…" : "Subir Excel"}
+          </Boton>
+          <input
+            ref={selectorArchivo}
+            type="file"
+            accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+            className="hidden"
+            onChange={(e) => {
+              const elegido = e.target.files?.[0];
+              // Vaciarlo deja volver a subir el mismo archivo después de corregirlo
+              e.target.value = "";
+              if (elegido) subir(elegido);
+            }}
+          />
         </div>
-        <textarea
-          value={texto}
-          onChange={(e) => setTexto(e.target.value)}
-          rows={6}
-          placeholder={"Parroquia San José\tTrujillo\tJr. Ejemplo 123\t-8.1116, -79.0287\t\tSáb 19:00; Dom 8:00 y 11:00\t"}
-          aria-label="Filas copiadas del Excel"
-          className={`${claseInput} resize-y font-mono text-xs`}
-        />
+
+        {archivo ? (
+          <div className="flex items-center justify-between gap-2 rounded-xl border border-borde bg-superficie-2 px-3 py-1.5">
+            <p className="min-w-0 truncate text-sm text-texto">{archivo.nombre}</p>
+            <Boton variante="fantasma" tamano="pequeno" onClick={() => setArchivo(null)}>
+              Quitar
+            </Boton>
+          </div>
+        ) : (
+          <textarea
+            value={texto}
+            onChange={(e) => setTexto(e.target.value)}
+            rows={4}
+            placeholder="O copia las filas de tu Excel, con su encabezado, y pégalas aquí."
+            aria-label="Filas copiadas del Excel"
+            className={`${claseInput} resize-y font-mono text-xs`}
+          />
+        )}
 
         {filas.length > 0 && (
           <div className="mt-3 space-y-2">
@@ -157,7 +248,7 @@ export function SeccionMisas() {
                 {conErrores.map((f) => (
                   <li key={f.numero}>
                     <strong>
-                      Línea {f.numero} · {f.nombre}:
+                      Fila {f.numero} · {f.nombre}:
                     </strong>{" "}
                     {f.errores.join(" ")}
                   </li>
@@ -199,8 +290,8 @@ export function SeccionMisas() {
           <Boton
             variante="secundario"
             tamano="pequeno"
-            onClick={() => descargarCsv(`iglesias-${hoyEnLima()}.csv`, armarCsvIglesias(iglesias))}
-            disabled={iglesias.length === 0}
+            onClick={() => descargar(`iglesias-${hoyEnLima()}.xlsx`, libroIglesias(iglesias))}
+            disabled={iglesias.length === 0 || descargando}
           >
             Descargar la lista (Excel)
           </Boton>

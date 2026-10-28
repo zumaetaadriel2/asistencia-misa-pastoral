@@ -1,7 +1,8 @@
 // =============================================
 // Misas del fin de semana escritas como texto: "Sáb 19:00; Dom 7:00, 9:00 y 11:00"
 // =============================================
-// Es el formato de la columna "Misas" del Excel y del campo del formulario. Solo se
+// Es el formato del campo del formulario y de la columna "Misas" del Excel (en la plantilla
+// van separadas en Sábado y Domingo, y se leen igual anteponiendo el día). Solo se
 // aceptan las misas del sábado desde las 17:00 (víspera) y las del domingo, igual que
 // la base (horarios_misa).
 
@@ -24,7 +25,8 @@ const ENTRE_SEMANA = new Set([
 ]);
 /** Palabras que unen días u horas y no significan nada por sí solas ("Sáb y Dom", "Lun a Vie") */
 const UNIONES = new Set(["y", "a", "al", "e", "de", "las", "hrs", "h"]);
-const HORA = /^(\d{1,2})(?:[:.h](\d{2}))?(am|pm)?$/;
+// Los segundos ("19:00:00") son como copia Excel una celda con formato de hora
+const HORA = /^(\d{1,2})(?:[:.h](\d{2})(?::00)?)?(am|pm)?$/;
 
 /** Minúsculas y sin tildes; "p. m." → "pm" */
 function normalizar(texto: string): string {
@@ -122,6 +124,14 @@ export function horaCorta(hora: string): string {
 export function unirHoras(horas: string[]): string {
   const cortas = horas.map(horaCorta);
   return cortas.length > 1 ? `${cortas.slice(0, -1).join(", ")} y ${cortas[cortas.length - 1]}` : (cortas[0] ?? "");
+}
+
+/** Las horas de un día separadas por coma, como van en las columnas Sábado y Domingo del Excel: "7:00, 9:00, 11:00" */
+export function horasDelDia(misas: Misa[], dia: DiaMisa): string {
+  return ordenar(misas)
+    .filter((m) => m.dia === dia)
+    .map((m) => horaCorta(m.hora))
+    .join(", ");
 }
 
 /** El texto canónico: "Sáb 19:00; Dom 7:00, 9:00 y 11:00" (vacío si no hay misas) */
