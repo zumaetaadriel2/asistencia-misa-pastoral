@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatearCuentaRegresiva, formatearDiaHora, formatearFecha, hoyEnLima } from "./timeHelpers";
+import { formatearCuentaRegresiva, formatearDiaHora, formatearFecha, formatearFechaConAnio, hoyEnLima } from "./timeHelpers";
 
 const SEGUNDO = 1000;
 const MINUTO = 60 * SEGUNDO;
@@ -47,6 +47,13 @@ describe("formatearFecha", () => {
     expect(formatearFecha("2026-10-18")).toBe("dom 18 oct");
     expect(formatearFecha("2026-03-01")).toBe("dom 1 mar");
     expect(formatearFecha("2026-10-17")).toBe("sáb 17 oct");
+  });
+});
+
+describe("formatearFechaConAnio", () => {
+  it("día, mes corto y año, sin puntos ni «de»", () => {
+    expect(formatearFechaConAnio("2026-10-25")).toBe("25 oct 2026");
+    expect(formatearFechaConAnio("2027-01-03")).toBe("3 ene 2027");
   });
 });
 
