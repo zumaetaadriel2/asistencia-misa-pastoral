@@ -2,7 +2,7 @@
 // Identificación del alumno con su código (RPC identificar_alumno)
 // =============================================
 
-import { supabase } from "@/lib/supabase/client";
+import { supabasePublico } from "@/lib/supabase/client";
 import type { Database } from "@/lib/supabase/database.types";
 
 type Enums = Database["public"]["Enums"];
@@ -70,7 +70,7 @@ export const NOMBRE_PROGRAMA: Record<Programa, string> = {
 };
 
 export async function identificarAlumno(codigo: string): Promise<ResultadoIdentificacion> {
-  const { data, error } = await supabase.rpc("identificar_alumno", { p_codigo: codigo });
+  const { data, error } = await supabasePublico.rpc("identificar_alumno", { p_codigo: codigo });
   if (error || !data) return { ok: false, error: "error_de_red" };
   return data as unknown as ResultadoIdentificacion;
 }

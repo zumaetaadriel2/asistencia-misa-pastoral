@@ -18,3 +18,12 @@ if (!supabaseUrl || !supabasePublishableKey) {
  * Tipado con el esquema generado (`npm run db:types`).
  */
 export const supabase = createClient<Database>(supabaseUrl, supabasePublishableKey);
+
+/**
+ * Cliente sin sesión para lo que hace el alumno (rol anon): su código, el envío de la foto
+ * y las misas cercanas. Nunca lleva la sesión del staff, así que funciona aunque en ese
+ * celular haya un guía o admin conectado (identificar_alumno solo se permite a anon).
+ */
+export const supabasePublico = createClient<Database>(supabaseUrl, supabasePublishableKey, {
+  auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false, storageKey: "sb-publico" },
+});

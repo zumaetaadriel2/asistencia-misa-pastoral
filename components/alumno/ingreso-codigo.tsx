@@ -11,6 +11,7 @@ import {
 import { MENSAJES_ERROR } from "@/lib/alumno/mensajes";
 import { Boton } from "@/components/ui/base";
 import { useEnfocarAlAparecer } from "@/components/ui/enfoque";
+import { IconoIglesia } from "@/components/ui/icono-iglesia";
 import { LogoCompleto } from "@/components/ui/logo";
 
 interface Props {
@@ -65,88 +66,93 @@ export function IngresoCodigo({ aviso, onConfirmado }: Props) {
   const faltan = LARGO_CODIGO - normalizarCodigo(texto).length;
 
   return (
-    <main className="flex-1 flex items-center justify-center px-4 py-8">
-      <div className="max-w-sm w-full animate-fade-in">
-        <div className="text-center mb-8">
-          <div className="mb-5 flex justify-center">
-            <LogoCompleto className="h-28" />
+    <main className="flex-1 flex flex-col px-4 pt-3 pb-8">
+      {/* Las misas cercanas son públicas: no hace falta el código */}
+      <div className="flex justify-end">
+        <Link
+          href="/misas"
+          className="inline-flex items-center gap-1.5 min-h-11 px-3.5 rounded-full border border-borde bg-superficie
+                     text-sm font-semibold text-marca hover:border-marca/40 transition-colors
+                     focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marca/50"
+        >
+          <IconoIglesia className="w-4 h-4" />
+          Misas cerca
+        </Link>
+      </div>
+      <div className="flex-1 flex items-center justify-center">
+        <div className="max-w-sm w-full animate-fade-in">
+          <div className="text-center mb-8">
+            <div className="mb-5 flex justify-center">
+              <LogoCompleto className="h-28" />
+            </div>
+            <h1 className="text-2xl font-bold text-texto mb-2">Asistencia a Misa</h1>
+            <p className="text-sm text-texto-suave">
+              Escribe el código personal que te dio tu guía. Solo lo pedimos la primera vez.
+            </p>
           </div>
-          <h1 className="text-2xl font-bold text-texto mb-2">Asistencia a Misa</h1>
-          <p className="text-sm text-texto-suave">
-            Escribe el código personal que te dio tu guía. Solo lo pedimos la primera vez.
+
+          <form onSubmit={verificar} className="tarjeta p-6">
+            {mensajeError && (
+              <div
+                id="codigo-error"
+                role="alert"
+                className="mb-4 p-3 rounded-xl bg-error/10 border border-error/25 animate-fade-in-scale"
+              >
+                <p className="text-sm text-error text-center">{mensajeError}</p>
+              </div>
+            )}
+
+            <label htmlFor="codigo" className="block text-sm font-medium text-texto-suave mb-1.5">
+              Tu código
+            </label>
+            <input
+              id="codigo"
+              type="text"
+              value={texto}
+              onChange={(e) => setTexto(e.target.value.toUpperCase())}
+              maxLength={8}
+              autoFocus
+              autoComplete="off"
+              autoCapitalize="characters"
+              autoCorrect="off"
+              spellCheck={false}
+              enterKeyHint="go"
+              placeholder="K7P2QM"
+              aria-invalid={Boolean(error)}
+              aria-describedby={mensajeError ? "codigo-error codigo-ayuda" : "codigo-ayuda"}
+              className="w-full px-4 py-3 rounded-xl bg-superficie-2 border border-borde text-texto text-2xl text-center
+                         font-mono tracking-[0.3em] placeholder:text-texto-tenue focus:outline-none focus:ring-2
+                         focus:ring-marca/40 focus:border-marca/50 transition-all"
+            />
+            <p id="codigo-ayuda" aria-live="polite" className="mt-2 min-h-5 text-xs text-texto-tenue text-center">
+              {faltan > 0 && texto.length > 0 && `Faltan ${faltan} ${faltan === 1 ? "carácter" : "caracteres"}`}
+            </p>
+
+            <Boton type="submit" disabled={verificando || faltan > 0} className="mt-4 w-full">
+              {verificando ? (
+                <>
+                  <span className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                  Verificando…
+                </>
+              ) : (
+                "Continuar"
+              )}
+            </Boton>
+          </form>
+
+          <p className="mt-6 text-center text-xs text-texto-tenue">
+            ¿No tienes tu código? Pídeselo a tu guía de comunidad.
+          </p>
+          {/* La app instalada no tiene barra de direcciones: este es el camino del staff al panel */}
+          <p className="mt-4 text-center">
+            <Link
+              href="/login"
+              className="inline-flex items-center min-h-11 px-2 text-sm text-texto-suave hover:text-texto underline underline-offset-4"
+            >
+              ¿Eres guía, catequista o administrador? Entrar al panel
+            </Link>
           </p>
         </div>
-
-        <form onSubmit={verificar} className="tarjeta p-6">
-          {mensajeError && (
-            <div
-              id="codigo-error"
-              role="alert"
-              className="mb-4 p-3 rounded-xl bg-error/10 border border-error/25 animate-fade-in-scale"
-            >
-              <p className="text-sm text-error text-center">{mensajeError}</p>
-            </div>
-          )}
-
-          <label htmlFor="codigo" className="block text-sm font-medium text-texto-suave mb-1.5">
-            Tu código
-          </label>
-          <input
-            id="codigo"
-            type="text"
-            value={texto}
-            onChange={(e) => setTexto(e.target.value.toUpperCase())}
-            maxLength={8}
-            autoFocus
-            autoComplete="off"
-            autoCapitalize="characters"
-            autoCorrect="off"
-            spellCheck={false}
-            enterKeyHint="go"
-            placeholder="K7P2QM"
-            aria-invalid={Boolean(error)}
-            aria-describedby={mensajeError ? "codigo-error codigo-ayuda" : "codigo-ayuda"}
-            className="w-full px-4 py-3 rounded-xl bg-superficie-2 border border-borde text-texto text-2xl text-center
-                       font-mono tracking-[0.3em] placeholder:text-texto-tenue focus:outline-none focus:ring-2
-                       focus:ring-marca/40 focus:border-marca/50 transition-all"
-          />
-          <p id="codigo-ayuda" aria-live="polite" className="mt-2 min-h-5 text-xs text-texto-tenue text-center">
-            {faltan > 0 && texto.length > 0 && `Faltan ${faltan} ${faltan === 1 ? "carácter" : "caracteres"}`}
-          </p>
-
-          <Boton type="submit" disabled={verificando || faltan > 0} className="mt-4 w-full">
-            {verificando ? (
-              <>
-                <span className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin" />
-                Verificando…
-              </>
-            ) : (
-              "Continuar"
-            )}
-          </Boton>
-        </form>
-
-        <p className="mt-6 text-center text-xs text-texto-tenue">
-          ¿No tienes tu código? Pídeselo a tu guía de comunidad.
-        </p>
-        {/* Las misas cercanas son públicas: no hace falta el código */}
-        <p className="mt-4 text-center">
-          <Link
-            href="/misas"
-            className="inline-flex items-center min-h-11 px-2 text-sm text-marca hover:underline underline-offset-4 font-medium"
-          >
-            Ver misas cerca de ti
-          </Link>
-        </p>
-        {/* La app instalada no tiene barra de direcciones: este es el camino del staff al panel */}
-        <p className="text-center">
-          <Link
-            href="/login"
-            className="inline-flex items-center min-h-11 px-2 text-sm text-texto-suave hover:text-texto underline underline-offset-4"
-          >
-            ¿Eres guía, catequista o administrador? Entrar al panel
-          </Link>
-        </p>
       </div>
     </main>
   );

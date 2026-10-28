@@ -11,6 +11,10 @@
 //   marca/logo-original.jpg   JPG original: si faltan los PNG, de aquí se recorta el óvalo
 // La versión para tema oscuro no se pide a una IA (cambiaba los colores del manto): se hace
 // aquí desde logo-completo.png, pintando de blanco solo las letras que quedan fuera del óvalo.
+//
+// Los íconos de la app ("Mi Misa PS") llevan el óvalo sobre el azul de la marca y una insignia ✓,
+// para no confundirlos con otras apps de la pastoral que usan el mismo óvalo sobre blanco.
+// El logo dentro de la interfaz (marca/web/*) no cambia.
 
 import { existsSync, mkdirSync } from "node:fs";
 import sharp from "sharp";
@@ -66,31 +70,65 @@ async function completoParaOscuro() {
   return sharp(data, { raw: info }).png().toBuffer();
 }
 
-/** Ícono cuadrado con el óvalo centrado, que ocupa `proporcion` del alto */
-async function icono(imagen, lado, proporcion, salida, fondo) {
-  const centro = await sharp(imagen).resize({ height: Math.round(lado * proporcion) }).toBuffer();
-  await sharp({ create: { width: lado, height: lado, channels: 4, background: fondo ?? { r: 0, g: 0, b: 0, alpha: 0 } } })
-    .composite([{ input: centro, gravity: "center" }])
+const BLANCO = "#ffffff";
+const AZUL = "#1d598e";
+
+/** Insignia de asistencia: círculo blanco con un ✓ azul */
+function insignia(lado) {
+  return Buffer.from(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${lado}" height="${lado}" viewBox="0 0 100 100">` +
+      `<circle cx="50" cy="50" r="49" fill="${BLANCO}"/>` +
+      `<path d="M28 52 L44 67 L73 36" fill="none" stroke="${AZUL}" stroke-width="11" ` +
+      `stroke-linecap="round" stroke-linejoin="round"/></svg>`
+  );
+}
+
+/**
+ * Ícono de la app: el óvalo centrado sobre el azul de la marca y la insignia ✓ abajo a la derecha.
+ * - alto: fracción del lado que ocupa el óvalo
+ * - insignia: diámetro de la insignia (fracción del lado)
+ * - desvio: cuánto se corre el centro de la insignia hacia la esquina (fracción del lado)
+ * - redondeo: radio de las esquinas (0 = de borde a borde; iOS y los launchers recortan solos)
+ */
+async function iconoApp(imagen, lado, salida, { alto, insignia: tamano, desvio, redondeo = 0 }) {
+  const ovaloRedimensionado = await sharp(imagen).resize({ height: Math.round(lado * alto) }).toBuffer();
+  const ladoInsignia = Math.round(lado * tamano);
+  const centroInsignia = Math.round(lado * (0.5 + desvio));
+  const fondo = Buffer.from(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="${lado}" height="${lado}">` +
+      `<rect width="${lado}" height="${lado}" rx="${Math.round(lado * redondeo)}" fill="${AZUL}"/></svg>`
+  );
+  await sharp(fondo)
+    .composite([
+      { input: ovaloRedimensionado, gravity: "center" },
+      {
+        input: insignia(ladoInsignia),
+        left: centroInsignia - Math.round(ladoInsignia / 2),
+        top: centroInsignia - Math.round(ladoInsignia / 2),
+      },
+    ])
     .png({ palette: true, quality: 90, effort: 10 })
     .toFile(salida);
   console.log("✓", salida);
 }
 
-const BLANCO = "#ffffff";
+/** Ícono normal: el óvalo grande y la insignia en la esquina */
+const NORMAL = { alto: 0.78, insignia: 0.3, desvio: 0.28 };
 const imagenOvalo = await ovalo();
 
 mkdirSync("public/icons", { recursive: true });
 mkdirSync("marca/web", { recursive: true });
 
 // Pestaña del navegador (Next lo enlaza solo desde app/icon.png)
-await icono(imagenOvalo, 192, 1, "app/icon.png");
-// iPhone: sin transparencia (iOS pinta de negro lo transparente) y con margen por las esquinas redondas
-await icono(imagenOvalo, 180, 0.86, "app/apple-icon.png", BLANCO);
+await iconoApp(imagenOvalo, 192, "app/icon.png", { ...NORMAL, redondeo: 0.22 });
+// iPhone: de borde a borde (iOS redondea las esquinas y pinta de negro lo transparente)
+await iconoApp(imagenOvalo, 180, "app/apple-icon.png", NORMAL);
 // Android / PWA (public/manifest.json)
-await icono(imagenOvalo, 192, 0.94, "public/icons/icon-192.png");
-await icono(imagenOvalo, 512, 0.94, "public/icons/icon-512.png");
-// Maskable: el launcher recorta en círculo, así que el óvalo va en la zona segura (~60 %)
-await icono(imagenOvalo, 512, 0.6, "public/icons/icon-maskable-512.png", BLANCO);
+await iconoApp(imagenOvalo, 192, "public/icons/icon-192.png", { ...NORMAL, redondeo: 0.22 });
+await iconoApp(imagenOvalo, 512, "public/icons/icon-512.png", { ...NORMAL, redondeo: 0.22 });
+// Maskable: el launcher puede recortar en círculo (zona segura: radio del 40 %), así que el óvalo
+// y la insignia van más adentro: la insignia llega hasta 0.27 + 0.11 = 0.38 del centro
+await iconoApp(imagenOvalo, 512, "public/icons/icon-maskable-512.png", { alto: 0.6, insignia: 0.22, desvio: 0.19 });
 
 // Versiones web del logo para la interfaz (components/ui/logo.tsx)
 // (WebP: pesa mucho menos que PNG para dibujos con degradados; Safari lo muestra desde iOS 14)

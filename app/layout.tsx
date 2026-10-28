@@ -14,13 +14,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Asistencia · Pastoral Mariana",
-  description: "Asistencia a misa de los alumnos de catequesis de la Pastoral Mariana",
+  title: "Mi Misa PS · Pastoral Mariana",
+  description: "Asistencia a misa y catequesis de los alumnos de la Pastoral Mariana, y misas cerca de ti",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Asistencia",
+    title: "Mi Misa PS",
   },
   formatDetection: {
     telephone: false,

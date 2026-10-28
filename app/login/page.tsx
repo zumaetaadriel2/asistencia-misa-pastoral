@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import { GOOGLE_CLIENT_ID, mensajeLoginGoogle } from "@/lib/staff/google";
@@ -178,6 +179,15 @@ export default function LoginPage() {
 
         <p className="mt-6 text-center text-xs text-texto-tenue">
           Solo guías, catequistas y administradores registrados por la pastoral
+        </p>
+        {/* La app instalada no tiene botón atrás: el alumno que llegó aquí por error vuelve por este enlace */}
+        <p className="mt-2 text-center">
+          <Link
+            href="/alumno"
+            className="inline-flex items-center min-h-11 px-2 text-sm text-texto-suave hover:text-texto underline underline-offset-4"
+          >
+            ¿Eres alumno? Volver a poner tu código
+          </Link>
         </p>
       </div>
     </main>
