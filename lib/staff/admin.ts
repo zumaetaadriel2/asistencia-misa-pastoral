@@ -178,7 +178,7 @@ export async function cambiarAlumnoActivo(id: number, activo: boolean): Promise<
 // Reportes y cierre de semana
 // ---------------------------------------------
 
-/** Alumnos y asistencias del ciclo activo que el usuario puede ver, para el CSV */
+/** Alumnos y asistencias del ciclo activo que el usuario puede ver, para el Excel */
 export async function datosReporte(comunidadId?: number): Promise<{
   alumnos: AlumnoReporte[];
   registros: RegistroReporte[];
@@ -216,7 +216,7 @@ export async function datosReporte(comunidadId?: number): Promise<{
   };
 }
 
-/** Sesiones, alumnos y marcas de catequesis del ciclo activo, para el CSV del ciclo */
+/** Sesiones, alumnos y marcas de catequesis del ciclo activo, para el Excel del ciclo */
 export async function datosCatequesisCiclo(): Promise<{
   sesiones: SesionCiclo[];
   alumnos: AlumnoCiclo[];
