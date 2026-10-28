@@ -24,7 +24,7 @@ export function CodigosImprimibles({ comunidad, alumnos }: Props) {
             <div className="flex items-center gap-2">
               <LogoOvalo className="h-8" />
               <p className="text-[10px] uppercase tracking-wider text-neutral-500">
-                Pastoral Mariana · Asistencia a misa · {comunidad}
+                Mi Misa PS · Pastoral Mariana · {comunidad}
               </p>
             </div>
             <p className="mt-1 text-sm font-semibold">{alumno.nombre_completo}</p>
@@ -32,6 +32,10 @@ export function CodigosImprimibles({ comunidad, alumnos }: Props) {
             <p className="mt-2 text-[11px] text-neutral-600 leading-snug">
               Entra a <strong>{direccion}</strong> y escribe tu código. Solo se pide la primera vez; guárdalo y no lo
               compartas.
+            </p>
+            <p className="mt-1.5 pt-1.5 border-t border-neutral-200 text-[11px] text-neutral-600 leading-snug">
+              <strong>Instala la app:</strong> en Android toca «Instalar»; en iPhone, en Safari toca Compartir y luego
+              «Agregar a Inicio».
             </p>
           </article>
         ))}
