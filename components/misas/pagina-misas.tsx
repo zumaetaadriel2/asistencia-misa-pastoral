@@ -8,6 +8,7 @@ import { obtenerIglesiasPublicas, type IglesiaPublica } from "@/lib/misas/iglesi
 import { DISTRITOS } from "@/lib/misas/importacion";
 import { distanciaKm, type Coordenadas } from "@/lib/misas/ubicacion";
 import { Boton, Buscador, Cargando, claseDeBoton, claseInput } from "@/components/ui/base";
+import { EnlacesPie } from "@/components/pwa/enlaces-pie";
 import { LogoOvalo } from "@/components/ui/logo";
 import { TarjetaIglesia } from "./tarjeta-iglesia";
 
@@ -187,9 +188,12 @@ export function PaginaMisas() {
         </>
       )}
 
-      <p className="mt-auto pt-4 text-center text-xs text-texto-tenue">
-        Los horarios pueden cambiar: si puedes, confírmalos con la parroquia.
-      </p>
+      <div className="mt-auto pt-4">
+        <p className="text-center text-xs text-texto-tenue">
+          Los horarios pueden cambiar: si puedes, confírmalos con la parroquia.
+        </p>
+        <EnlacesPie />
+      </div>
     </main>
   );
 }

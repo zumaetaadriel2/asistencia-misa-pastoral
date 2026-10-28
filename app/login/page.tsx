@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import { GOOGLE_CLIENT_ID, mensajeLoginGoogle } from "@/lib/staff/google";
 import { BotonGoogle } from "@/components/login/boton-google";
+import { EnlacesPie } from "@/components/pwa/enlaces-pie";
 import { LogoCompleto } from "@/components/ui/logo";
 
 /**
@@ -189,6 +190,7 @@ export default function LoginPage() {
             ¿Eres alumno? Volver a poner tu código
           </Link>
         </p>
+        <EnlacesPie />
       </div>
     </main>
   );
