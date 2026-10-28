@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
+import { useCodigoGuardado } from "@/lib/alumno/codigo";
 import { coincide } from "@/lib/staff/busqueda";
 import { obtenerIglesiasPublicas, type IglesiaPublica } from "@/lib/misas/iglesias";
 import { DISTRITOS } from "@/lib/misas/importacion";
@@ -29,6 +30,8 @@ export function PaginaMisas() {
   const [busqueda, setBusqueda] = useState("");
   const [ahora, setAhora] = useState(() => new Date());
   const selectorDistrito = useRef<HTMLSelectElement>(null);
+  // Con el código guardado, /alumno abre directo su panel: no hace falta volver a escribirlo
+  const codigo = useCodigoGuardado();
 
   useEffect(() => {
     let cancelado = false;
@@ -104,7 +107,7 @@ export function PaginaMisas() {
           </div>
         </div>
         <Link href="/alumno" className={`${claseDeBoton("secundario", "pequeno")} shrink-0`}>
-          Volver
+          {codigo ? "Mi asistencia" : "Volver"}
         </Link>
       </header>
 

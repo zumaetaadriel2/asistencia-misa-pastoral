@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Boton } from "@/components/ui/base";
 import { useConfirmar } from "@/components/ui/confirmar";
 import { useEnfocarAlAparecer } from "@/components/ui/enfoque";
+import { IconoIglesia } from "@/components/ui/icono-iglesia";
 import { LogoOvalo } from "@/components/ui/logo";
 import { NOMBRE_PROGRAMA, type AlumnoIdentificado } from "@/lib/alumno/identificar";
 import { formatearDiaHora, formatearFecha } from "@/lib/utils/timeHelpers";
@@ -93,22 +94,20 @@ export function PanelAlumno({ datos, codigo, onCambiarCodigo, onActualizar, onEn
         )}
 
         {accion === null && <EstadoSinAccion datos={datos} onActualizar={onActualizar} />}
-      </section>
 
-      {/* ── Dónde ir a misa ── */}
-      <Link
-        href="/misas"
-        className="tarjeta p-4 flex items-center justify-between gap-3 animate-fade-in delay-100 transition-colors hover:border-marca/40
-                   focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-marca/50"
-      >
-        <span>
-          <span className="block text-sm font-semibold text-texto">¿Dónde hay misa este fin de semana?</span>
-          <span className="block text-xs text-texto-tenue">Iglesias cerca de ti, con sus horarios</span>
-        </span>
-        <span aria-hidden="true" className="text-marca text-lg">
-          →
-        </span>
-      </Link>
+        {/* Mientras aún le falta la foto de esta semana: dónde ir a misa */}
+        {(!actual || actual.estado === "sin_registro") && (
+          <div className="mt-4 pt-3 border-t border-borde flex justify-center">
+            <Link
+              href="/misas"
+              className="inline-flex items-center gap-1.5 min-h-11 px-2 text-sm font-semibold text-marca hover:underline underline-offset-4"
+            >
+              <IconoIglesia className="w-4 h-4" />
+              ¿Dónde ir a misa? Ver iglesias cerca
+            </Link>
+          </div>
+        )}
+      </section>
 
       {/* ── Catequesis ── */}
       <TuCatequesis sesiones={catequesis} />
