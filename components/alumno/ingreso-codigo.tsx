@@ -11,6 +11,7 @@ import {
 import { MENSAJES_ERROR } from "@/lib/alumno/mensajes";
 import { Boton } from "@/components/ui/base";
 import { useEnfocarAlAparecer } from "@/components/ui/enfoque";
+import { EnlacesPie } from "@/components/pwa/enlaces-pie";
 import { IconoIglesia } from "@/components/ui/icono-iglesia";
 import { LogoCompleto } from "@/components/ui/logo";
 
@@ -152,6 +153,7 @@ export function IngresoCodigo({ aviso, onConfirmado }: Props) {
               ¿Eres guía, catequista o administrador? Entrar al panel
             </Link>
           </p>
+          <EnlacesPie />
         </div>
       </div>
     </main>
