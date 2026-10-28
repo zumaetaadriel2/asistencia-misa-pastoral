@@ -2,6 +2,7 @@
 
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { claseDeBoton, type TamanoBoton, type VarianteBoton } from "./clases";
 
 // Piezas visuales compartidas por toda la app (colores con nombre de app/globals.css)
 
@@ -9,29 +10,7 @@ export const claseInput =
   "w-full px-3 py-2.5 rounded-xl bg-superficie-2 border border-borde text-texto text-base sm:text-sm " +
   "placeholder:text-texto-tenue focus:outline-none focus:ring-2 focus:ring-marca/40 focus:border-marca/50";
 
-const VARIANTES = {
-  primario: "bg-marca-solido hover:bg-marca-solido/85 text-white font-semibold",
-  secundario: "bg-superficie-2 hover:bg-borde text-texto-suave font-medium",
-  peligro: "bg-error-solido hover:bg-error-solido/85 text-white font-semibold",
-  exito: "bg-exito-solido hover:bg-exito-solido/85 text-white font-semibold",
-  fantasma: "text-texto-suave hover:text-texto hover:bg-superficie-2 font-medium",
-} as const;
-
-const TAMANOS = {
-  normal: "min-h-11 px-4 rounded-xl text-sm",
-  pequeno: "min-h-11 px-3 rounded-lg text-xs",
-} as const;
-
-const BASE_BOTON =
-  "inline-flex items-center justify-center gap-2 transition-colors focus-visible:outline-none " +
-  "focus-visible:ring-2 focus-visible:ring-marca/50 disabled:opacity-40 disabled:cursor-not-allowed";
-
-export type VarianteBoton = keyof typeof VARIANTES;
-
-/** Clases de un botón, para usarlas también en enlaces (<Link>) */
-export function claseDeBoton(variante: VarianteBoton = "primario", tamano: keyof typeof TAMANOS = "normal") {
-  return cn(BASE_BOTON, VARIANTES[variante], TAMANOS[tamano]);
-}
+export { claseDeBoton, type TamanoBoton, type VarianteBoton } from "./clases";
 
 /** Botón de al menos 44 px de alto. `className` es solo para ubicarlo (márgenes, ancho, flex). */
 export function Boton({
@@ -40,7 +19,7 @@ export function Boton({
   className,
   type = "button",
   ...props
-}: ButtonHTMLAttributes<HTMLButtonElement> & { variante?: VarianteBoton; tamano?: keyof typeof TAMANOS }) {
+}: ButtonHTMLAttributes<HTMLButtonElement> & { variante?: VarianteBoton; tamano?: TamanoBoton }) {
   return <button type={type} className={cn(claseDeBoton(variante, tamano), className)} {...props} />;
 }
 
