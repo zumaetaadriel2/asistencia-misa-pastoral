@@ -2,9 +2,10 @@
 
 import { useState } from "react";
 import { cerrarSemana, datosCatequesisCiclo, datosReporte } from "@/lib/staff/admin";
-import { armarCsvCatequesisCiclo } from "@/lib/staff/catequesis";
+import { descargarExcel } from "@/lib/excel/libro";
+import { tablaCatequesisCiclo } from "@/lib/staff/catequesis";
 import { mensajeDe } from "@/lib/staff/errores";
-import { armarCsvAsistencia, descargarCsv } from "@/lib/staff/reporte";
+import { tablaAsistencia } from "@/lib/staff/reporte";
 import type { PerfilStaff } from "@/lib/staff/revision";
 import { hoyEnLima } from "@/lib/utils/timeHelpers";
 import { Boton, Campo, claseInput, Mensaje, Tarjeta, type MensajeAdmin } from "@/components/ui/base";
@@ -23,7 +24,7 @@ export function SeccionReportes({ perfil }: { perfil: PerfilStaff }) {
     setDescargando(true);
     try {
       const { alumnos, registros } = await datosReporte();
-      descargarCsv(`asistencia-ciclo-semana-${semanas}.csv`, armarCsvAsistencia(alumnos, registros, semanas));
+      await descargarExcel(`asistencia-ciclo-semana-${semanas}.xlsx`, [tablaAsistencia(alumnos, registros, semanas)]);
     } catch (e) {
       setMensaje({ tipo: "error", texto: mensajeDe(e, "No se pudo generar el reporte.") });
     } finally {
@@ -39,7 +40,7 @@ export function SeccionReportes({ perfil }: { perfil: PerfilStaff }) {
         setMensaje({ tipo: "error", texto: "Todavía no hay sesiones de catequesis en este ciclo." });
         return;
       }
-      descargarCsv(`catequesis-ciclo-${hoyEnLima()}.csv`, armarCsvCatequesisCiclo(sesiones, alumnos, marcas));
+      await descargarExcel(`catequesis-ciclo-${hoyEnLima()}.xlsx`, [tablaCatequesisCiclo(sesiones, alumnos, marcas)]);
     } catch (e) {
       setMensaje({ tipo: "error", texto: mensajeDe(e, "No se pudo generar el reporte de catequesis.") });
     } finally {
@@ -72,10 +73,10 @@ export function SeccionReportes({ perfil }: { perfil: PerfilStaff }) {
 
       <Tarjeta
         titulo="Reporte del ciclo"
-        descripcion={`Todos los alumnos activos, semana por semana hasta la semana ${semanas}, con sus totales. Se abre con Excel.`}
+        descripcion={`Todos los alumnos activos, semana por semana hasta la semana ${semanas}, con sus totales.`}
       >
         <Boton onClick={descargar} disabled={descargando || semanas < 1}>
-          {descargando ? "Generando…" : "Descargar Excel (CSV)"}
+          {descargando ? "Generando…" : "Descargar Excel"}
         </Boton>
       </Tarjeta>
 
@@ -84,7 +85,7 @@ export function SeccionReportes({ perfil }: { perfil: PerfilStaff }) {
         descripcion="Una fila por alumno y sesión de todas las comunidades, con fecha, estado y motivo. En Excel puedes filtrar por comunidad, fecha o estado."
       >
         <Boton onClick={descargarCatequesis} disabled={descargandoCatequesis}>
-          {descargandoCatequesis ? "Generando…" : "Descargar catequesis (CSV)"}
+          {descargandoCatequesis ? "Generando…" : "Descargar catequesis (Excel)"}
         </Boton>
       </Tarjeta>
 

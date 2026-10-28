@@ -7,7 +7,8 @@
 import { supabase } from "@/lib/supabase/client";
 import type { Database } from "@/lib/supabase/database.types";
 import { formatearFecha } from "@/lib/utils/timeHelpers";
-import { celda, NOMBRE_PROGRAMA } from "./reporte";
+import type { Tabla } from "@/lib/excel/tabla";
+import { NOMBRE_PROGRAMA } from "./reporte";
 import type { Programa } from "./revision";
 
 export type EstadoCatequesis = Database["public"]["Enums"]["estado_catequesis"];
@@ -184,47 +185,45 @@ export function marcasPorAlumno(filas: FilaResumenCatequesis[]) {
   return [...alumnos.values()];
 }
 
-const ETIQUETA_CSV: Record<EstadoCatequesis, string> = {
+const ETIQUETA_REPORTE: Record<EstadoCatequesis, string> = {
   presente: "Presente",
   tardanza: "Tardanza",
   falta: "Falta",
   justificada: "Justificada",
 };
 
-/**
- * Matriz alumno × sesión (de la más antigua a la más reciente) con totales, para Excel.
- * Lleva BOM para que Excel reconozca las tildes.
- */
-export function armarCsvCatequesis(
+/** Matriz alumno × sesión (de la más antigua a la más reciente) con totales, para Excel */
+export function tablaCatequesis(
   sesiones: Pick<SesionCatequesis, "id" | "fecha" | "titulo">[],
   filas: FilaResumenCatequesis[]
-): string {
+): Tabla {
   const ordenadas = [...sesiones].sort((a, b) => a.fecha.localeCompare(b.fecha) || a.id - b.id);
-  const encabezado = [
-    "Alumno",
-    ...ordenadas.map((s) => `${formatearFecha(s.fecha)} · ${s.titulo}`),
-    "Asistió",
-    "Tardanzas",
-    "Faltas",
-    "Justificadas",
-    "% asistencia",
-  ];
-
-  const lineas = marcasPorAlumno(filas).map((alumno) => {
-    const estados = ordenadas.map((s) => alumno.marcas.get(s.id)?.estado ?? null);
-    const resumen = resumirCatequesis(estados);
-    return [
-      alumno.activo ? alumno.nombre : `${alumno.nombre} (inactivo)`,
-      ...estados.map((estado) => (estado ? ETIQUETA_CSV[estado] : "")),
-      resumen.asistio,
-      resumen.tardanzas,
-      resumen.faltas,
-      resumen.justificadas,
-      resumen.porcentaje === null ? "" : `${resumen.porcentaje}%`,
-    ];
-  });
-
-  return "﻿" + [encabezado, ...lineas].map((fila) => fila.map(celda).join(",")).join("\r\n");
+  return {
+    nombre: "Catequesis",
+    columnasFijas: 1,
+    columnas: [
+      { titulo: "Alumno", ancho: 32 },
+      ...ordenadas.map((s) => ({ titulo: `${formatearFecha(s.fecha)} · ${s.titulo}` })),
+      { titulo: "Asistió" },
+      { titulo: "Tardanzas", ancho: 11 },
+      { titulo: "Faltas" },
+      { titulo: "Justificadas", ancho: 13 },
+      { titulo: "% asistencia", ancho: 14, formato: "porcentaje" },
+    ],
+    filas: marcasPorAlumno(filas).map((alumno) => {
+      const estados = ordenadas.map((s) => alumno.marcas.get(s.id)?.estado ?? null);
+      const resumen = resumirCatequesis(estados);
+      return [
+        alumno.activo ? alumno.nombre : `${alumno.nombre} (inactivo)`,
+        ...estados.map((estado) => (estado ? ETIQUETA_REPORTE[estado] : null)),
+        resumen.asistio,
+        resumen.tardanzas,
+        resumen.faltas,
+        resumen.justificadas,
+        resumen.porcentaje === null ? null : resumen.porcentaje / 100,
+      ];
+    }),
+  };
 }
 
 // ---------------------------------------------
@@ -260,7 +259,7 @@ export interface MarcaCiclo {
  * en Excel), ordenadas por comunidad, fecha y alumno. Los inactivos solo aparecen en
  * las sesiones donde tienen marca. La fecha va como AAAA-MM-DD para que Excel la ordene.
  */
-export function armarCsvCatequesisCiclo(sesiones: SesionCiclo[], alumnos: AlumnoCiclo[], marcas: MarcaCiclo[]): string {
+export function tablaCatequesisCiclo(sesiones: SesionCiclo[], alumnos: AlumnoCiclo[], marcas: MarcaCiclo[]): Tabla {
   const marcaDe = new Map(marcas.map((m) => [`${m.sesion_id}:${m.alumno_id}`, m]));
   const alumnosDe = new Map<number, AlumnoCiclo[]>();
   for (const alumno of [...alumnos].sort((a, b) => a.nombre.localeCompare(b.nombre, "es"))) {
@@ -281,13 +280,24 @@ export function armarCsvCatequesisCiclo(sesiones: SesionCiclo[], alumnos: Alumno
           sesion.fecha,
           sesion.titulo,
           alumno.activo ? alumno.nombre : `${alumno.nombre} (inactivo)`,
-          marca ? ETIQUETA_CSV[marca.estado] : "Sin marcar",
-          marca?.motivo ?? "",
+          marca ? ETIQUETA_REPORTE[marca.estado] : "Sin marcar",
+          marca?.motivo ?? null,
         ],
       ];
     })
   );
 
-  const encabezado = ["Comunidad", "Programa", "Fecha", "Sesión", "Alumno", "Estado", "Motivo"];
-  return "﻿" + [encabezado, ...filas].map((fila) => fila.map(celda).join(",")).join("\r\n");
+  return {
+    nombre: "Catequesis del ciclo",
+    columnas: [
+      { titulo: "Comunidad", ancho: 18 },
+      { titulo: "Programa", ancho: 18 },
+      { titulo: "Fecha", ancho: 12 },
+      { titulo: "Sesión", ancho: 24 },
+      { titulo: "Alumno", ancho: 32 },
+      { titulo: "Estado", ancho: 12 },
+      { titulo: "Motivo", ancho: 40 },
+    ],
+    filas,
+  };
 }
