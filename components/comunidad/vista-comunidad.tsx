@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   justificarFalta,
   obtenerAlumnos,
@@ -25,8 +26,13 @@ import { ModalJustificar } from "./modal-justificar";
 
 const NOMBRE_PROGRAMA = { confirmacion: "Confirmación", primera_comunion: "Primera Comunión" } as const;
 
-/** Alumnos de una comunidad: asistencia semana a semana, códigos y justificaciones */
+/**
+ * Alumnos de una comunidad: asistencia semana a semana, códigos y justificaciones.
+ * `?comunidad=ID` (desde el Resumen) abre esa comunidad; si no es una de las suyas, la primera.
+ * Va dentro de <Suspense> por useSearchParams.
+ */
 export function VistaComunidad({ perfil }: { perfil: PerfilStaff }) {
+  const pedida = Number(useSearchParams().get("comunidad")) || null;
   const [comunidades, setComunidades] = useState<ComunidadStaff[] | null>(null);
   const [elegida, setElegida] = useState<number | null>(null);
   const [recargas, setRecargas] = useState(0);
@@ -43,7 +49,8 @@ export function VistaComunidad({ perfil }: { perfil: PerfilStaff }) {
   const { confirmar, dialogoConfirmar } = useConfirmar();
 
   const semanas = perfil.semana_reciente ?? 0;
-  const comunidadId = elegida ?? comunidades?.[0]?.id ?? null;
+  const comunidadId =
+    elegida ?? comunidades?.find((c) => c.id === pedida)?.id ?? comunidades?.[0]?.id ?? null;
   const comunidad = comunidades?.find((c) => c.id === comunidadId) ?? null;
   const clave = `${comunidadId}#${recargas}`;
 

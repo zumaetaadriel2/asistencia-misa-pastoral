@@ -16,7 +16,7 @@ import { useConfirmar } from "@/components/ui/confirmar";
 const ESTADOS_FORMULARIO: { valor: boolean | null; texto: string; detalle: string }[] = [
   { valor: null, texto: "Automático", detalle: "Sáb 7 p. m. → lun 11:59 p. m." },
   { valor: true, texto: "Abierto", detalle: "Forzado (pruebas o excepciones)" },
-  { valor: false, texto: "Cerrado", detalle: "Forzado" },
+  { valor: false, texto: "Cerrado", detalle: "Forzado: esas semanas no se marcan faltas" },
 ];
 
 /** Datos del ciclo activo; se monta de nuevo (key) cuando cambia el ciclo */
