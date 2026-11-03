@@ -475,6 +475,9 @@ isOneToOne: false
 "regenerar_codigo":
 { Args: { "p_alumno_id": number }; Returns: string
                            },
+"resumen_admin":
+{ Args: { "p_faltas_seguidas"?: number }; Returns: Json
+                           },
 "resumen_catequesis":
 { Args: { "p_comunidad_id": number }; Returns: {
               "activo": boolean,"alumno_id": number,"estado": Database["public"]['Enums']["estado_catequesis"],"motivo": string,"nombre_completo": string,"sesion_id": number
