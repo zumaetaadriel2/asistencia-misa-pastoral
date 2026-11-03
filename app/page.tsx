@@ -15,7 +15,7 @@ export default function Inicio() {
   useEffect(() => {
     supabase.auth
       .getSession()
-      .then(({ data }) => router.replace(data.session ? "/dashboard" : "/alumno"))
+      .then(({ data }) => router.replace(data.session ? "/dashboard/inicio" : "/alumno"))
       .catch(() => router.replace("/alumno"));
   }, [router]);
 

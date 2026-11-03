@@ -37,7 +37,7 @@ export default function LoginPage() {
   // Al volver de Google la sesión llega en la URL: si ya hay sesión, pasar al panel
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) router.replace("/dashboard");
+      if (session) router.replace("/dashboard/inicio");
       else setError(errorDeLaUrl());
     });
   }, [router]);
@@ -53,7 +53,7 @@ export default function LoginPage() {
       setIntento((n) => n + 1);
       return;
     }
-    router.replace("/dashboard");
+    router.replace("/dashboard/inicio");
   };
 
   /** Respaldo: la redirección de Supabase (la ventana de Google muestra el dominio de Supabase) */
@@ -86,7 +86,7 @@ export default function LoginPage() {
       setCargando(false);
       return;
     }
-    router.push("/dashboard");
+    router.push("/dashboard/inicio");
   };
 
   return (
