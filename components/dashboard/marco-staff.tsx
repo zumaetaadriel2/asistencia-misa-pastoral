@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cerrarSesion, useSesionStaff } from "@/lib/staff/sesion";
 import type { PerfilStaff } from "@/lib/staff/revision";
-import { Boton } from "@/components/ui/base";
+import { Boton, claseDeBoton } from "@/components/ui/base";
 import { LogoOvalo } from "@/components/ui/logo";
 
 interface Props {
@@ -182,9 +182,14 @@ export function MarcoStaff({ titulo, ancho = "angosto", soloAdmin = false, requi
             </p>
           </div>
         </div>
-        <Boton variante="secundario" tamano="pequeno" onClick={salir} className="shrink-0">
-          Salir
-        </Boton>
+        <div className="flex items-center gap-1 shrink-0">
+          <Link href="/ayuda#guias" className={claseDeBoton("fantasma", "pequeno")}>
+            Ayuda
+          </Link>
+          <Boton variante="secundario" tamano="pequeno" onClick={salir}>
+            Salir
+          </Boton>
+        </div>
       </header>
 
       {/* Menú arriba (pantallas medianas y grandes) */}

@@ -10,8 +10,11 @@ import { NOMBRE_PROGRAMA, type AlumnoIdentificado } from "@/lib/alumno/identific
 import { formatearDiaHora, formatearFecha } from "@/lib/utils/timeHelpers";
 import { EnvioFoto } from "./envio-foto";
 import { FormularioCerrado } from "./formulario-cerrado";
+import { EnlacesPie } from "@/components/pwa/enlaces-pie";
 import { EtiquetaEstado, HistorialSemanas } from "./historial-semanas";
+import { Recordatorios } from "./recordatorios";
 import { TuCatequesis } from "./tu-catequesis";
+import { TuProgreso } from "./tu-progreso";
 
 interface Props {
   datos: AlumnoIdentificado;
@@ -74,7 +77,8 @@ export function PanelAlumno({ datos, codigo, onCambiarCodigo, onActualizar, onEn
           <>
             <p className="text-sm text-texto-suave mb-4">
               Envía una foto tuya en la misa de este fin de semana
-              {formulario.cierre_envio && <> hasta el {formatearDiaHora(formulario.cierre_envio)}</>}.
+              {/* La fecha ya termina en "p. m.": sin punto extra */}
+              {formulario.cierre_envio ? <> hasta el {formatearDiaHora(formulario.cierre_envio)}</> : "."}
             </p>
             <EnvioFoto codigo={codigo} esReenvio={false} onEnviado={onEnviado} onActualizar={onActualizar} />
           </>
@@ -87,7 +91,7 @@ export function PanelAlumno({ datos, codigo, onCambiarCodigo, onActualizar, onEn
             </div>
             <p className="text-sm text-texto-suave mb-4">
               Puedes enviar otra
-              {formulario.cierre_reenvio && <> hasta el {formatearDiaHora(formulario.cierre_reenvio)}</>}.
+              {formulario.cierre_reenvio ? <> hasta el {formatearDiaHora(formulario.cierre_reenvio)}</> : "."}
             </p>
             <EnvioFoto codigo={codigo} esReenvio onEnviado={onEnviado} onActualizar={onActualizar} />
           </>
@@ -109,11 +113,19 @@ export function PanelAlumno({ datos, codigo, onCambiarCodigo, onActualizar, onEn
         )}
       </section>
 
+      {/* ── Domingos seguidos y porcentaje ── */}
+      <TuProgreso semanas={semanas} semanaActual={formulario.semana} />
+
       {/* ── Catequesis ── */}
       <TuCatequesis sesiones={catequesis} />
 
+      {/* ── Recordatorio en el calendario ── */}
+      <Recordatorios />
+
       {/* ── Historial ── */}
       <HistorialSemanas semanas={anteriores} />
+
+      <EnlacesPie />
 
       {dialogoConfirmar}
     </main>

@@ -15,16 +15,10 @@ export function EtiquetaEstado({ estado }: { estado: EstadoSemana }) {
 export function HistorialSemanas({ semanas }: { semanas: SemanaAlumno[] }) {
   if (semanas.length === 0) return null;
 
-  const asistidas = semanas.filter((s) => s.estado === "validado").length;
-
+  // El conteo de asistencias está en "Tu progreso", con las mismas reglas que ve el guía
   return (
     <section className="tarjeta p-5 animate-fade-in delay-300">
-      <div className="flex items-baseline justify-between gap-3 mb-4">
-        <h2 className="text-sm font-semibold text-texto">Tus semanas</h2>
-        <p className="text-xs text-texto-tenue">
-          Asististe a {asistidas} de {semanas.length}
-        </p>
-      </div>
+      <h2 className="text-sm font-semibold text-texto mb-4">Tus semanas</h2>
 
       <ul className="divide-y divide-borde">
         {semanas.map((s) => (
