@@ -5,12 +5,16 @@ import { useAppInstalada } from "@/lib/pwa/instalacion";
 
 const CLASE_ENLACE = "inline-flex items-center min-h-11 px-2 underline underline-offset-4 hover:text-texto-suave";
 
-/** Pie discreto "Cómo instalar · Privacidad" (lo de instalar se oculta si ya está instalada) */
+/** Pie discreto "Ayuda · Cómo instalar · Privacidad" (lo de instalar se oculta si ya está instalada) */
 export function EnlacesPie({ className = "" }: { className?: string }) {
   const instalada = useAppInstalada();
 
   return (
-    <p className={`text-center text-xs text-texto-tenue ${className}`}>
+    <p className={`text-center text-xs text-texto-tenue print:hidden ${className}`}>
+      <Link href="/ayuda" className={CLASE_ENLACE}>
+        Ayuda
+      </Link>
+      <span aria-hidden="true">·</span>
       {instalada === false && (
         <>
           <Link href="/instalar" className={CLASE_ENLACE}>

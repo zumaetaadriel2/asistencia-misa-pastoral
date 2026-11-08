@@ -5,6 +5,24 @@ Todos los cambios importantes de Mi Misa PS (Asistencia Misa Pastoral) se anotan
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el proyecto usa
 [versionado semántico](https://semver.org/lang/es/).
 
+## [1.9.0] - 2026-11-08
+
+### Añadido
+
+- Consejos para la foto antes de subirla. Que se vea el rostro del alumno dentro de la iglesia y que sea de esa misa. Aparecen abiertos hasta la primera foto y después quedan plegados.
+- «Tu progreso» en la pantalla del alumno: domingos seguidos y porcentaje del ciclo, con las mismas reglas que ve su guía.
+- «Agregar al calendario»: un recordatorio cada sábado a las 7 p. m. (`/recordatorio-misa.ics`).
+- Página de ayuda (`/ayuda`) con una guía rápida para alumnos y otra para guías. Se puede imprimir o guardar como PDF, una hoja cada una.
+- Enlace «Ayuda» en los pies de página y en el encabezado del staff.
+
+### Corregido
+
+- La fecha de cierre ya no termina con doble punto («p. m..»).
+
+### Cambiado
+
+- «Tus semanas» ya no muestra su propio conteo: ahora lo da «Tu progreso», con el mismo cálculo que ve el guía.
+
 ## [1.8.0] - 2026-11-03
 
 ### Añadido
@@ -132,6 +150,7 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   - Administración: ciclo, comunidades, staff, alumnos y reportes;
   - cierre automático de semanas y respaldo semanal cifrado.
 
+[1.9.0]: https://github.com/zumaetaadriel2/asistencia-misa-pastoral/compare/v1.8.0...v1.9.0
 [1.8.0]: https://github.com/zumaetaadriel2/asistencia-misa-pastoral/compare/v1.7.1...v1.8.0
 [1.7.1]: https://github.com/zumaetaadriel2/asistencia-misa-pastoral/compare/v1.7.0...v1.7.1
 [1.7.0]: https://github.com/zumaetaadriel2/asistencia-misa-pastoral/compare/v1.6.0...v1.7.0
