@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { EstadoSemana } from "./identificar";
-import { progresoAlumno } from "./progreso";
+import { progresoAlumno, textoProgreso } from "./progreso";
 
 // De la más nueva a la más antigua, como las devuelve identificar_alumno
 const semanas = (...estados: EstadoSemana[]) =>
@@ -33,5 +33,22 @@ describe("progresoAlumno", () => {
 
   it("sin semanas que cuenten no hay porcentaje", () => {
     expect(progresoAlumno(semanas("sin_registro"), 1)).toEqual({ seguidas: 0, asistio: 0, cuentan: 0, porcentaje: null });
+  });
+});
+
+describe("textoProgreso", () => {
+  const con = (seguidas: number, cuentan: number, porcentaje: number | null) => ({ seguidas, asistio: seguidas, cuentan, porcentaje });
+
+  it("los domingos seguidos y el porcentaje, en singular si es uno", () => {
+    expect(textoProgreso(con(4, 5, 80))).toBe("4 domingos seguidos · 80%");
+    expect(textoProgreso(con(1, 1, 100))).toBe("1 domingo seguido · 100%");
+  });
+
+  it("sin racha invita a empezarla, sin decir qué día", () => {
+    expect(textoProgreso(con(0, 2, 50))).toBe("Empieza tu racha esta semana · 50%");
+  });
+
+  it("sin nada que contar no muestra nada", () => {
+    expect(textoProgreso(con(0, 0, null))).toBeNull();
   });
 });

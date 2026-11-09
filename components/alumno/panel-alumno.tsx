@@ -7,6 +7,7 @@ import { useEnfocarAlAparecer } from "@/components/ui/enfoque";
 import { IconoIglesia } from "@/components/ui/icono-iglesia";
 import { LogoOvalo } from "@/components/ui/logo";
 import { NOMBRE_PROGRAMA, type AlumnoIdentificado } from "@/lib/alumno/identificar";
+import { progresoAlumno } from "@/lib/alumno/progreso";
 import { desactivarAvisos } from "@/lib/push/avisos";
 import { formatearDiaHora, formatearFecha } from "@/lib/utils/timeHelpers";
 import { EnvioFoto } from "./envio-foto";
@@ -14,8 +15,8 @@ import { FormularioCerrado } from "./formulario-cerrado";
 import { EnlacesPie } from "@/components/pwa/enlaces-pie";
 import { EtiquetaEstado, HistorialSemanas } from "./historial-semanas";
 import { Recordatorios } from "./recordatorios";
+import { LineaProgreso } from "./linea-progreso";
 import { TuCatequesis } from "./tu-catequesis";
-import { TuProgreso } from "./tu-progreso";
 
 interface Props {
   datos: AlumnoIdentificado;
@@ -30,6 +31,7 @@ export function PanelAlumno({ datos, codigo, onCambiarCodigo, onActualizar, onEn
   const { alumno, formulario, accion, semanas, catequesis = [] } = datos;
   const actual = semanas.find((s) => s.semana === formulario.semana);
   const anteriores = semanas.filter((s) => s.semana !== formulario.semana);
+  const progreso = progresoAlumno(semanas, formulario.semana);
   const titulo = useEnfocarAlAparecer<HTMLHeadingElement>();
   const { confirmar, dialogoConfirmar } = useConfirmar();
 
@@ -46,9 +48,9 @@ export function PanelAlumno({ datos, codigo, onCambiarCodigo, onActualizar, onEn
   };
 
   return (
-    <main className="flex-1 flex flex-col max-w-md mx-auto w-full px-4 py-6 gap-5">
+    <main className="flex-1 flex flex-col max-w-md mx-auto w-full px-4 py-6 gap-3">
       {/* ── Saludo ── */}
-      <header className="flex items-start justify-between gap-3 animate-fade-in">
+      <header className="flex items-start justify-between gap-3 mb-1 animate-fade-in">
         <div className="flex items-center gap-3">
           <LogoOvalo className="h-12" />
           <div>
@@ -58,6 +60,7 @@ export function PanelAlumno({ datos, codigo, onCambiarCodigo, onActualizar, onEn
             <p className="text-xs text-texto-tenue">
               {alumno.comunidad} · {NOMBRE_PROGRAMA[alumno.programa]}
             </p>
+            <LineaProgreso progreso={progreso} />
           </div>
         </div>
         <Boton variante="secundario" tamano="pequeno" onClick={noSoyYo}>
@@ -67,7 +70,7 @@ export function PanelAlumno({ datos, codigo, onCambiarCodigo, onActualizar, onEn
 
       {/* ── Semana actual ── */}
       <section className="tarjeta p-5 animate-fade-in delay-100">
-        <div className="flex items-baseline justify-between gap-3 mb-4">
+        <div className="flex items-baseline justify-between gap-3 mb-2">
           <h2 className="text-sm font-semibold text-texto">
             {formulario.semana > 0 ? `Semana ${formulario.semana}` : formulario.ciclo_nombre}
             {actual?.domingo && (
@@ -79,10 +82,10 @@ export function PanelAlumno({ datos, codigo, onCambiarCodigo, onActualizar, onEn
 
         {accion === "enviar" && (
           <>
-            <p className="text-sm text-texto-suave mb-4">
-              Envía una foto tuya en la misa de este fin de semana
+            <p className="text-sm text-texto-suave mb-3">
+              Envía tu foto de la misa
               {/* La fecha ya termina en "p. m.": sin punto extra */}
-              {formulario.cierre_envio ? <> hasta el {formatearDiaHora(formulario.cierre_envio)}</> : "."}
+              {formulario.cierre_envio ? <> hasta el {formatearDiaHora(formulario.cierre_envio)}</> : " de este fin de semana."}
             </p>
             <EnvioFoto codigo={codigo} esReenvio={false} onEnviado={onEnviado} onActualizar={onActualizar} />
           </>
@@ -105,29 +108,22 @@ export function PanelAlumno({ datos, codigo, onCambiarCodigo, onActualizar, onEn
 
         {/* Mientras aún le falta la foto de esta semana: dónde ir a misa */}
         {(!actual || actual.estado === "sin_registro") && (
-          <div className="mt-4 pt-3 border-t border-borde flex justify-center">
+          <div className="mt-2 flex justify-center">
             <Link
               href="/misas"
               className="inline-flex items-center gap-1.5 min-h-11 px-2 text-sm font-semibold text-marca hover:underline underline-offset-4"
             >
               <IconoIglesia className="w-4 h-4" />
-              ¿Dónde ir a misa? Ver iglesias cerca
+              ¿Dónde ir a misa?
             </Link>
           </div>
         )}
       </section>
 
-      {/* ── Domingos seguidos y porcentaje ── */}
-      <TuProgreso semanas={semanas} semanaActual={formulario.semana} />
-
-      {/* ── Catequesis ── */}
+      {/* ── Lo demás, plegado: una línea cada uno ── */}
+      <HistorialSemanas semanas={anteriores} progreso={progreso} />
       <TuCatequesis sesiones={catequesis} />
-
-      {/* ── Recordatorio en el calendario ── */}
       <Recordatorios codigo={codigo} />
-
-      {/* ── Historial ── */}
-      <HistorialSemanas semanas={anteriores} />
 
       <EnlacesPie />
 
