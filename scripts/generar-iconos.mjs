@@ -130,6 +130,17 @@ await iconoApp(imagenOvalo, 512, "public/icons/icon-512.png", { ...NORMAL, redon
 // y la insignia van más adentro: la insignia llega hasta 0.27 + 0.11 = 0.38 del centro
 await iconoApp(imagenOvalo, 512, "public/icons/icon-maskable-512.png", { alto: 0.6, insignia: 0.22, desvio: 0.19 });
 
+// Insignia de los avisos push en Android: el sistema solo usa la forma, por eso va en blanco
+await sharp(
+  Buffer.from(
+    `<svg xmlns="http://www.w3.org/2000/svg" width="96" height="96" viewBox="0 0 100 100">` +
+      `<path d="M22 54 L42 74 L78 30" fill="none" stroke="#fff" stroke-width="13" ` +
+      `stroke-linecap="round" stroke-linejoin="round"/></svg>`
+  )
+)
+  .png()
+  .toFile("public/icons/badge-96.png");
+
 // Versiones web del logo para la interfaz (components/ui/logo.tsx)
 // (WebP: pesa mucho menos que PNG para dibujos con degradados; Safari lo muestra desde iOS 14)
 await sharp(imagenOvalo).resize({ height: 192 }).webp({ quality: 85, alphaQuality: 90 }).toFile("marca/web/logo-ovalo.webp");
