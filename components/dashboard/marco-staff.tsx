@@ -3,10 +3,12 @@
 import { useEffect, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
+import { desactivarAvisos } from "@/lib/push/avisos";
 import { cerrarSesion, useSesionStaff } from "@/lib/staff/sesion";
 import type { PerfilStaff } from "@/lib/staff/revision";
 import { Boton, claseDeBoton } from "@/components/ui/base";
 import { LogoOvalo } from "@/components/ui/logo";
+import { BotonAvisos } from "./boton-avisos";
 
 interface Props {
   /** Texto fijo o según el perfil (p. ej. "Mi comunidad" para guías y "Asistencia" para admins) */
@@ -94,6 +96,8 @@ export function MarcoStaff({ titulo, ancho = "angosto", soloAdmin = false, requi
   }, [irACatequesis, router]);
 
   const salir = async () => {
+    // Si alguien más usa este celular, no le deben llegar los avisos de esta persona
+    desactivarAvisos().catch(() => {});
     await cerrarSesion();
     router.push("/login");
   };
@@ -171,7 +175,8 @@ export function MarcoStaff({ titulo, ancho = "angosto", soloAdmin = false, requi
         conMenu ? "pb-[calc(5.5rem+env(safe-area-inset-bottom))]" : "pb-[calc(1.5rem+env(safe-area-inset-bottom))]"
       } print:max-w-none print:p-0`}
     >
-      <header className="flex items-center justify-between gap-3 mb-4 animate-fade-in print:hidden">
+      {/* relative z-30: la nota de la campana tiene que quedar sobre el contenido de la página */}
+      <header className="relative z-30 flex items-center justify-between gap-3 mb-4 animate-fade-in print:hidden">
         <div className="flex items-center gap-3 min-w-0">
           <LogoOvalo className="h-11 shrink-0" />
           <div className="min-w-0">
@@ -183,8 +188,17 @@ export function MarcoStaff({ titulo, ancho = "angosto", soloAdmin = false, requi
           </div>
         </div>
         <div className="flex items-center gap-1 shrink-0">
-          <Link href="/ayuda#guias" className={claseDeBoton("fantasma", "pequeno")}>
-            Ayuda
+          {perfil.es_guia && <BotonAvisos />}
+          {/* En el celular, solo el ícono: el título necesita el espacio */}
+          <Link href="/ayuda#guias" aria-label="Ayuda" title="Ayuda" className={`${claseDeBoton("fantasma", "pequeno")} max-sm:px-2`}>
+            <svg className="w-5 h-5 sm:hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} aria-hidden="true">
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M9.879 7.519c1.171-1.025 3.071-1.025 4.242 0 1.172 1.025 1.172 2.687 0 3.712-.203.179-.43.326-.67.442-.745.361-1.45.999-1.45 1.827v.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Zm-9 5.25h.008v.008H12v-.008Z"
+              />
+            </svg>
+            <span className="max-sm:hidden">Ayuda</span>
           </Link>
           <Boton variante="secundario" tamano="pequeno" onClick={salir}>
             Salir

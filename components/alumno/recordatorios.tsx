@@ -1,15 +1,59 @@
 "use client";
 
-import { claseDeBoton } from "@/components/ui/base";
+import Link from "next/link";
+import { Boton, claseDeBoton } from "@/components/ui/base";
+import { IconoCampana } from "@/components/ui/icono-campana";
+import { useAvisos } from "@/lib/push/avisos";
 
-/** Para no olvidarse del sábado: un recordatorio semanal en el calendario del celular */
-export function Recordatorios() {
+/** Para no olvidarse: avisos en el celular y un recordatorio semanal en su calendario */
+export function Recordatorios({ codigo }: { codigo: string }) {
+  const { estado, ocupado, fallo, activar, desactivar } = useAvisos({ tipo: "alumno", codigo });
+
   return (
-    <section className="tarjeta p-5 animate-fade-in delay-300">
-      <h2 className="text-sm font-semibold text-texto">Recordatorio</h2>
-      <p className="mt-1 text-xs text-texto-tenue">Te avisa cada sábado a las 7 p. m., cuando ya puedes subir tu foto.</p>
+    <section className="tarjeta p-5 animate-fade-in delay-300 space-y-3">
+      <h2 className="text-sm font-semibold text-texto">Recordatorios</h2>
+
+      {estado === "desactivados" && (
+        <Boton variante="secundario" onClick={activar} disabled={ocupado} className="w-full">
+          <IconoCampana />
+          {ocupado ? "Activando…" : "Avisarme el sábado y si me falta la foto"}
+        </Boton>
+      )}
+
+      {estado === "activados" && (
+        <div className="flex items-start justify-between gap-3">
+          <p className="text-sm text-exito">
+            Avisos activados: el sábado a las 7 p. m. y, si te falta la foto, el domingo y el lunes.
+          </p>
+          <Boton variante="fantasma" tamano="pequeno" onClick={desactivar} disabled={ocupado} className="shrink-0">
+            Desactivar
+          </Boton>
+        </div>
+      )}
+
+      {estado === "instalar" && (
+        <p className="text-sm text-texto-suave">
+          En iPhone, los avisos funcionan con la app instalada.{" "}
+          <Link href="/instalar" className="font-semibold text-marca underline underline-offset-4">
+            Cómo instalarla
+          </Link>
+        </p>
+      )}
+
+      {estado === "bloqueados" && (
+        <p className="text-sm text-texto-suave">
+          Tu celular tiene bloqueados los avisos de esta app. Puedes permitirlos en los ajustes del navegador.
+        </p>
+      )}
+
+      {fallo && (
+        <p role="alert" className="text-sm text-error">
+          No se pudo cambiar los avisos. Revisa tu señal e inténtalo otra vez.
+        </p>
+      )}
+
       {/* Archivo .ics: el iPhone lo abre en «Agregar al calendario» y Android en su calendario */}
-      <a href="/recordatorio-misa.ics" className={`${claseDeBoton("secundario")} mt-3 w-full`}>
+      <a href="/recordatorio-misa.ics" className={`${claseDeBoton("secundario")} w-full`}>
         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.75} aria-hidden="true">
           <path
             strokeLinecap="round"
@@ -19,6 +63,7 @@ export function Recordatorios() {
         </svg>
         Agregar al calendario
       </a>
+      <p className="text-xs text-texto-tenue">El calendario te recuerda cada sábado a las 7 p. m., cuando ya puedes subir tu foto.</p>
     </section>
   );
 }

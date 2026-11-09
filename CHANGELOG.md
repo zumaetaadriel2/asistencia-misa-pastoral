@@ -5,6 +5,23 @@ Todos los cambios importantes de Mi Misa PS (Asistencia Misa Pastoral) se anotan
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el proyecto usa
 [versionado semántico](https://semver.org/lang/es/).
 
+## [1.10.0] - 2026-11-09
+
+### Añadido
+
+- Avisos push para el alumno, que él mismo activa en «Recordatorios»: el sábado a las 7 p. m., cuando abre el envío, y el domingo a las 8 a. m. y el lunes a las 6 p. m. solo si todavía no envió su foto. En iPhone funcionan con la app instalada.
+- Aviso push para el guía, que se activa con la campana del encabezado: el lunes a las 8 p. m., si tiene fotos por revisar.
+- Función `enviar-avisos`, que manda los avisos a las horas programadas.
+
+### Cambiado
+
+- La política de privacidad explica qué se guarda al activar los avisos y qué recuerda el celular.
+
+### Seguridad
+
+- Solo se aceptan direcciones de los servicios de avisos reales (Google, Apple, Mozilla y Microsoft).
+- Al cambiar de alumno o cerrar sesión, se quitan los avisos de ese celular.
+
 ## [1.9.0] - 2026-11-08
 
 ### Añadido
@@ -150,6 +167,7 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   - Administración: ciclo, comunidades, staff, alumnos y reportes;
   - cierre automático de semanas y respaldo semanal cifrado.
 
+[1.10.0]: https://github.com/zumaetaadriel2/asistencia-misa-pastoral/compare/v1.9.0...v1.10.0
 [1.9.0]: https://github.com/zumaetaadriel2/asistencia-misa-pastoral/compare/v1.8.0...v1.9.0
 [1.8.0]: https://github.com/zumaetaadriel2/asistencia-misa-pastoral/compare/v1.7.1...v1.8.0
 [1.7.1]: https://github.com/zumaetaadriel2/asistencia-misa-pastoral/compare/v1.7.0...v1.7.1

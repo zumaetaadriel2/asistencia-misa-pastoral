@@ -141,7 +141,7 @@ export function PaginaAyuda() {
               ],
               [
                 "Quiero que me recuerde el sábado",
-                "En tu pantalla, toca «Agregar al calendario»: te avisará cada sábado a las 7 p. m.",
+                "En tu pantalla, en Recordatorios, activa los avisos del celular (en iPhone, con la app instalada) o toca «Agregar al calendario».",
               ],
             ]}
           />
@@ -186,6 +186,7 @@ export function PaginaAyuda() {
               ],
               ["Justificar una falta", "Toca la semana del alumno en Asistencia y escribe el motivo."],
               ["Mandar el resumen al grupo", "En Revisión, «Resumen WhatsApp» arma el mensaje con quién envió y quién falta."],
+              ["Que me avisen de las fotos", "Toca la campana de arriba: te avisa los lunes a las 8 p. m. si tienes fotos por revisar."],
               ["Códigos y Excel", "En Asistencia: «Imprimir códigos» para repartirlos y «Descargar Excel» para el reporte."],
               [
                 "Pasar lista en catequesis",
