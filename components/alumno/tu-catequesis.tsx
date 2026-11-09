@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Plegable } from "@/components/ui/plegable";
 import type { SesionAlumno } from "@/lib/alumno/identificar";
 import { ESTADOS_CATEQUESIS } from "@/lib/ui/estados";
 import { formatearFecha } from "@/lib/utils/timeHelpers";
@@ -19,16 +20,7 @@ export function TuCatequesis({ sesiones }: { sesiones: SesionAlumno[] }) {
   const mostradas = todas ? sesiones : sesiones.slice(0, VISIBLES);
 
   return (
-    <section className="tarjeta p-5 animate-fade-in delay-200">
-      <div className="flex items-baseline justify-between gap-3 mb-4">
-        <h2 className="text-sm font-semibold text-texto">Tu catequesis</h2>
-        {cuentan > 0 && (
-          <p className="text-xs text-texto-tenue">
-            Asististe a {asistio} de {cuentan}
-          </p>
-        )}
-      </div>
-
+    <Plegable titulo="Tu catequesis" resumen={cuentan > 0 ? `Asististe a ${asistio} de ${cuentan}` : undefined}>
       <ul className="divide-y divide-borde">
         {mostradas.map((s, i) => {
           const { texto, clases } = ESTADOS_CATEQUESIS[s.estado];
@@ -60,6 +52,6 @@ export function TuCatequesis({ sesiones }: { sesiones: SesionAlumno[] }) {
           {todas ? "Ver menos" : `Ver todas (${sesiones.length})`}
         </button>
       )}
-    </section>
+    </Plegable>
   );
 }

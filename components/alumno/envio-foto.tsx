@@ -9,7 +9,7 @@ import {
   MENSAJE_FOTO_ILEGIBLE,
   MENSAJES_ERROR,
 } from "@/lib/alumno/mensajes";
-import { ConsejosFoto, marcarConsejosVistos } from "./consejos-foto";
+import { ConsejosFoto } from "./consejos-foto";
 
 interface Props {
   codigo: string;
@@ -48,8 +48,6 @@ export function EnvioFoto({ codigo, esReenvio, onEnviado, onActualizar }: Props)
     setFoto(archivo);
     setVistaPrevia(URL.createObjectURL(archivo));
     setError(null);
-    // Ya los leyó: la próxima vez los consejos aparecen plegados
-    marcarConsejosVistos();
   };
 
   const cambiarFoto = () => {
@@ -113,10 +111,9 @@ export function EnvioFoto({ codigo, esReenvio, onEnviado, onActualizar }: Props)
         </div>
       ) : (
         <>
-          <ConsejosFoto />
           <button
             onClick={() => inputRef.current?.click()}
-            className="w-full mb-4 py-10 rounded-xl border-2 border-dashed border-borde hover:border-marca/50
+            className="w-full mb-2 py-6 rounded-xl border-2 border-dashed border-borde hover:border-marca/50
                        text-texto-suave hover:text-texto transition-all flex flex-col items-center gap-2"
           >
             <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5} aria-hidden="true">
@@ -129,6 +126,7 @@ export function EnvioFoto({ codigo, esReenvio, onEnviado, onActualizar }: Props)
             </svg>
             <span className="text-sm font-medium">{esReenvio ? "Tomar o elegir otra foto" : "Tomar o elegir foto"}</span>
           </button>
+          <ConsejosFoto />
         </>
       )}
 

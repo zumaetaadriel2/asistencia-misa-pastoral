@@ -88,6 +88,18 @@ body {
   background: var(--fondo);
   color: var(--texto);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  /* La app instalada en iPhone ocupa también la franja de la hora (viewportFit: "cover") */
+  padding-top: env(safe-area-inset-top);
+}
+
+/* Al hacer scroll, el contenido no debe pasar por debajo de la hora */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0 0 auto 0;
+  height: env(safe-area-inset-top);
+  background: var(--fondo);
+  z-index: 40;
 }
 
 /* Chrome en Windows no aplica color-scheme a las opciones de los <select> */
@@ -197,5 +209,10 @@ dialog::backdrop {
   body {
     background: white;
     color: black;
+    padding-top: 0;
+  }
+
+  body::before {
+    display: none;
   }
 }

@@ -44,3 +44,11 @@ export function progresoAlumno(semanas: SemanaAlumno[], semanaActual: number): P
     porcentaje: resumen.porcentaje,
   };
 }
+
+/** La línea junto al saludo; null si todavía no hay nada que contar */
+export function textoProgreso({ seguidas, cuentan, porcentaje }: ProgresoAlumno): string | null {
+  if (seguidas === 0 && cuentan === 0) return null;
+  const racha =
+    seguidas > 0 ? `${seguidas} ${seguidas === 1 ? "domingo seguido" : "domingos seguidos"}` : "Empieza tu racha esta semana";
+  return porcentaje === null ? racha : `${racha} · ${porcentaje}%`;
+}
