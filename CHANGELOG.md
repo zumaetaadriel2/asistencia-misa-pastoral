@@ -5,6 +5,20 @@ Todos los cambios importantes de Mi Misa PS (Asistencia Misa Pastoral) se anotan
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el proyecto usa
 [versionado semántico](https://semver.org/lang/es/).
 
+## [1.11.0] - 2026-11-09
+
+### Cambiado
+
+- La pantalla del alumno cabe en un solo vistazo: la semana y la foto van arriba, y «Tus semanas», «Tu catequesis» y «Recordatorios» quedan como filas de una línea que se abren con un toque.
+- «Tu progreso» pasa a una línea junto al saludo. El detalle está dentro de «Tus semanas».
+- Los consejos para la foto se reducen a una línea, «Que se vea tu rostro dentro de la iglesia», y el resto va en «Ver más».
+- «Tus semanas» muestra las 6 más recientes, con «Ver todas».
+- «Empieza tu racha este domingo» pasa a «Empieza tu racha esta semana».
+
+### Corregido
+
+- En iPhone con la app instalada, el contenido ya no pasa por debajo de la hora al hacer scroll.
+
 ## [1.10.0] - 2026-11-09
 
 ### Añadido
@@ -167,6 +181,7 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   - Administración: ciclo, comunidades, staff, alumnos y reportes;
   - cierre automático de semanas y respaldo semanal cifrado.
 
+[1.11.0]: https://github.com/zumaetaadriel2/asistencia-misa-pastoral/compare/v1.10.0...v1.11.0
 [1.10.0]: https://github.com/zumaetaadriel2/asistencia-misa-pastoral/compare/v1.9.0...v1.10.0
 [1.9.0]: https://github.com/zumaetaadriel2/asistencia-misa-pastoral/compare/v1.8.0...v1.9.0
 [1.8.0]: https://github.com/zumaetaadriel2/asistencia-misa-pastoral/compare/v1.7.1...v1.8.0
