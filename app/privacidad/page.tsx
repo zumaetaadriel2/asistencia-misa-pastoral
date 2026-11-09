@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 const CORREO = "pastoral@ps.edu.pe";
-const ACTUALIZADA = "27 de octubre de 2026";
+const ACTUALIZADA = "9 de noviembre de 2026";
 
 function Seccion({ titulo, children }: { titulo: string; children: ReactNode }) {
   return (
@@ -84,13 +84,18 @@ export default function PrivacidadPage() {
             <strong className="text-texto">Por seguridad:</strong> cuando alguien escribe un código equivocado, se guarda
             la dirección IP durante un día, para impedir que se adivinen códigos.
           </li>
+          <li>
+            <strong className="text-texto">Si activas los avisos:</strong> la dirección de avisos de tu celular y sus
+            claves, que entrega tu navegador. Sirven solo para mandarte los recordatorios. Se borran al desactivarlos, al
+            cambiar de alumno, al cerrar sesión o cuando dejan de funcionar.
+          </li>
         </ul>
       </Seccion>
 
       <Seccion titulo="Para qué los usamos">
         <p>
-          Para registrar y revisar la asistencia de cada alumno, avisarle si su foto fue aceptada o rechazada y preparar
-          reportes para la pastoral. Nunca los usamos para publicidad ni los vendemos o compartimos con otros fines.
+          Para registrar y revisar la asistencia de cada alumno, avisarle si su foto fue aceptada o rechazada, mandar los
+          recordatorios a quien los activó y preparar reportes para la pastoral. Nunca los usamos para publicidad ni los vendemos o compartimos con otros fines.
         </p>
       </Seccion>
 
@@ -124,14 +129,16 @@ export default function PrivacidadPage() {
       <Seccion titulo="En tu celular">
         <p>
           La app no usa cookies de publicidad ni de analítica. Tu celular solo recuerda el código del alumno (para no
-          pedirlo cada vez) y, si eres del equipo, tu sesión.
+          pedirlo cada vez), si ya viste los consejos de la app y, si eres del equipo, tu sesión. Los avisos solo se
+          activan si tú lo pides, y puedes quitarlos cuando quieras.
         </p>
       </Seccion>
 
       <Seccion titulo="Otros servicios">
         <p>
           El equipo de la pastoral inicia sesión con su cuenta de Google. El botón «Cómo llegar» abre Google Maps, que
-          tiene su propia política de privacidad.
+          tiene su propia política de privacidad. Los avisos llegan por el servicio de avisos de tu navegador (Google,
+          Apple, Mozilla o Microsoft): van cifrados y no llevan tu nombre.
         </p>
       </Seccion>
 

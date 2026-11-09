@@ -79,19 +79,27 @@ Todas las cuentas van a nombre de la pastoral salvo GitHub y Vercel.
    npx supabase db push
    ```
 
-2. **Edge Functions**: crear `supabase/functions/.env.production` (ignorado por git) con el token de R2 `asistencia-produccion`, `R2_BUCKET=asistencia-fotos` y `ORIGENES_PERMITIDOS` con el dominio de producción, y luego:
+2. **Edge Functions**: crear `supabase/functions/.env.production` (ignorado por git) con el token de R2 `asistencia-produccion`, `R2_BUCKET=asistencia-fotos`, `ORIGENES_PERMITIDOS` con el dominio de producción, y `VAPID_PUBLIC_KEY` y `VAPID_PRIVATE_KEY` (`npx web-push generate-vapid-keys`), y luego:
 
    ```bash
    npx supabase secrets set --env-file supabase/functions/.env.production
    npx supabase functions deploy subir-foto
    npx supabase functions deploy ver-fotos
+   npx supabase functions deploy enviar-avisos
    ```
 
 3. **Auth** (panel de Supabase): proveedor Google con el cliente OAuth de Google Cloud, correo y contraseña desactivado, hook *Before User Created* → `public.hook_antes_de_crear_usuario`, y la URL de producción en *Site URL* y *Redirect URLs* (`…/login`).
 4. **Primer administrador** (SQL Editor): `insert into public.staff (email, nombre, rol) values ('correo@gmail.com', 'Nombre', 'admin');`. El resto del staff se agrega desde la app.
 5. **R2**: política CORS del bucket `asistencia-fotos` que permita `PUT` desde el dominio de producción.
-6. **Vercel**: importar el repositorio (rama de producción `main`) con `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, y agregar el subdominio (registros TXT y CNAME en el DNS del dominio).
-7. **Secretos de GitHub Actions**: `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_DB_URL` (cadena del *Session pooler*), `R2_ACCOUNT_ID`, `R2_RESPALDOS_ACCESS_KEY_ID`, `R2_RESPALDOS_SECRET_ACCESS_KEY` y `RESPALDO_CLAVE`.
+6. **Vercel**: importar el repositorio (rama de producción `main`) con `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` y `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, y agregar el subdominio (registros TXT y CNAME en el DNS del dominio).
+7. **Avisos push** (SQL Editor): guardar en Vault la dirección de la función y una clave secreta del proyecto (Settings → API Keys), que pg_cron usa para llamarla:
+
+   ```sql
+   select vault.create_secret('https://<ref-del-proyecto>.supabase.co/functions/v1/enviar-avisos', 'avisos_url');
+   select vault.create_secret('<clave-secreta>', 'avisos_clave');
+   ```
+
+8. **Secretos de GitHub Actions**: `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_DB_URL` (cadena del *Session pooler*), `R2_ACCOUNT_ID`, `R2_RESPALDOS_ACCESS_KEY_ID`, `R2_RESPALDOS_SECRET_ACCESS_KEY` y `RESPALDO_CLAVE`.
 
 ### Restaurar un respaldo
 

@@ -6,7 +6,7 @@
 // menores y no deben quedar guardados en el celular de nadie.
 // Al cambiar esta lógica, subir CACHE_NAME: la activación borra las cachés viejas.
 
-const CACHE_NAME = "asistencia-misa-v7";
+const CACHE_NAME = "asistencia-misa-v8";
 
 const ARCHIVOS_INICIALES = ["/manifest.json"];
 
@@ -53,5 +53,45 @@ self.addEventListener("fetch", (event) => {
           return respuesta;
         })
     )
+  );
+});
+
+// ---------------------------------------------
+// Avisos push (los manda la Edge Function enviar-avisos)
+// ---------------------------------------------
+
+// En iPhone, cada aviso que llega tiene que mostrarse: por eso no se descarta ninguno
+self.addEventListener("push", (event) => {
+  let aviso = {};
+  try {
+    aviso = event.data ? event.data.json() : {};
+  } catch {
+    // Sin texto legible: se muestra el aviso con el nombre de la app
+  }
+  event.waitUntil(
+    self.registration.showNotification(aviso.titulo || "Mi Misa PS", {
+      body: aviso.cuerpo || "",
+      icon: "/icons/icon-192.png",
+      badge: "/icons/badge-96.png",
+      data: { url: aviso.url || "/" },
+    })
+  );
+});
+
+// Al tocar el aviso: abre esa página de la app, en la ventana que ya esté abierta si hay una
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const destino = new URL(event.notification.data?.url || "/", self.location.origin);
+  const url = destino.origin === self.location.origin ? destino.href : self.location.origin + "/";
+
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((ventanas) => {
+      const abierta = ventanas.find((ventana) => new URL(ventana.url).origin === self.location.origin);
+      if (!abierta) return self.clients.openWindow(url);
+      return abierta
+        .focus()
+        .then((ventana) => ventana.navigate(url))
+        .catch(() => self.clients.openWindow(url));
+    })
   );
 });

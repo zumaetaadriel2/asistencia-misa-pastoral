@@ -7,6 +7,7 @@ import { useEnfocarAlAparecer } from "@/components/ui/enfoque";
 import { IconoIglesia } from "@/components/ui/icono-iglesia";
 import { LogoOvalo } from "@/components/ui/logo";
 import { NOMBRE_PROGRAMA, type AlumnoIdentificado } from "@/lib/alumno/identificar";
+import { desactivarAvisos } from "@/lib/push/avisos";
 import { formatearDiaHora, formatearFecha } from "@/lib/utils/timeHelpers";
 import { EnvioFoto } from "./envio-foto";
 import { FormularioCerrado } from "./formulario-cerrado";
@@ -38,7 +39,10 @@ export function PanelAlumno({ datos, codigo, onCambiarCodigo, onActualizar, onEn
       mensaje: "Se borrará tu código de este celular y tendrás que escribirlo otra vez.",
       aceptar: "Sí, cambiar",
     });
-    if (seguro) onCambiarCodigo();
+    if (!seguro) return;
+    // Los avisos de este celular eran de este alumno: no le deben llegar al siguiente
+    desactivarAvisos().catch(() => {});
+    onCambiarCodigo();
   };
 
   return (
@@ -120,7 +124,7 @@ export function PanelAlumno({ datos, codigo, onCambiarCodigo, onActualizar, onEn
       <TuCatequesis sesiones={catequesis} />
 
       {/* ── Recordatorio en el calendario ── */}
-      <Recordatorios />
+      <Recordatorios codigo={codigo} />
 
       {/* ── Historial ── */}
       <HistorialSemanas semanas={anteriores} />

@@ -321,6 +321,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"suscripciones_push": {
+                  Row: {
+                    "alumno_id": number | null,"auth": string,"creado_en": string,"endpoint": string,"id": number,"p256dh": string,"staff_id": number | null
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "alumno_id"?: number | null,"auth": string,"creado_en"?: string,"endpoint": string,"id"?: never,"p256dh": string,"staff_id"?: number | null
+                  }
+                  Update: {
+                    "alumno_id"?: number | null,"auth"?: string,"creado_en"?: string,"endpoint"?: string,"id"?: never,"p256dh"?: string,"staff_id"?: number | null
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "suscripciones_push_alumno_id_fkey"
+      columns: ["alumno_id"]
+isOneToOne: false
+      referencedRelation: "alumnos"
+      referencedColumns: ["id"]
+    },{
+      foreignKeyName: "suscripciones_push_staff_id_fkey"
+      columns: ["staff_id"]
+isOneToOne: false
+      referencedRelation: "staff"
+      referencedColumns: ["id"]
+    }
+                  ]
                 }
           }
           Views: {
@@ -344,6 +370,9 @@ isOneToOne: false
 "_guardar_iglesia":
 { Args: { "p_datos": Json,"p_id": number }; Returns: Record<string, unknown>
                            },
+"_guardar_suscripcion":
+{ Args: { "p_alumno_id": number,"p_staff_id": number,"p_suscripcion": Json }; Returns: undefined
+                           },
 "_ip_cliente":
 { Args: Record<PropertyKey, never>; Returns: string
                            },
@@ -352,6 +381,9 @@ isOneToOne: false
                            },
 "_nombre_corto":
 { Args: { "p_nombre": string }; Returns: string
+                           },
+"_pedir_avisos":
+{ Args: { "p_tipo": string }; Returns: undefined
                            },
 "_registrar_intento_fallido":
 { Args: { "p_ip": string }; Returns: undefined
@@ -364,6 +396,11 @@ isOneToOne: false
                            },
 "activar_ciclo":
 { Args: { "p_ciclo_id": number }; Returns: undefined
+                           },
+"avisos_para_enviar":
+{ Args: { "p_tipo": string }; Returns: {
+              "auth": string,"cuerpo": string,"endpoint": string,"p256dh": string,"suscripcion_id": number,"titulo": string,"url": string
+            }[]
                            },
 "borrar_sesion_catequesis":
 { Args: { "p_sesion_id": number }; Returns: undefined
@@ -469,11 +506,23 @@ isOneToOne: false
 "puede_pasar_lista_sesion":
 { Args: { "p_sesion_id": number }; Returns: boolean
                            },
+"quitar_aviso":
+{ Args: { "p_endpoint": string }; Returns: undefined
+                           },
+"quitar_suscripciones":
+{ Args: { "p_ids": (number)[] }; Returns: undefined
+                           },
 "reasignar_asistencia":
 { Args: { "p_alumno_destino_id": number,"p_asistencia_id": number }; Returns: undefined
                            },
 "regenerar_codigo":
 { Args: { "p_alumno_id": number }; Returns: string
+                           },
+"registrar_aviso_alumno":
+{ Args: { "p_codigo": string,"p_suscripcion": Json }; Returns: Json
+                           },
+"registrar_aviso_staff":
+{ Args: { "p_suscripcion": Json }; Returns: undefined
                            },
 "resumen_admin":
 { Args: { "p_faltas_seguidas"?: number }; Returns: Json
