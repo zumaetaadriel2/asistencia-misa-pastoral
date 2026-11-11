@@ -5,6 +5,23 @@ Todos los cambios importantes de Mi Misa PS (Asistencia Misa Pastoral) se anotan
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el proyecto usa
 [versionado semántico](https://semver.org/lang/es/).
 
+## [1.13.0] - 2026-11-11
+
+### Añadido
+
+- Subida de la foto a prueba de mala señal:
+  - cada paso se vuelve a intentar solo y lo ya hecho no se repite;
+  - sin señal, la app espera y la envía sola cuando vuelve la conexión;
+  - la foto queda guardada en el celular hasta enviarla. Si se cierra la app, al abrirla se ofrece «Tienes una foto sin enviar».
+
+### Cambiado
+
+- La ayuda y la política de privacidad explican que la foto sin enviar queda guardada en el celular y cuándo se borra.
+
+### Corregido
+
+- Si la confirmación de la foto llegaba pero se perdía la respuesta, al reintentar ya no sale «ya tienes registro»: cuenta como enviada.
+
 ## [1.12.0] - 2026-11-11
 
 ### Añadido
@@ -191,6 +208,7 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   - Administración: ciclo, comunidades, staff, alumnos y reportes;
   - cierre automático de semanas y respaldo semanal cifrado.
 
+[1.13.0]: https://github.com/zumaetaadriel2/asistencia-misa-pastoral/compare/v1.12.0...v1.13.0
 [1.12.0]: https://github.com/zumaetaadriel2/asistencia-misa-pastoral/compare/v1.11.0...v1.12.0
 [1.11.0]: https://github.com/zumaetaadriel2/asistencia-misa-pastoral/compare/v1.10.0...v1.11.0
 [1.10.0]: https://github.com/zumaetaadriel2/asistencia-misa-pastoral/compare/v1.9.0...v1.10.0

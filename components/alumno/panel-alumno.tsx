@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect } from "react";
 import { Boton } from "@/components/ui/base";
 import { useConfirmar } from "@/components/ui/confirmar";
 import { useEnfocarAlAparecer } from "@/components/ui/enfoque";
@@ -8,6 +9,7 @@ import { IconoIglesia } from "@/components/ui/icono-iglesia";
 import { LogoOvalo } from "@/components/ui/logo";
 import { NOMBRE_PROGRAMA, type AlumnoIdentificado } from "@/lib/alumno/identificar";
 import { progresoAlumno } from "@/lib/alumno/progreso";
+import { borrarFotoPendiente } from "@/lib/fotos/pendiente";
 import { desactivarAvisos } from "@/lib/push/avisos";
 import { formatearDiaHora, formatearFecha } from "@/lib/utils/timeHelpers";
 import { EnvioFoto } from "./envio-foto";
@@ -35,6 +37,11 @@ export function PanelAlumno({ datos, codigo, onCambiarCodigo, onActualizar, onEn
   const titulo = useEnfocarAlAparecer<HTMLHeadingElement>();
   const { confirmar, dialogoConfirmar } = useConfirmar();
 
+  // Si esta semana ya no se puede enviar (ya hay foto, se cerró…), la foto guardada sin enviar no sirve
+  useEffect(() => {
+    if (accion === null) borrarFotoPendiente();
+  }, [accion]);
+
   const noSoyYo = async () => {
     const seguro = await confirmar({
       titulo: "¿Cambiar de alumno?",
@@ -44,6 +51,7 @@ export function PanelAlumno({ datos, codigo, onCambiarCodigo, onActualizar, onEn
     if (!seguro) return;
     // Los avisos de este celular eran de este alumno: no le deben llegar al siguiente
     desactivarAvisos().catch(() => {});
+    borrarFotoPendiente();
     onCambiarCodigo();
   };
 
@@ -87,7 +95,7 @@ export function PanelAlumno({ datos, codigo, onCambiarCodigo, onActualizar, onEn
               {/* La fecha ya termina en "p. m.": sin punto extra */}
               {formulario.cierre_envio ? <> hasta el {formatearDiaHora(formulario.cierre_envio)}</> : " de este fin de semana."}
             </p>
-            <EnvioFoto codigo={codigo} esReenvio={false} onEnviado={onEnviado} onActualizar={onActualizar} />
+            <EnvioFoto codigo={codigo} semana={formulario.semana} esReenvio={false} onEnviado={onEnviado} onActualizar={onActualizar} />
           </>
         )}
 
@@ -100,7 +108,7 @@ export function PanelAlumno({ datos, codigo, onCambiarCodigo, onActualizar, onEn
               Puedes enviar otra
               {formulario.cierre_reenvio ? <> hasta el {formatearDiaHora(formulario.cierre_reenvio)}</> : "."}
             </p>
-            <EnvioFoto codigo={codigo} esReenvio onEnviado={onEnviado} onActualizar={onActualizar} />
+            <EnvioFoto codigo={codigo} semana={formulario.semana} esReenvio onEnviado={onEnviado} onActualizar={onActualizar} />
           </>
         )}
 
