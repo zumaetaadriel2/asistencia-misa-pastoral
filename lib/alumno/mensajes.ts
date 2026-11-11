@@ -27,6 +27,24 @@ export const MENSAJES_ERROR: Record<ErrorIdentificacion | ErrorEnvio, string> = 
 
 export const MENSAJE_FOTO_ILEGIBLE = "No pudimos leer esa foto. Prueba con otra.";
 
+/** Errores con los que la foto guardada en el celular ya no sirve (se borra) */
+export const ERRORES_QUE_DESCARTAN_LA_FOTO: readonly ErrorEnvio[] = [
+  "ya_registrada",
+  "formulario_cerrado",
+  "semana_cerrada",
+  "fuera_de_ciclo",
+  "codigo_invalido",
+  "foto_invalida",
+];
+
+/** Cuando se acabaron los reintentos: la foto queda lista y se envía sola al volver la señal */
+export const ESPERANDO_SENAL = {
+  sinSenal: "Sin señal",
+  servidor: "No pudimos conectar con el servidor",
+  guardada: "Tu foto quedó guardada en este celular y se enviará sola cuando vuelva la conexión. Si cierras la app, al abrirla podrás enviarla.",
+  sinGuardar: "Tu foto está lista y se enviará sola cuando vuelva la conexión. No cierres la app.",
+} as const;
+
 /** Errores que significan que la semana cambió mientras el alumno elegía la foto */
 export const ERRORES_QUE_CAMBIAN_LA_SEMANA: readonly ErrorEnvio[] = ["ya_registrada", "formulario_cerrado", "semana_cerrada"];
 
