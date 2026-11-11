@@ -188,7 +188,11 @@ select is(
   'como máximo 5 celulares por alumno'
 );
 
-select is((select count(*)::int from cron.job where jobname like 'avisos-%'), 4, 'están programados los cuatro avisos');
+select is(
+  (select count(*)::int from cron.job where jobname in ('avisos-apertura', 'avisos-recordatorio', 'avisos-cierre', 'avisos-revision')),
+  4,
+  'están programados los cuatro avisos de la semana'
+);
 select lives_ok($$select public._pedir_avisos('apertura')$$, 'sin los secretos de Vault no falla');
 select is((select count(*)::int from net.http_request_queue), 0, 'y no hace ninguna llamada');
 
