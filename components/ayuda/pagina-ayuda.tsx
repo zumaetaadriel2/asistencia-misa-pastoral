@@ -138,7 +138,7 @@ export function PaginaAyuda() {
               ],
               [
                 "No me deja enviar la foto",
-                "Revisa que tengas señal y que estés dentro del horario. Si sigue sin funcionar, avísale a tu guía.",
+                "Si se cae la señal, la app lo vuelve a intentar sola y guarda tu foto en el celular: puedes cerrarla y, cuando tengas señal, abrirla para enviarla. Revisa también que estés dentro del horario. Si sigue sin funcionar, avísale a tu guía.",
               ],
               [
                 "Quiero que me recuerde el sábado",

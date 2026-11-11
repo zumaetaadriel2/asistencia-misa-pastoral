@@ -130,8 +130,10 @@ export default function PrivacidadPage() {
       <Seccion titulo="En tu celular">
         <p>
           La app no usa cookies de publicidad ni de analítica. Tu celular solo recuerda el código del alumno (para no
-          pedirlo cada vez), si ya viste los consejos de la app y, si eres del equipo, tu sesión. Los avisos solo se
-          activan si tú lo pides, y puedes quitarlos cuando quieras.
+          pedirlo cada vez), si ya viste los consejos de la app y, si eres del equipo, tu sesión. Si se cae la señal al
+          enviar la foto, la foto queda guardada en tu celular para enviarla después: se borra al enviarla, al elegir
+          otra, al cambiar de alumno o, a más tardar, a los 5 días. Los avisos solo se activan si tú lo pides, y puedes
+          quitarlos cuando quieras.
         </p>
       </Seccion>
 
