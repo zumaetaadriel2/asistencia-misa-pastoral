@@ -34,7 +34,7 @@ export function Recordatorios({ codigo }: { codigo: string }) {
         {estado === "activados" && (
           <div className="flex items-start justify-between gap-3">
             <p className="text-sm text-exito">
-              Avisos activados: el sábado a las 7 p. m. y, si te falta la foto, el domingo y el lunes.
+              Avisos activados: el sábado a las 7 p. m.; el domingo y el lunes, si te falta la foto; y si rechazan tu foto.
             </p>
             <Boton variante="fantasma" tamano="pequeno" onClick={desactivar} disabled={ocupado} className="shrink-0">
               Desactivar

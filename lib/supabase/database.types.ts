@@ -255,6 +255,26 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"rechazos_avisados": {
+                  Row: {
+                    "avisado_en": string,"envio_id": number
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "avisado_en"?: string,"envio_id": number
+                  }
+                  Update: {
+                    "avisado_en"?: string,"envio_id"?: number
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "rechazos_avisados_envio_id_fkey"
+      columns: ["envio_id"]
+isOneToOne: true
+      referencedRelation: "envios_foto"
+      referencedColumns: ["id"]
+    }
+                  ]
                 },"sesiones_catequesis": {
                   Row: {
                     "comunidad_id": number,"creada_por": number | null,"creado_en": string,"fecha": string,"id": number,"titulo": string
@@ -353,7 +373,10 @@ isOneToOne: false
             [_ in never]: never
           }
           Functions: {
-            "_buscar_alumno":
+            "_avisar_rechazos":
+{ Args: Record<PropertyKey, never>; Returns: undefined
+                           },
+"_buscar_alumno":
 { Args: { "p_codigo": string }; Returns: {
               "alumno_id": number,"ciclo_id": number,"comunidad": string,"comunidad_id": number,"nombre_completo": string,"programa": Database["public"]['Enums']["programa"]
             }[]
@@ -384,6 +407,11 @@ isOneToOne: false
                            },
 "_pedir_avisos":
 { Args: { "p_tipo": string }; Returns: undefined
+                           },
+"_rechazos_por_avisar":
+{ Args: Record<PropertyKey, never>; Returns: {
+              "alumno_id": number,"envio_id": number
+            }[]
                            },
 "_registrar_intento_fallido":
 { Args: { "p_ip": string }; Returns: undefined

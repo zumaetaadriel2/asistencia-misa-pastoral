@@ -5,6 +5,16 @@ Todos los cambios importantes de Mi Misa PS (Asistencia Misa Pastoral) se anotan
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el proyecto usa
 [versionado semántico](https://semver.org/lang/es/).
 
+## [1.12.0] - 2026-11-11
+
+### Añadido
+
+- Aviso push al alumno cuando rechazan su foto, para que mande otra a tiempo. Llega unos minutos después del rechazo (pasado el tiempo de «Deshacer»), solo si todavía puede reenviarla (hasta el miércoles a las 11:59 p. m.) y si activó los avisos. Dice que entre a ver el motivo, sin el motivo.
+
+### Cambiado
+
+- «Recordatorios», la ayuda y la política de privacidad mencionan el aviso de foto rechazada.
+
 ## [1.11.0] - 2026-11-09
 
 ### Cambiado
@@ -181,6 +191,7 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   - Administración: ciclo, comunidades, staff, alumnos y reportes;
   - cierre automático de semanas y respaldo semanal cifrado.
 
+[1.12.0]: https://github.com/zumaetaadriel2/asistencia-misa-pastoral/compare/v1.11.0...v1.12.0
 [1.11.0]: https://github.com/zumaetaadriel2/asistencia-misa-pastoral/compare/v1.10.0...v1.11.0
 [1.10.0]: https://github.com/zumaetaadriel2/asistencia-misa-pastoral/compare/v1.9.0...v1.10.0
 [1.9.0]: https://github.com/zumaetaadriel2/asistencia-misa-pastoral/compare/v1.8.0...v1.9.0

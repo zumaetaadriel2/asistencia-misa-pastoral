@@ -2,7 +2,7 @@
 // enviar-avisos: manda los avisos push de la semana
 // =============================================
 // La llama pg_cron (public._pedir_avisos) con { "tipo": "apertura" | "recordatorio" |
-// "cierre" | "revision" } y una clave secreta del proyecto en el header apikey. A quién avisar
+// "cierre" | "revision" | "rechazo" } y una clave secreta del proyecto en el header apikey. A quién avisar
 // y qué decirle lo decide la base (avisos_para_enviar). Los textos no llevan datos del alumno.
 // No se registran las direcciones de los celulares: quien las tiene puede mandarles avisos.
 
@@ -10,7 +10,7 @@ import "@supabase/functions-js/edge-runtime.d.ts";
 import { withSupabase } from "@supabase/server";
 import webpush from "web-push";
 
-const TIPOS = ["apertura", "recordatorio", "cierre", "revision"];
+const TIPOS = ["apertura", "recordatorio", "cierre", "revision", "rechazo"];
 const AVISOS_A_LA_VEZ = 20;
 // Si el celular está apagado, el servicio de avisos lo guarda 12 horas
 const VIGENCIA_SEGUNDOS = 12 * 60 * 60;

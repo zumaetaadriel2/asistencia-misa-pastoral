@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 const CORREO = "pastoral@ps.edu.pe";
-const ACTUALIZADA = "9 de noviembre de 2026";
+const ACTUALIZADA = "11 de noviembre de 2026";
 
 function Seccion({ titulo, children }: { titulo: string; children: ReactNode }) {
   return (
@@ -86,8 +86,9 @@ export default function PrivacidadPage() {
           </li>
           <li>
             <strong className="text-texto">Si activas los avisos:</strong> la dirección de avisos de tu celular y sus
-            claves, que entrega tu navegador. Sirven solo para mandarte los recordatorios. Se borran al desactivarlos, al
-            cambiar de alumno, al cerrar sesión o cuando dejan de funcionar.
+            claves, que entrega tu navegador. Sirven solo para mandarte los recordatorios y avisarte si rechazan tu foto
+            (para no repetir ese aviso, se anota que ya se mandó). Se borran al desactivarlos, al cambiar de alumno, al
+            cerrar sesión o cuando dejan de funcionar.
           </li>
         </ul>
       </Seccion>
@@ -95,7 +96,7 @@ export default function PrivacidadPage() {
       <Seccion titulo="Para qué los usamos">
         <p>
           Para registrar y revisar la asistencia de cada alumno, avisarle si su foto fue aceptada o rechazada, mandar los
-          recordatorios a quien los activó y preparar reportes para la pastoral. Nunca los usamos para publicidad ni los vendemos o compartimos con otros fines.
+          recordatorios y el aviso de foto rechazada a quien los activó y preparar reportes para la pastoral. Nunca los usamos para publicidad ni los vendemos o compartimos con otros fines.
         </p>
       </Seccion>
 
