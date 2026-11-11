@@ -114,7 +114,8 @@ export function PaginaAyuda() {
               </>,
               <>
                 <strong className="text-texto print:text-black">Revisa cómo quedó:</strong> tu guía la valida o la rechaza. Si la
-                rechaza, verás el motivo y podrás mandar otra hasta el miércoles a las 11:59 p. m.
+                rechaza, verás el motivo y podrás mandar otra hasta el miércoles a las 11:59 p. m. Si activaste los avisos, te
+                llega uno.
               </>,
             ]}
           />
@@ -167,7 +168,8 @@ export function PaginaAyuda() {
               </>,
               <>
                 <strong className="text-texto print:text-black">Al rechazar</strong>, escribe un motivo claro: el alumno lo ve y puede
-                mandar otra hasta el miércoles. ¿Te equivocaste? Toca «Deshacer» en los segundos siguientes.
+                mandar otra hasta el miércoles. ¿Te equivocaste? Toca «Deshacer» en los segundos siguientes. Si el alumno
+                activó los avisos, unos minutos después le llega uno (sin tu motivo: lo ve en la app).
               </>,
               <>
                 <strong className="text-texto print:text-black">¿Es de otro alumno?</strong> «Cambiar alumno» la pasa al alumno
