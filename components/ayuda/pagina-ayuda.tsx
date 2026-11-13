@@ -183,8 +183,12 @@ export function PaginaAyuda() {
           <Preguntas
             preguntas={[
               [
+                "Ver cómo va tu grupo",
+                "En Mi comunidad → Resumen: la asistencia de la última semana y su tendencia, las fotos por revisar, la catequesis y los alumnos con 3 o más faltas seguidas, para buscarlos a tiempo.",
+              ],
+              [
                 "Ver quién falta",
-                "En Asistencia (o Mi comunidad) está cada alumno semana por semana, con su porcentaje.",
+                "En Mi comunidad → Asistencia está cada alumno semana por semana, con su porcentaje.",
               ],
               ["Justificar una falta", "Toca la semana del alumno en Asistencia y escribe el motivo."],
               ["Mandar el resumen al grupo", "En Revisión, «Resumen WhatsApp» arma el mensaje con quién envió y quién falta."],

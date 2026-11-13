@@ -2,10 +2,10 @@
 
 import { Suspense } from "react";
 import { MarcoStaff } from "@/components/dashboard/marco-staff";
-import { VistaComunidad } from "@/components/comunidad/vista-comunidad";
+import { PestanasComunidad } from "@/components/comunidad/pestanas-comunidad";
 import { Cargando } from "@/components/ui/base";
 
-// VistaComunidad lee ?comunidad= con useSearchParams: por eso va dentro de <Suspense>
+// PestanasComunidad y VistaComunidad leen ?comunidad= con useSearchParams: por eso van dentro de <Suspense>
 export default function ComunidadPage() {
   return (
     <MarcoStaff
@@ -14,7 +14,7 @@ export default function ComunidadPage() {
     >
       {(perfil) => (
         <Suspense fallback={<Cargando />}>
-          <VistaComunidad perfil={perfil} />
+          <PestanasComunidad perfil={perfil} />
         </Suspense>
       )}
     </MarcoStaff>
