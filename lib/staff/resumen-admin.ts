@@ -1,7 +1,7 @@
 // =============================================
-// Resumen del administrador (Administración → Resumen)
+// Resumen del administrador (Administración → Resumen) y del guía (Mi comunidad → Resumen)
 // =============================================
-// La base solo cuenta (RPC resumen_admin); aquí se aplican las mismas reglas que el Excel de
+// La base solo cuenta (RPC resumen_admin, o resumen_guia con solo las comunidades donde es guía); aquí se aplican las mismas reglas que el Excel de
 // asistencia (resumirAlumno): faltas son las inasistencias y las fotos rechazadas, y las
 // justificadas y las pendientes no cuentan para el porcentaje.
 
@@ -50,7 +50,7 @@ export interface AlumnoAlejandose {
   faltas_seguidas: number;
 }
 
-/** Lo que devuelve resumen_admin */
+/** Lo que devuelve resumen_admin (y resumen_guia, con iglesias_sin_horario en 0) */
 export interface DatosResumen {
   semana_reciente: number;
   semanas: SemanaResumen[];
@@ -59,9 +59,13 @@ export interface DatosResumen {
   iglesias_sin_horario: number;
 }
 
+/** De quién es el resumen: el admin ve todas las comunidades; el guía, solo donde es guía */
+export type AlcanceResumen = "admin" | "guia";
+
 /** null si no hay ciclo activo */
-export async function obtenerResumen(): Promise<DatosResumen | null> {
-  const { data, error } = await supabase.rpc("resumen_admin", { p_faltas_seguidas: FALTAS_PARA_ALERTA });
+export async function obtenerResumen(alcance: AlcanceResumen = "admin"): Promise<DatosResumen | null> {
+  const funcion = alcance === "admin" ? "resumen_admin" : "resumen_guia";
+  const { data, error } = await supabase.rpc(funcion, { p_faltas_seguidas: FALTAS_PARA_ALERTA });
   if (error) throw error;
   return data as unknown as DatosResumen | null;
 }

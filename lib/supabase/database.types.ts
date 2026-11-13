@@ -416,6 +416,9 @@ isOneToOne: false
 "_registrar_intento_fallido":
 { Args: { "p_ip": string }; Returns: undefined
                            },
+"_resumen":
+{ Args: { "p_comunidades": (number)[],"p_faltas_seguidas": number }; Returns: Json
+                           },
 "_titulo_sesion":
 { Args: { "p_titulo": string }; Returns: string
                            },
@@ -559,6 +562,9 @@ isOneToOne: false
 { Args: { "p_comunidad_id": number }; Returns: {
               "activo": boolean,"alumno_id": number,"estado": Database["public"]['Enums']["estado_catequesis"],"motivo": string,"nombre_completo": string,"sesion_id": number
             }[]
+                           },
+"resumen_guia":
+{ Args: { "p_faltas_seguidas"?: number }; Returns: Json
                            },
 "resumen_semana":
 { Args: { "p_semana": number }; Returns: {

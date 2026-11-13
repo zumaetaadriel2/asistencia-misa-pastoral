@@ -5,6 +5,25 @@ Todos los cambios importantes de Mi Misa PS (Asistencia Misa Pastoral) se anotan
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el proyecto usa
 [versionado semántico](https://semver.org/lang/es/).
 
+## [1.14.0] - 2026-11-13
+
+### Añadido
+
+- Resumen para guías en Mi comunidad, la pestaña que abre:
+  - asistencia a misa de la última semana cerrada y comparación con la anterior;
+  - cuántos ya enviaron su foto en la semana en curso;
+  - fotos por revisar y desde cuándo esperan;
+  - catequesis del ciclo;
+  - alumnos con 3 o más faltas seguidas;
+  - tendencia semana a semana.
+- Solo incluye las comunidades donde la persona es guía, con las mismas reglas que el Resumen del administrador y el Excel.
+- Consulta `resumen_guia` en la base.
+
+### Cambiado
+
+- Mi comunidad tiene dos pestañas para el guía: «Resumen» y «Asistencia» (la matriz de siempre).
+- La ayuda para guías explica el Resumen.
+
 ## [1.13.0] - 2026-11-11
 
 ### Añadido
@@ -208,6 +227,7 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   - Administración: ciclo, comunidades, staff, alumnos y reportes;
   - cierre automático de semanas y respaldo semanal cifrado.
 
+[1.14.0]: https://github.com/zumaetaadriel2/asistencia-misa-pastoral/compare/v1.13.0...v1.14.0
 [1.13.0]: https://github.com/zumaetaadriel2/asistencia-misa-pastoral/compare/v1.12.0...v1.13.0
 [1.12.0]: https://github.com/zumaetaadriel2/asistencia-misa-pastoral/compare/v1.11.0...v1.12.0
 [1.11.0]: https://github.com/zumaetaadriel2/asistencia-misa-pastoral/compare/v1.10.0...v1.11.0

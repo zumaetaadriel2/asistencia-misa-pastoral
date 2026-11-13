@@ -4,22 +4,37 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { mensajeDe } from "@/lib/staff/errores";
 import { NOMBRE_PROGRAMA } from "@/lib/staff/reporte";
-import { armarResumen, FALTAS_PARA_ALERTA, obtenerResumen, textoEspera, type Resumen } from "@/lib/staff/resumen-admin";
+import {
+  armarResumen,
+  FALTAS_PARA_ALERTA,
+  obtenerResumen,
+  textoEspera,
+  type AlcanceResumen,
+  type Resumen,
+} from "@/lib/staff/resumen-admin";
 import { formatearFecha } from "@/lib/utils/timeHelpers";
 import { Cargando, Mensaje, Tarjeta } from "@/components/ui/base";
 
 const enlaceComunidad = (id: number) => `/dashboard/comunidad?comunidad=${id}`;
 const CLASE_ENLACE = "text-xs font-medium text-marca underline-offset-4 hover:underline";
 
-/** Cómo va la pastoral de un vistazo: misa, catequesis, fotos por revisar y a quién hay que buscar */
-export function SeccionResumen() {
+interface Props {
+  /** "guia": solo sus comunidades y sin lo que configura el admin (comunidades sin guía, iglesias) */
+  alcance?: AlcanceResumen;
+  /** Si se da, "Ver asistencia" llama aquí en vez de abrir el enlace (Mi comunidad cambia de pestaña) */
+  onVerComunidad?: (id: number) => void;
+}
+
+/** Cómo va la pastoral (o la comunidad del guía) de un vistazo: misa, catequesis, fotos por revisar y a quién hay que buscar */
+export function SeccionResumen({ alcance = "admin", onVerComunidad }: Props) {
+  const esAdmin = alcance === "admin";
   // undefined mientras carga; null si no hay ciclo activo
   const [datos, setDatos] = useState<{ resumen: Resumen | null; ahora: Date } | undefined>(undefined);
   const [error, setError] = useState("");
 
   useEffect(() => {
     let cancelado = false;
-    obtenerResumen()
+    obtenerResumen(alcance)
       .then((respuesta) => {
         if (!cancelado) setDatos({ resumen: respuesta && armarResumen(respuesta), ahora: new Date() });
       })
@@ -29,7 +44,7 @@ export function SeccionResumen() {
     return () => {
       cancelado = true;
     };
-  }, []);
+  }, [alcance]);
 
   if (error) return <Mensaje mensaje={{ tipo: "error", texto: error }} />;
   if (!datos) return <Cargando />;
@@ -37,13 +52,27 @@ export function SeccionResumen() {
   if (!resumen) {
     return (
       <Tarjeta titulo="No hay un ciclo activo">
-        <p className="text-sm text-texto-suave">Activa un ciclo en la pestaña Ciclo para ver el resumen.</p>
+        <p className="text-sm text-texto-suave">
+          {esAdmin ? "Activa un ciclo en la pestaña Ciclo para ver el resumen." : "El resumen vuelve cuando la pastoral active el ciclo."}
+        </p>
       </Tarjeta>
     );
   }
 
   const { cerrada, enCurso, porRevisar } = resumen;
   const avisos = resumen.alejandose.length + resumen.sinGuia.length + (resumen.iglesiasSinHorario > 0 ? 1 : 0);
+  // El guía con una sola comunidad ya la ve en las tarjetas de arriba
+  const porComunidad = esAdmin || resumen.comunidades.length > 1;
+  const verComunidad = (id: number, texto: string) =>
+    onVerComunidad ? (
+      <button type="button" onClick={() => onVerComunidad(id)} className={`${CLASE_ENLACE} shrink-0 min-h-11 sm:min-h-0`}>
+        {texto}
+      </button>
+    ) : (
+      <Link href={enlaceComunidad(id)} className={`${CLASE_ENLACE} shrink-0`}>
+        {texto}
+      </Link>
+    );
 
   return (
     <div className="space-y-4">
@@ -84,53 +113,59 @@ export function SeccionResumen() {
         />
       </div>
 
-      <Tarjeta
-        titulo="Por comunidad"
-        descripcion={`Misa ${cerrada ? `de la semana ${cerrada.semana} ` : ""}y del ciclo, y catequesis del ciclo. Igual que el Excel: las justificadas y las fotos en revisión no cuentan.`}
-      >
-        {resumen.comunidades.length === 0 ? (
-          <p className="text-sm text-texto-tenue">Todavía no hay comunidades activas en este ciclo.</p>
-        ) : (
-          <ul>
-            {resumen.comunidades.map((c) => (
-              <li key={c.id} className="py-3 border-t border-borde first:border-t-0 first:pt-0 space-y-1.5">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium text-texto break-words">{c.nombre}</p>
-                    <p className="text-xs text-texto-tenue">
-                      {NOMBRE_PROGRAMA[c.programa]} · {c.activos} {c.activos === 1 ? "alumno" : "alumnos"}
-                    </p>
+      {porComunidad && (
+        <Tarjeta
+          titulo="Por comunidad"
+          descripcion={`Misa ${cerrada ? `de la semana ${cerrada.semana} ` : ""}y del ciclo, y catequesis del ciclo. Igual que el Excel: las justificadas y las fotos en revisión no cuentan.`}
+        >
+          {resumen.comunidades.length === 0 ? (
+            <p className="text-sm text-texto-tenue">Todavía no hay comunidades activas en este ciclo.</p>
+          ) : (
+            <ul>
+              {resumen.comunidades.map((c) => (
+                <li key={c.id} className="py-3 border-t border-borde first:border-t-0 first:pt-0 space-y-1.5">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium text-texto break-words">{c.nombre}</p>
+                      <p className="text-xs text-texto-tenue">
+                        {NOMBRE_PROGRAMA[c.programa]} · {c.activos} {c.activos === 1 ? "alumno" : "alumnos"}
+                      </p>
+                    </div>
+                    {verComunidad(c.id, "Ver asistencia")}
                   </div>
-                  <Link href={enlaceComunidad(c.id)} className={`${CLASE_ENLACE} shrink-0`}>
-                    Ver asistencia
-                  </Link>
-                </div>
-                <Barra
-                  etiqueta={cerrada ? `Misa de la semana ${cerrada.semana} en ${c.nombre}` : `Misa en ${c.nombre}`}
-                  valor={c.semana}
-                />
-                <p className="text-xs text-texto-suave">
-                  Ciclo: {c.ciclo !== null ? `${c.ciclo}%` : "—"} · Catequesis: {c.catequesis !== null ? `${c.catequesis}%` : "—"}
-                </p>
-                {c.porRevisar > 0 && (
-                  <p className="text-xs text-aviso">
-                    {c.porRevisar} {c.porRevisar === 1 ? "foto por revisar" : "fotos por revisar"}
-                    {c.esperandoDesde && `, la más antigua ${textoEspera(c.esperandoDesde, ahora)}`}
+                  <Barra
+                    etiqueta={cerrada ? `Misa de la semana ${cerrada.semana} en ${c.nombre}` : `Misa en ${c.nombre}`}
+                    valor={c.semana}
+                  />
+                  <p className="text-xs text-texto-suave">
+                    Ciclo: {c.ciclo !== null ? `${c.ciclo}%` : "—"} · Catequesis: {c.catequesis !== null ? `${c.catequesis}%` : "—"}
                   </p>
-                )}
-                {c.guias === 0 && <p className="text-xs text-error">Sin guía asignado</p>}
-              </li>
-            ))}
-          </ul>
-        )}
-      </Tarjeta>
+                  {c.porRevisar > 0 && (
+                    <p className="text-xs text-aviso">
+                      {c.porRevisar} {c.porRevisar === 1 ? "foto por revisar" : "fotos por revisar"}
+                      {c.esperandoDesde && `, la más antigua ${textoEspera(c.esperandoDesde, ahora)}`}
+                    </p>
+                  )}
+                  {c.guias === 0 && <p className="text-xs text-error">Sin guía asignado</p>}
+                </li>
+              ))}
+            </ul>
+          )}
+        </Tarjeta>
+      )}
 
       <Tarjeta
         titulo={avisos > 0 ? `Necesitan atención (${avisos})` : "Necesitan atención"}
-        descripcion={`Alumnos con ${FALTAS_PARA_ALERTA} o más faltas seguidas (las justificadas no cuentan) y lo que falta configurar.`}
+        descripcion={
+          esAdmin
+            ? `Alumnos con ${FALTAS_PARA_ALERTA} o más faltas seguidas (las justificadas no cuentan) y lo que falta configurar.`
+            : `Alumnos con ${FALTAS_PARA_ALERTA} o más faltas seguidas (las justificadas no cuentan). Conviene escribirles o hablar con su familia.`
+        }
       >
         {avisos === 0 ? (
-          <p className="text-sm text-exito">Todo en orden: nadie se está alejando y no falta configurar nada.</p>
+          <p className="text-sm text-exito">
+            {esAdmin ? "Todo en orden: nadie se está alejando y no falta configurar nada." : "Todo en orden: nadie se está alejando."}
+          </p>
         ) : (
           <ul className="divide-y divide-borde">
             {resumen.alejandose.map((a) => (
@@ -139,9 +174,7 @@ export function SeccionResumen() {
                   {a.nombre} <span className="text-texto-tenue">· {a.comunidad}</span>
                   <span className="block text-xs text-aviso">{a.faltas_seguidas} faltas seguidas</span>
                 </p>
-                <Link href={enlaceComunidad(a.comunidad_id)} className={`${CLASE_ENLACE} shrink-0`}>
-                  Ver
-                </Link>
+                {verComunidad(a.comunidad_id, "Ver")}
               </li>
             ))}
             {resumen.sinGuia.map((c) => (
