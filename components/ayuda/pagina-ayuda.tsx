@@ -155,8 +155,8 @@ export function PaginaAyuda() {
           <Pasos
             pasos={[
               <>
-                <strong className="text-texto print:text-black">Entra con tu Gmail</strong> (el que registró la pastoral) desde{" "}
-                «¿Eres guía, catequista o administrador?», en la pantalla del código.
+                <strong className="text-texto print:text-black">Entra con tu Gmail</strong> (el que registró la pastoral) o con{" "}
+                Pastoral Digital ID, desde «¿Eres guía, catequista o administrador?», en la pantalla del código.
               </>,
               <>
                 <strong className="text-texto print:text-black">Revisión:</strong> desliza la foto a la derecha para validarla y a la

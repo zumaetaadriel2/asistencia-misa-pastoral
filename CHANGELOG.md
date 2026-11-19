@@ -5,6 +5,16 @@ Todos los cambios importantes de Mi Misa PS (Asistencia Misa Pastoral) se anotan
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el proyecto usa
 [versionado semántico](https://semver.org/lang/es/).
 
+## [1.15.0] - 2026-11-18
+
+### Añadido
+
+- Botón «Entrar con Pastoral Digital ID» en el login del staff, además de Google. Solo entra quien tenga su correo registrado como staff de la pastoral.
+
+### Cambiado
+
+- La ayuda y la política de privacidad mencionan el inicio de sesión con Pastoral Digital ID.
+
 ## [1.14.0] - 2026-11-13
 
 ### Añadido
@@ -227,6 +237,7 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   - Administración: ciclo, comunidades, staff, alumnos y reportes;
   - cierre automático de semanas y respaldo semanal cifrado.
 
+[1.15.0]: https://github.com/zumaetaadriel2/asistencia-misa-pastoral/compare/v1.14.0...v1.15.0
 [1.14.0]: https://github.com/zumaetaadriel2/asistencia-misa-pastoral/compare/v1.13.0...v1.14.0
 [1.13.0]: https://github.com/zumaetaadriel2/asistencia-misa-pastoral/compare/v1.12.0...v1.13.0
 [1.12.0]: https://github.com/zumaetaadriel2/asistencia-misa-pastoral/compare/v1.11.0...v1.12.0

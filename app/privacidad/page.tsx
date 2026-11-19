@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 const CORREO = "pastoral@ps.edu.pe";
-const ACTUALIZADA = "11 de noviembre de 2026";
+const ACTUALIZADA = "18 de noviembre de 2026";
 
 function Seccion({ titulo, children }: { titulo: string; children: ReactNode }) {
   return (
@@ -74,7 +74,7 @@ export default function PrivacidadPage() {
           </li>
           <li>
             <strong className="text-texto">Del equipo de la pastoral</strong> (guías, catequistas y administradores):
-            su nombre, su correo de Google y qué hace en cada comunidad.
+            su nombre, su correo (el de Google o el de Pastoral Digital ID) y qué hace en cada comunidad.
           </li>
           <li>
             <strong className="text-texto">En «Misas cerca de ti»:</strong> nada. Si compartes tu ubicación, se usa solo
@@ -139,7 +139,7 @@ export default function PrivacidadPage() {
 
       <Seccion titulo="Otros servicios">
         <p>
-          El equipo de la pastoral inicia sesión con su cuenta de Google. El botón «Cómo llegar» abre Google Maps, que
+          El equipo de la pastoral inicia sesión con su cuenta de Google o con Pastoral Digital ID, la cuenta de la app de catequistas de la pastoral: de ella solo se recibe el nombre y el correo para comprobar que es del equipo. El botón «Cómo llegar» abre Google Maps, que
           tiene su propia política de privacidad. Los avisos llegan por el servicio de avisos de tu navegador (Google,
           Apple, Mozilla o Microsoft): van cifrados y no llevan tu nombre.
         </p>
