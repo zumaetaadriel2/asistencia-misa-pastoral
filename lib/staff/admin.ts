@@ -114,12 +114,7 @@ export async function listarStaff(): Promise<MiembroStaff[]> {
   }));
 }
 
-export async function crearStaff(miembro: { email: string; nombre: string; rol: RolStaff }): Promise<void> {
-  const { error } = await supabase
-    .from("staff")
-    .insert({ ...miembro, email: miembro.email.trim().toLowerCase(), nombre: miembro.nombre.trim() });
-  if (error) throw error;
-}
+// El alta no va aquí: solo desde la lista de Pastoral Digital (lib/staff/pastoral-digital.ts)
 
 export async function actualizarStaff(
   id: number,

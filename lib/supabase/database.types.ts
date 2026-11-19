@@ -303,14 +303,14 @@ isOneToOne: false
                   ]
                 },"staff": {
                   Row: {
-                    "activo": boolean,"creado_en": string,"email": string,"id": number,"nombre": string,"rol": Database["public"]['Enums']["rol_staff"]
+                    "activo": boolean,"creado_en": string,"email": string,"id": number,"nombre": string,"pastoral_id": string | null,"rol": Database["public"]['Enums']["rol_staff"]
                   }
                   ComputedFields: never
                   Insert: {
-                    "activo"?: boolean,"creado_en"?: string,"email": string,"id"?: never,"nombre": string,"rol"?: Database["public"]['Enums']["rol_staff"]
+                    "activo"?: boolean,"creado_en"?: string,"email": string,"id"?: never,"nombre": string,"pastoral_id"?: string | null,"rol"?: Database["public"]['Enums']["rol_staff"]
                   }
                   Update: {
-                    "activo"?: boolean,"creado_en"?: string,"email"?: string,"id"?: never,"nombre"?: string,"rol"?: Database["public"]['Enums']["rol_staff"]
+                    "activo"?: boolean,"creado_en"?: string,"email"?: string,"id"?: never,"nombre"?: string,"pastoral_id"?: string | null,"rol"?: Database["public"]['Enums']["rol_staff"]
                   }
                   Relationships: [
                     
@@ -455,6 +455,9 @@ isOneToOne: false
                            },
 "crear_sesion_catequesis":
 { Args: { "p_comunidad_id": number,"p_fecha"?: string,"p_titulo"?: string }; Returns: number
+                           },
+"dar_de_alta_staff":
+{ Args: { "p_email": string,"p_nombre": string,"p_pastoral_id": string,"p_rol": Database["public"]['Enums']["rol_staff"] }; Returns: Json
                            },
 "domingo_de_referencia":
 { Args: { "p_fecha": string }; Returns: string

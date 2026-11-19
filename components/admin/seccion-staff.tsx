@@ -5,7 +5,6 @@ import {
   actualizarStaff,
   asignarComunidad,
   comunidadesDelCicloActivo,
-  crearStaff,
   listarStaff,
   type Comunidad,
   type MiembroStaff,
@@ -14,8 +13,9 @@ import { coincide } from "@/lib/staff/busqueda";
 import type { FuncionComunidad } from "@/lib/staff/catequesis";
 import { mensajeDe } from "@/lib/staff/errores";
 import type { PerfilStaff, RolStaff } from "@/lib/staff/revision";
-import { Boton, Buscador, Campo, Cargando, claseInput, Mensaje, Tarjeta, type MensajeAdmin } from "@/components/ui/base";
+import { Boton, Buscador, Cargando, Mensaje, Tarjeta, type MensajeAdmin } from "@/components/ui/base";
 import { useConfirmar } from "@/components/ui/confirmar";
+import { ModalAltaPastoral } from "./modal-alta-pastoral";
 
 // Lo que hace en cada comunidad: el guía también pasa lista; el catequista solo eso
 const GRUPOS: { funcion: FuncionComunidad; titulo: string; elegida: string }[] = [
@@ -28,11 +28,6 @@ export function SeccionStaff({ perfil }: { perfil: PerfilStaff }) {
   const [comunidades, setComunidades] = useState<Comunidad[]>([]);
   const [recargas, setRecargas] = useState(0);
   const [mensaje, setMensaje] = useState<MensajeAdmin | null>(null);
-  const [nuevo, setNuevo] = useState<{ nombre: string; email: string; rol: RolStaff }>({
-    nombre: "",
-    email: "",
-    rol: "guia",
-  });
   const [agregando, setAgregando] = useState(false);
   const [busqueda, setBusqueda] = useState("");
   const { confirmar, dialogoConfirmar } = useConfirmar();
@@ -53,27 +48,9 @@ export function SeccionStaff({ perfil }: { perfil: PerfilStaff }) {
     };
   }, [recargas]);
 
-  const crear = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setAgregando(true);
-    try {
-      await crearStaff(nuevo);
-      setMensaje({
-        tipo: "ok",
-        texto:
-          `${nuevo.nombre.trim()} ya puede entrar con "Entrar con Google" usando ${nuevo.email.trim()}.` +
-          (nuevo.rol === "admin" ? "" : " Asígnale abajo sus comunidades."),
-      });
-      setNuevo({ nombre: "", email: "", rol: "guia" });
-      setRecargas((n) => n + 1);
-    } catch (error) {
-      setMensaje({
-        tipo: "error",
-        texto: mensajeDe(error, "No se pudo agregar.", { duplicado: "Ese correo ya está registrado." }),
-      });
-    } finally {
-      setAgregando(false);
-    }
+  const dadoDeAlta = (texto: string) => {
+    setMensaje({ tipo: "ok", texto });
+    setRecargas((n) => n + 1);
   };
 
   const cambiar = async (miembro: MiembroStaff, cambios: Partial<Pick<MiembroStaff, "rol" | "activo">>) => {
@@ -143,41 +120,9 @@ export function SeccionStaff({ perfil }: { perfil: PerfilStaff }) {
 
       <Tarjeta
         titulo="Agregar guía, catequista o administrador"
-        descripcion="Usa el correo de su cuenta de Google: con él entrará a la app. Solo los correos registrados aquí pueden entrar."
+        descripcion="Se elige de la lista de catequistas de Pastoral Digital y entra con su cuenta de Pastoral Digital ID. Solo puede entrar quien des de alta aquí."
       >
-        <form onSubmit={crear} className="grid gap-3 sm:grid-cols-[1fr_1fr_12rem_auto] sm:items-end">
-          <Campo etiqueta="Nombre">
-            <input
-              value={nuevo.nombre}
-              onChange={(e) => setNuevo({ ...nuevo, nombre: e.target.value })}
-              required
-              className={claseInput}
-            />
-          </Campo>
-          <Campo etiqueta="Correo de Google">
-            <input
-              type="email"
-              value={nuevo.email}
-              onChange={(e) => setNuevo({ ...nuevo, email: e.target.value })}
-              required
-              placeholder="correo@gmail.com"
-              className={claseInput}
-            />
-          </Campo>
-          <Campo etiqueta="Rol">
-            <select
-              value={nuevo.rol}
-              onChange={(e) => setNuevo({ ...nuevo, rol: e.target.value as RolStaff })}
-              className={`${claseInput} cursor-pointer`}
-            >
-              <option value="guia">Guía o catequista</option>
-              <option value="admin">Administrador</option>
-            </select>
-          </Campo>
-          <Boton type="submit" disabled={agregando}>
-            {agregando ? "Agregando…" : "Agregar"}
-          </Boton>
-        </form>
+        <Boton onClick={() => setAgregando(true)}>Agregar desde Pastoral Digital</Boton>
       </Tarjeta>
 
       <Tarjeta
@@ -269,6 +214,7 @@ export function SeccionStaff({ perfil }: { perfil: PerfilStaff }) {
         </ul>
       </Tarjeta>
 
+      {agregando && <ModalAltaPastoral onCerrar={() => setAgregando(false)} onDadoDeAlta={dadoDeAlta} />}
       {dialogoConfirmar}
     </div>
   );
