@@ -2,7 +2,7 @@
 -- Seed: pendientes de la semana 33 para TEST22 (San Pablo), TEST25 (Santa Rosa) y TEST28 (San José).
 begin;
 create extension if not exists pgtap with schema extensions;
-select plan(22);
+select plan(25);
 
 -- Foto anterior (semana 32) de TEST22, y su foto de la semana 33 marcada como parecida a esa
 insert into public.envios_foto (ciclo_id, alumno_id, semana_numero, foto_key, huella, confirmado)
@@ -105,13 +105,30 @@ update public.ajustes set permitir_login_correo = false;
 select is(
   public.hook_antes_de_crear_usuario('{"user": {"email": "guia.uno@ejemplo.com", "app_metadata": {"provider": "email"}}}')
     -> 'error' ->> 'message',
-  'Solo se puede entrar con una cuenta de Google.',
+  'Solo se puede entrar con Google o con Pastoral Digital ID.',
   'en producción se rechaza el correo y contraseña, aunque el correo sea de staff'
 );
 select is(
   public.hook_antes_de_crear_usuario('{"user": {"email": "guia.uno@ejemplo.com", "app_metadata": {"provider": "google"}}}'),
   '{}'::jsonb,
   'con Google y correo registrado sí entra'
+);
+select is(
+  public.hook_antes_de_crear_usuario('{"user": {"email": "guia.uno@ejemplo.com", "app_metadata": {"provider": "custom:pastoral-digital-id"}}}'),
+  '{}'::jsonb,
+  'con Pastoral Digital ID y correo registrado también entra'
+);
+select is(
+  public.hook_antes_de_crear_usuario('{"user": {"email": "no.es.staff@ejemplo.com", "app_metadata": {"provider": "custom:pastoral-digital-id"}}}')
+    -> 'error' ->> 'message',
+  'Tu correo no está registrado como staff de la pastoral. Pide al administrador que lo agregue.',
+  'con Pastoral Digital ID, un correo que no es de staff no entra'
+);
+select is(
+  public.hook_antes_de_crear_usuario('{"user": {"email": "guia.uno@ejemplo.com", "app_metadata": {"provider": "custom:otro-proveedor"}}}')
+    -> 'error' ->> 'message',
+  'Solo se puede entrar con Google o con Pastoral Digital ID.',
+  'otro proveedor personalizado se rechaza'
 );
 
 select * from finish();

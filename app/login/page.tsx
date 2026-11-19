@@ -5,18 +5,19 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
 import { GOOGLE_CLIENT_ID, mensajeLoginGoogle } from "@/lib/staff/google";
+import { PROVEEDOR_PASTORAL_DIGITAL } from "@/lib/staff/pastoral-digital";
 import { BotonGoogle } from "@/components/login/boton-google";
 import { EnlacesPie } from "@/components/pwa/enlaces-pie";
-import { LogoCompleto } from "@/components/ui/logo";
+import { LogoCompleto, LogoOvalo } from "@/components/ui/logo";
 
 /**
  * Solo para desarrollo local: el staff ficticio del seed entra con correo y contraseña.
  * En producción esta variable no existe y, además, el hook de Auth rechaza
- * cualquier proveedor que no sea Google.
+ * cualquier proveedor que no sea Google o Pastoral Digital ID.
  */
 const LOGIN_CON_CORREO = process.env.NEXT_PUBLIC_LOGIN_CON_CORREO === "true";
 
-/** Error que Supabase devuelve en la URL cuando el login con Google por redirección falla */
+/** Error que Supabase devuelve en la URL cuando un login por redirección (Google o Pastoral Digital ID) falla */
 function errorDeLaUrl(): string {
   const parametros = new URLSearchParams(
     `${window.location.search.slice(1)}&${window.location.hash.slice(1)}`
@@ -66,6 +67,20 @@ export default function LoginPage() {
     });
     if (errorAuth) {
       setError(errorAuth.message);
+      setCargando(false);
+    }
+  };
+
+  /** Pastoral Digital ID: redirección de Supabase al proveedor OIDC y vuelta a /login */
+  const entrarConPastoralDigital = async () => {
+    setCargando(true);
+    setError("");
+    const { error: errorAuth } = await supabase.auth.signInWithOAuth({
+      provider: PROVEEDOR_PASTORAL_DIGITAL,
+      options: { redirectTo: `${window.location.origin}/login` },
+    });
+    if (errorAuth) {
+      setError("No se pudo abrir Pastoral Digital ID. Vuelve a intentarlo o entra con Google.");
       setCargando(false);
     }
   };
@@ -146,6 +161,19 @@ export default function LoginPage() {
               </button>
             </>
           )}
+
+          <div className="my-4 flex items-center gap-3 text-xs text-texto-tenue" aria-hidden="true">
+            <span className="flex-1 h-px bg-borde" />o<span className="flex-1 h-px bg-borde" />
+          </div>
+          <button
+            onClick={entrarConPastoralDigital}
+            disabled={cargando}
+            className="w-full min-h-11 py-2.5 rounded-xl bg-superficie-2 hover:bg-superficie border border-borde disabled:opacity-40 text-texto text-sm font-semibold
+                       transition-all flex items-center justify-center gap-3"
+          >
+            <LogoOvalo className="h-6" />
+            Entrar con Pastoral Digital ID
+          </button>
 
           {LOGIN_CON_CORREO && (
             <form onSubmit={entrarConCorreo} className="mt-6 pt-6 border-t border-borde space-y-3">
