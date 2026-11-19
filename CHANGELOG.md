@@ -5,6 +5,28 @@ Todos los cambios importantes de Mi Misa PS (Asistencia Misa Pastoral) se anotan
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el proyecto usa
 [versionado semántico](https://semver.org/lang/es/).
 
+## [2.0.0] - 2026-11-19
+
+### Cambiado
+
+- El staff entra **solo con Pastoral Digital ID**. Ya no hay botón de Google.
+- Sin autoaprovisionamiento: solo puede entrar quien el administrador dio de alta antes.
+- Administración → Staff: «Agregar desde Pastoral Digital» muestra la lista de catequistas de Pastoral Digital (sin logística), con buscador, y da de alta a cada persona con el rol elegido. Quien ya estaba en el staff con el mismo correo queda vinculado, sin cambiar su rol.
+- La ayuda y la política de privacidad explican el nuevo inicio de sesión y qué se guarda al dar de alta.
+
+### Añadido
+
+- Función `catequistas-pastoral`, que consulta la API interna de Pastoral Digital desde el servidor (su token nunca llega al navegador).
+
+### Eliminado
+
+- El inicio de sesión con Google y la variable `NEXT_PUBLIC_GOOGLE_CLIENT_ID`.
+- Agregar staff escribiendo un correo a mano.
+
+### Seguridad
+
+- El administrador ya no puede insertar staff ni cambiar su correo directamente en la base: el alta solo pasa por la función, que comprueba que la persona esté en la lista de Pastoral Digital.
+
 ## [1.15.0] - 2026-11-18
 
 ### Añadido
@@ -237,6 +259,7 @@ El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y e
   - Administración: ciclo, comunidades, staff, alumnos y reportes;
   - cierre automático de semanas y respaldo semanal cifrado.
 
+[2.0.0]: https://github.com/zumaetaadriel2/asistencia-misa-pastoral/compare/v1.15.0...v2.0.0
 [1.15.0]: https://github.com/zumaetaadriel2/asistencia-misa-pastoral/compare/v1.14.0...v1.15.0
 [1.14.0]: https://github.com/zumaetaadriel2/asistencia-misa-pastoral/compare/v1.13.0...v1.14.0
 [1.13.0]: https://github.com/zumaetaadriel2/asistencia-misa-pastoral/compare/v1.12.0...v1.13.0

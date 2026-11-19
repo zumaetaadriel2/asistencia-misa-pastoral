@@ -1,4 +1,4 @@
--- Panel del staff: perfil, cola de revisión, resumen semanal y login solo con Google.
+-- Panel del staff: perfil, cola de revisión, resumen semanal y login solo con Pastoral Digital ID.
 -- Seed: pendientes de la semana 33 para TEST22 (San Pablo), TEST25 (Santa Rosa) y TEST28 (San José).
 begin;
 create extension if not exists pgtap with schema extensions;
@@ -105,29 +105,30 @@ update public.ajustes set permitir_login_correo = false;
 select is(
   public.hook_antes_de_crear_usuario('{"user": {"email": "guia.uno@ejemplo.com", "app_metadata": {"provider": "email"}}}')
     -> 'error' ->> 'message',
-  'Solo se puede entrar con Google o con Pastoral Digital ID.',
+  'Solo se puede entrar con Pastoral Digital ID.',
   'en producción se rechaza el correo y contraseña, aunque el correo sea de staff'
 );
 select is(
-  public.hook_antes_de_crear_usuario('{"user": {"email": "guia.uno@ejemplo.com", "app_metadata": {"provider": "google"}}}'),
-  '{}'::jsonb,
-  'con Google y correo registrado sí entra'
+  public.hook_antes_de_crear_usuario('{"user": {"email": "guia.uno@ejemplo.com", "app_metadata": {"provider": "google"}}}')
+    -> 'error' ->> 'message',
+  'Solo se puede entrar con Pastoral Digital ID.',
+  'con Google ya no se entra'
 );
 select is(
   public.hook_antes_de_crear_usuario('{"user": {"email": "guia.uno@ejemplo.com", "app_metadata": {"provider": "custom:pastoral-digital-id"}}}'),
   '{}'::jsonb,
-  'con Pastoral Digital ID y correo registrado también entra'
+  'con Pastoral Digital ID y dado de alta sí entra'
 );
 select is(
   public.hook_antes_de_crear_usuario('{"user": {"email": "no.es.staff@ejemplo.com", "app_metadata": {"provider": "custom:pastoral-digital-id"}}}')
     -> 'error' ->> 'message',
-  'Tu correo no está registrado como staff de la pastoral. Pide al administrador que lo agregue.',
-  'con Pastoral Digital ID, un correo que no es de staff no entra'
+  'Todavía no tienes acceso. Pide al administrador de la pastoral que te dé de alta.',
+  'con Pastoral Digital ID, quien no fue dado de alta no entra'
 );
 select is(
   public.hook_antes_de_crear_usuario('{"user": {"email": "guia.uno@ejemplo.com", "app_metadata": {"provider": "custom:otro-proveedor"}}}')
     -> 'error' ->> 'message',
-  'Solo se puede entrar con Google o con Pastoral Digital ID.',
+  'Solo se puede entrar con Pastoral Digital ID.',
   'otro proveedor personalizado se rechaza'
 );
 
