@@ -7,7 +7,7 @@ Las fotos son de menores de edad: se guardan en un almacenamiento privado, solo 
 ## Cómo funciona
 
 - **Alumnos** (`/alumno`): entran con un código personal de 6 caracteres (el celular lo recuerda), ven el estado de sus semanas y envían su foto del sábado 7:00 p. m. al lunes 11:59 p. m. Si se la rechazan, pueden reenviarla hasta el miércoles.
-- **Guías** (`/dashboard`, con su cuenta de Google): revisan las fotos de sus comunidades deslizando a la derecha (validar) o a la izquierda (rechazar con motivo), con avisos de fotos parecidas o tomadas antes del fin de semana. En "Mi comunidad" ven la asistencia semana a semana, justifican faltas, dan códigos nuevos e imprimen los códigos.
+- **Guías** (`/dashboard`, con su cuenta de Pastoral Digital ID): revisan las fotos de sus comunidades deslizando a la derecha (validar) o a la izquierda (rechazar con motivo), con avisos de fotos parecidas o tomadas antes del fin de semana. En "Mi comunidad" ven la asistencia semana a semana, justifican faltas, dan códigos nuevos e imprimen los códigos.
 - **Administradores**: además configuran el ciclo, las comunidades, el staff y los alumnos (pegando la lista desde Excel) y descargan reportes.
 - Cada jueves a las 00:05 la semana anterior se cierra sola y quien no envió foto queda con falta.
 
@@ -16,7 +16,7 @@ Las fotos son de menores de edad: se guardan en un almacenamiento privado, solo 
 | Pieza | Tecnología |
 |---|---|
 | Frontend | Next.js 16 (App Router) + React 19 + TypeScript + Tailwind CSS 4, desplegado en Vercel |
-| Base de datos y login | Supabase: Postgres con RLS, funciones RPC, pg_cron y Auth con Google |
+| Base de datos y login | Supabase: Postgres con RLS, funciones RPC, pg_cron y Auth con Pastoral Digital ID (OIDC) |
 | Fotos | Cloudflare R2 privado, con URLs firmadas que generan dos Edge Functions de Supabase |
 | Calidad | Vitest, tests pgTAP de la base y CI en GitHub Actions |
 | Operación | GitHub Actions: latido diario (evita la pausa del plan gratuito) y respaldo semanal cifrado en R2 |
@@ -86,10 +86,11 @@ Todas las cuentas van a nombre de la pastoral salvo GitHub y Vercel.
    npx supabase functions deploy subir-foto
    npx supabase functions deploy ver-fotos
    npx supabase functions deploy enviar-avisos
+   npx supabase functions deploy catequistas-pastoral
    ```
 
-3. **Auth** (panel de Supabase): proveedor Google con el cliente OAuth de Google Cloud, correo y contraseña desactivado, hook *Before User Created* → `public.hook_antes_de_crear_usuario`, y la URL de producción en *Site URL* y *Redirect URLs* (`…/login`).
-4. **Primer administrador** (SQL Editor): `insert into public.staff (email, nombre, rol) values ('correo@gmail.com', 'Nombre', 'admin');`. El resto del staff se agrega desde la app.
+3. **Auth** (panel de Supabase): proveedor OIDC propio `pastoral-digital-id` (Pastoral Digital ID; en esa app, la redirect URI es `https://<ref-del-proyecto>.supabase.co/auth/v1/callback`), Google y correo y contraseña desactivados, hook *Before User Created* → `public.hook_antes_de_crear_usuario`, y la URL de producción en *Site URL* y *Redirect URLs* (`…/login`).
+4. **Primer administrador** (SQL Editor): `insert into public.staff (email, nombre, rol) values ('correo-de-pastoral-digital@…', 'Nombre', 'admin');`, con el mismo correo de su cuenta de Pastoral Digital ID. El resto del staff se da de alta desde la app (Administración → Staff → «Agregar desde Pastoral Digital»), que necesita los secretos `PASTORAL_API_URL` y `PASTORAL_API_TOKEN` de la función `catequistas-pastoral`.
 5. **R2**: política CORS del bucket `asistencia-fotos` que permita `PUT` desde el dominio de producción.
 6. **Vercel**: importar el repositorio (rama de producción `main`) con `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` y `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, y agregar el subdominio (registros TXT y CNAME en el DNS del dominio).
 7. **Avisos push** (SQL Editor): guardar en Vault la dirección de la función y una clave secreta del proyecto (Settings → API Keys), que pg_cron usa para llamarla:
