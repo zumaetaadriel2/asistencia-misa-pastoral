@@ -9,6 +9,10 @@ on:
     - cron: "40 7 * * 2" # martes, 02:40 en Lima
   workflow_dispatch:
 
+# Solo lectura del código: ningún paso necesita escribir en el repositorio
+permissions:
+  contents: read
+
 jobs:
   respaldo:
     name: Volcar, cifrar y subir a R2

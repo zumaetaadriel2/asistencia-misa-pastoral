@@ -11,6 +11,7 @@ export const MENSAJES_ERROR: Record<ErrorIdentificacion | ErrorEnvio, string> = 
   codigo_invalido: "No encontramos ese código. Revísalo o pídeselo a tu guía.",
   demasiados_intentos:
     "Hubo demasiados intentos con códigos equivocados. Espera 15 minutos y vuelve a intentarlo.",
+  demasiados_envios: "Enviaste demasiadas fotos hoy. Vuelve a intentarlo mañana o avísale a tu guía.",
   sin_ciclo_activo: "La pastoral todavía no ha abierto el ciclo de este año.",
   fuera_de_ciclo: "El ciclo de la pastoral no está en curso esta semana.",
   formulario_cerrado: "El formulario ya está cerrado para esta semana.",

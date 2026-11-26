@@ -5,6 +5,16 @@ Todos los cambios importantes de Mi Misa PS (Asistencia Misa Pastoral) se anotan
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el proyecto usa
 [versionado semántico](https://semver.org/lang/es/).
 
+## [2.0.1] - 2026-11-26
+
+### Seguridad
+
+- Cabeceras de seguridad en todas las páginas: política de contenido (CSP) que solo deja cargar scripts de la propia app y conectarse a Supabase y R2, y que impide meter la app dentro de otra página; además `X-Content-Type-Options`, `Referrer-Policy` y `Permissions-Policy`.
+- La subida de fotos a R2 solo acepta un archivo del tamaño que declaró el celular, como máximo 1 MB (el tamaño va firmado en la URL).
+- Cada alumno puede preparar como máximo 20 envíos de foto en 24 horas. Si pasa el límite, ve «Enviaste demasiadas fotos hoy».
+- Next.js 16.4.6, que corrige avisos de seguridad de la 16.4.3.
+- Los workflows de GitHub corren solo con permiso de lectura del repositorio.
+
 ## [2.0.0] - 2026-11-19
 
 ### Cambiado

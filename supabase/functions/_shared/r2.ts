@@ -45,9 +45,13 @@ async function firmar(key: string, method: "GET" | "PUT", headers?: HeadersInit)
   return firmada.url;
 }
 
-/** URL para que el navegador suba la foto con PUT (Content-Type: image/jpeg) */
-export function urlFirmadaSubida(key: string): Promise<string> {
-  return firmar(key, "PUT", { "content-type": TIPO_FOTO });
+/**
+ * URL para que el navegador suba la foto con PUT (Content-Type: image/jpeg). También firma el
+ * Content-Length: R2 rechaza un archivo de otro tamaño, así nadie sube más de lo declarado
+ * (y lo declarado ya se comprobó que no pasa de TAMANO_MAXIMO_BYTES).
+ */
+export function urlFirmadaSubida(key: string, tamano: number): Promise<string> {
+  return firmar(key, "PUT", { "content-type": TIPO_FOTO, "content-length": String(tamano) });
 }
 
 /** URL para que el staff vea la foto */

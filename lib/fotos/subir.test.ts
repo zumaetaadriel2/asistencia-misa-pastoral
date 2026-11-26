@@ -62,6 +62,14 @@ describe("enviarFotoLista", () => {
     expect(resultado).toEqual({ ok: true, semana: 34, similar: false });
   });
 
+  it("declara el tamaño de la foto al preparar, porque va firmado en la URL de subida", async () => {
+    vi.stubGlobal("fetch", vi.fn(async () => exito()));
+
+    await enviarFotoLista("TEST22", foto);
+
+    expect(invoke.mock.calls[0][1].body).toMatchObject({ accion: "preparar", tamano: foto.blob.size });
+  });
+
   it("si se cae la señal al subir, reintenta solo la subida con la misma URL", async () => {
     const subir = vi.fn().mockRejectedValueOnce(new TypeError("sin red")).mockResolvedValue(exito());
     vi.stubGlobal("fetch", subir);
