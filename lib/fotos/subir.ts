@@ -13,6 +13,7 @@ import { procesarFoto, TIPO_FOTO } from "./procesar";
 export type ErrorEnvio =
   | "codigo_invalido"
   | "demasiados_intentos"
+  | "demasiados_envios"
   | "fuera_de_ciclo"
   | "formulario_cerrado"
   | "semana_cerrada"
@@ -153,6 +154,8 @@ export async function enviarFotoLista(codigo: string, foto: FotoLista, opciones:
         codigo,
         huella: foto.huella,
         fecha_exif: foto.fechaExif,
+        // Se firma en la URL de subida: R2 solo acepta un archivo de este tamaño
+        tamano: foto.blob.size,
       });
       if (!preparado.ok) return { ok: false, error: preparado.error, progreso: null };
       if (!preparado.url_subida || !preparado.envio_id || !preparado.semana) {

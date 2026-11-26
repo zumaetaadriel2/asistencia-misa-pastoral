@@ -2,7 +2,7 @@
 // subir-foto: el alumno (sin login) sube su foto en dos pasos
 // =============================================
 // 1. preparar:  valida código y horario (RPC preparar_envio) y devuelve una URL
-//               firmada para subir el JPEG directo a R2.
+//               firmada para subir el JPEG directo a R2, solo del tamaño declarado (≤ 1 MB).
 // 2. confirmar: comprueba en R2 que la foto existe y es válida, y registra la
 //               asistencia como pendiente (RPC confirmar_envio).
 
@@ -23,6 +23,7 @@ interface Solicitud {
   envio_id?: unknown;
   huella?: unknown;
   fecha_exif?: unknown;
+  tamano?: unknown;
 }
 
 function responder(cuerpo: Record<string, unknown>, status = 200): Response {
@@ -69,6 +70,12 @@ const manejador = withSupabase({ auth: "publishable", cors: "disabled" }, async 
 
   try {
     if (cuerpo.accion === "preparar") {
+      // El tamaño se firma en la URL: si no llega o pasa del máximo, ni se reserva el envío
+      const tamano = cuerpo.tamano;
+      if (typeof tamano !== "number" || !Number.isInteger(tamano) || tamano <= 0 || tamano > TAMANO_MAXIMO_BYTES) {
+        return responder({ ok: false, error: "foto_invalida" });
+      }
+
       const { data, error } = await ctx.supabaseAdmin.rpc("preparar_envio", {
         p_codigo: cuerpo.codigo,
         p_ip: ipCliente(req),
@@ -82,7 +89,7 @@ const manejador = withSupabase({ auth: "publishable", cors: "disabled" }, async 
         ok: true,
         envio_id: data.envio_id,
         semana: data.semana,
-        url_subida: await urlFirmadaSubida(data.foto_key),
+        url_subida: await urlFirmadaSubida(data.foto_key, tamano),
       });
     }
 
