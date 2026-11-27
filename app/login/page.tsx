@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase/client";
-import { PROVEEDOR_PASTORAL_DIGITAL } from "@/lib/staff/pastoral-digital";
+import { MENSAJES_LOGIN, mensajeDeErrorLogin, PROVEEDOR_PASTORAL_DIGITAL } from "@/lib/staff/pastoral-digital";
 import { EnlacesPie } from "@/components/pwa/enlaces-pie";
 import { LogoCompleto, LogoOvalo } from "@/components/ui/logo";
 
@@ -15,12 +15,11 @@ import { LogoCompleto, LogoOvalo } from "@/components/ui/logo";
  */
 const LOGIN_CON_CORREO = process.env.NEXT_PUBLIC_LOGIN_CON_CORREO === "true";
 
-/** Error que Supabase devuelve en la URL cuando el login con Pastoral Digital ID falla (p. ej. el hook) */
+/** Error con el que vuelve el login de Pastoral Digital ID (p. ej. el hook), como uno de nuestros mensajes */
 function errorDeLaUrl(): string {
-  const parametros = new URLSearchParams(
-    `${window.location.search.slice(1)}&${window.location.hash.slice(1)}`
+  return mensajeDeErrorLogin(
+    new URLSearchParams(`${window.location.search.slice(1)}&${window.location.hash.slice(1)}`)
   );
-  return parametros.get("error_description")?.replace(/\+/g, " ") ?? "";
 }
 
 export default function LoginPage() {
@@ -47,7 +46,7 @@ export default function LoginPage() {
       options: { redirectTo: `${window.location.origin}/login` },
     });
     if (errorAuth) {
-      setError("No se pudo abrir Pastoral Digital ID. Vuelve a intentarlo en unos minutos.");
+      setError(MENSAJES_LOGIN.fallo);
       setCargando(false);
     }
   };

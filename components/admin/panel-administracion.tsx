@@ -7,6 +7,7 @@ import { SeccionCiclo } from "./seccion-ciclo";
 import { SeccionComunidades } from "./seccion-comunidades";
 import { SeccionMisas } from "./seccion-misas";
 import { SeccionReportes } from "./seccion-reportes";
+import { AvisoIntentos } from "./alerta-intentos";
 import { SeccionResumen } from "./seccion-resumen";
 import { SeccionStaff } from "./seccion-staff";
 
@@ -68,7 +69,12 @@ export function PanelAdministracion({ perfil }: { perfil: PerfilStaff }) {
       </div>
 
       <div role="tabpanel" id={`seccion-${seccion}`} aria-labelledby={`pestana-${seccion}`}>
-        {seccion === "resumen" && <SeccionResumen />}
+        {seccion === "resumen" && (
+          <>
+            <AvisoIntentos />
+            <SeccionResumen />
+          </>
+        )}
         {seccion === "ciclo" && <SeccionCiclo />}
         {seccion === "comunidades" && <SeccionComunidades />}
         {seccion === "staff" && <SeccionStaff perfil={perfil} />}
