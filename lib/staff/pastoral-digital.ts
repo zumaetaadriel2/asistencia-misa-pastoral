@@ -12,6 +12,31 @@ import type { RolStaff } from "./revision";
 
 export const PROVEEDOR_PASTORAL_DIGITAL = "custom:pastoral-digital-id" as const;
 
+/** Mensajes del hook de Auth (hook_antes_de_crear_usuario), que Supabase devuelve en la URL */
+export const MENSAJES_LOGIN = {
+  sinAcceso: "Todavía no tienes acceso. Pide al administrador de la pastoral que te dé de alta.",
+  soloPastoral: "Solo se puede entrar con Pastoral Digital ID.",
+  fallo: "No se pudo entrar con Pastoral Digital ID. Vuelve a intentarlo en unos minutos.",
+} as const;
+
+const normalizar = (texto: string) =>
+  texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+
+/**
+ * Qué mostrar cuando el login vuelve con un error en la URL. Nunca se muestra el texto de la URL:
+ * cualquiera podría armar un enlace a /login con un mensaje falso («llama a este número…») y se
+ * vería en el dominio de la app. Solo se reconoce cuál de nuestros mensajes es.
+ */
+export function mensajeDeErrorLogin(parametros: URLSearchParams): string {
+  const error = parametros.get("error") ?? parametros.get("error_code");
+  const descripcion = parametros.get("error_description");
+  if (!error && !descripcion) return "";
+  const texto = normalizar(descripcion ?? "");
+  if (texto.includes(normalizar(MENSAJES_LOGIN.sinAcceso))) return MENSAJES_LOGIN.sinAcceso;
+  if (texto.includes(normalizar(MENSAJES_LOGIN.soloPastoral))) return MENSAJES_LOGIN.soloPastoral;
+  return MENSAJES_LOGIN.fallo;
+}
+
 /** Un catequista de Pastoral Digital que se puede dar de alta (los de logística ya vienen fuera) */
 export interface CatequistaPastoral {
   id: string;
