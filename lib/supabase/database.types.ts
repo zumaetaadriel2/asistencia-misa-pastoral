@@ -428,6 +428,9 @@ isOneToOne: false
 "activar_ciclo":
 { Args: { "p_ciclo_id": number }; Returns: undefined
                            },
+"alerta_intentos":
+{ Args: Record<PropertyKey, never>; Returns: Json
+                           },
 "avisos_para_enviar":
 { Args: { "p_tipo": string }; Returns: {
               "auth": string,"cuerpo": string,"endpoint": string,"p256dh": string,"suscripcion_id": number,"titulo": string,"url": string

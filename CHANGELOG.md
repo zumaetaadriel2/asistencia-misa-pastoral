@@ -5,6 +5,17 @@ Todos los cambios importantes de Mi Misa PS (Asistencia Misa Pastoral) se anotan
 El formato sigue [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/) y el proyecto usa
 [versionado semántico](https://semver.org/lang/es/).
 
+## [2.1.0] - 2026-11-27
+
+### Seguridad
+
+- Los códigos equivocados ya no pueden dejar a todos los alumnos sin enviar su foto: el bloqueo de 15 minutos sigue siendo por conexión (30 errores), y el bloqueo general solo se activa como freno de emergencia, con 20.000 intentos en 15 minutos (antes bastaban 3.000).
+- El inicio de sesión solo muestra mensajes propios de la app: un enlace a `/login` con un texto inventado ya no aparece en pantalla.
+
+### Añadido
+
+- Administración → Resumen avisa cuando hay muchos intentos con códigos equivocados en la última hora (desde 300) y si el freno de emergencia está bloqueando a todos.
+
 ## [2.0.1] - 2026-11-26
 
 ### Seguridad

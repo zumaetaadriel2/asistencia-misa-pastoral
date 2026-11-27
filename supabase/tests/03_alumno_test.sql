@@ -119,12 +119,12 @@ set local role anon;
 select is(public.identificar_alumno('TEST22') ->> 'error', 'demasiados_intentos', 'con 30 intentos fallidos la IP queda bloqueada 15 minutos');
 reset role;
 
--- Muchos fallos desde IPs distintas: al llegar a 3.000 en total se bloquea a todos
+-- Muchos fallos desde IPs distintas: 3.000 ya no bloquean a todos (solo el freno de 20.000, ver 15_alerta_intentos_test.sql)
 insert into public.intentos_codigo (ip)
 select '198.18.' || (n / 250) || '.' || (n % 250) from generate_series(1, 2970) n;
 select set_config('request.headers', '{"x-forwarded-for": "203.0.113.77"}', true);
 set local role anon;
-select is(public.identificar_alumno('TEST22') ->> 'error', 'demasiados_intentos', 'con 3.000 intentos fallidos en total se bloquea a todos');
+select is((public.identificar_alumno('TEST22') ->> 'ok')::boolean, true, 'con 3.000 intentos fallidos de otras IP el alumno igual entra');
 reset role;
 
 select * from finish();
